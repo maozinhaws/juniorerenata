@@ -5,11 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0f172a">
 <title>Chronicle AI — Diário Imutável & Zero-Knowledge</title>
-<link rel="manifest" href='data:application/manifest+json,{"name":"Chronicle AI","short_name":"Chronicle","start_url":".","display":"standalone","background_color":"%230f172a","theme_color":"%230f172a"}'>
+
+<!-- React 18 -->
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<!-- Babel -->
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<!-- Tailwind -->
 <script src="https://cdn.tailwindcss.com"></script>
+
 <style>
   body{background:#0b1120;color:#e2e8f0}
   .glass{background:rgba(30,41,59,.72);backdrop-filter:blur(12px);border:1px solid rgba(148,163,184,.14)}
@@ -21,153 +25,125 @@
 </style>
 </head>
 <body>
-<div id="root"></div>
 
-<script type="text/babel" data-presets="react">
+<div id="root">
+  <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;color:#818cf8;font-family:sans-serif;gap:10px">
+    ⏳ Carregando Chronicle AI…
+  </div>
+</div>
+<div id="boot-error" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#7f1d1d;color:#fecaca;padding:12px 16px;font-family:monospace;font-size:13px;z-index:999;white-space:pre-wrap"></div>
+
+<!-- Captura erros ANTES do React montar -->
+<script>
+window.addEventListener('error', function(e){
+  var el = document.getElementById('boot-error');
+  if(el){ el.style.display='block'; el.textContent='Erro de boot: ' + (e.message || e.error || 'desconhecido'); }
+});
+</script>
+
+<script type="text/babel">
 const {useState,useEffect,useRef,useMemo} = React;
 
-/* ============================================================
-   0. UTILITÁRIOS BASE
-============================================================ */
+/* ---------- 0. UTILITÁRIOS ---------- */
 function bufToB64(buf){const b=new Uint8Array(buf);let s='';for(let i=0;i<b.length;i+=0x8000)s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(s);}
 function b64ToBuf(b64){const bin=atob(b64);const b=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)b[i]=bin.charCodeAt(i);return b.buffer;}
-const todayStr=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
+const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
 const fmtDateTime=ts=>new Date(ts).toLocaleString('pt-BR',{dateStyle:'medium',timeStyle:'short'});
 const blobToB64=blob=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(blob);});
-async function sha256Hex(str){const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));return [...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,'0')).join('');}
+async function sha256Hex(str){const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));return Array.from(new Uint8Array(d)).map(b=>b.toString(16).padStart(2,'0')).join('');}
 
-/* Wordlist para Recovery Phrase (128 palavras, subset estilo BIP-39) */
-const WORDS=("alpha river stone memory harbor lantern velvet orbit meadow quartz ember willow cascade thunder "
-+"meadow silent anchor prism falcon summit whisper indigo copper silver raven cedar ocean mosaic ember "
-+"lunar solar maple crystal badger falcon garden horizon island jungle kernel lemon mango nectar olive "
-+"panda quill rabbit sable tiger umber violet winter xenon yarn zephyr amber blossom clover drift eagle "
-+"forest glacier hazel iris jasmine koala lotus marble noble opal pearl ridge shadow tundra unity voyage "
-+"walnut yonder zenith arbor beacon comet dune echo flare grove haven inlet jetty knoll lagoon mistle "
-+"nimbus oasis pines quarry reef shore tide upland vale wave crest drift").split(/\s+/).filter(Boolean);
+const WORDS=("alpha river stone memory harbor lantern velvet orbit meadow quartz ember willow cascade thunder "+
+"silent anchor prism falcon summit whisper indigo copper silver raven cedar ocean mosaic lunar solar maple crystal "+
+"badger garden horizon island jungle kernel lemon mango nectar olive panda quill rabbit sable tiger umber violet winter "+
+"yarn zephyr amber blossom clover drift eagle forest glacier hazel iris jasmine koala lotus marble noble opal pearl ridge "+
+"shadow tundra unity voyage walnut yonder zenith arbor beacon comet dune echo flare grove haven inlet jetty knoll lagoon reef shore tide").split(/\s+/).filter(Boolean);
 function genRecoveryPhrase(){const r=crypto.getRandomValues(new Uint8Array(12));return Array.from(r).map(x=>WORDS[x%WORDS.length]).join(' ');}
 
-/* ============================================================
-   1. CRIPTOGRAFIA — Web Crypto API (Envelope Encryption)
-   Senha Mestra -> PBKDF2 -> KEK -> embrulha DEK (AES-GCM 256)
-============================================================ */
+/* ---------- 1. CRIPTOGRAFIA ---------- */
 const LS={SALT:'ch_salt',DEK:'ch_dek_wrap',REC:'ch_rec_wrap',WA:'ch_wa',SETUP:'ch_setup'};
 const CRYPTO={
-  async pbkdf2(secret,saltB64,iters=150000){
+  async pbkdf2(secret,saltB64,iters){
+    iters=iters||150000;
     const salt=new Uint8Array(b64ToBuf(saltB64));
     const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(secret),'PBKDF2',false,['deriveKey']);
-    return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:iters,hash:'SHA-256'},km,
-      {name:'AES-GCM',length:256},false,['encrypt','decrypt','wrapKey','unwrapKey']);
+    return crypto.subtle.deriveKey({name:'PBKDF2',salt:salt,iterations:iters,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt','wrapKey','unwrapKey']);
   },
-  newDEK:()=>crypto.subtle.generateKey({name:'AES-GCM',length:256},true,['encrypt','decrypt']),
-  async wrap(dek,kek){const iv=crypto.getRandomValues(new Uint8Array(12));
-    const w=await crypto.subtle.wrapKey('raw',dek,kek,{name:'AES-GCM',iv});
-    return {iv:bufToB64(iv),data:bufToB64(w)};},
-  async unwrap(obj,kek){const iv=new Uint8Array(b64ToBuf(obj.iv));
-    return crypto.subtle.unwrapKey('raw',b64ToBuf(obj.data),kek,{name:'AES-GCM',iv},
-      {name:'AES-GCM',length:256},true,['encrypt','decrypt']);},
-  async encrypt(text,dek){const iv=crypto.getRandomValues(new Uint8Array(12));
-    const c=await crypto.subtle.encrypt({name:'AES-GCM',iv},dek,new TextEncoder().encode(text));
-    return bufToB64(iv)+'.'+bufToB64(c);},
-  async decrypt(str,dek){const[ivB,dB]=str.split('.');
-    const p=await crypto.subtle.decrypt({name:'AES-GCM',iv:new Uint8Array(b64ToBuf(ivB))},dek,b64ToBuf(dB));
-    return new TextDecoder().decode(p);},
-  recSalt:()=>bufToB64(new TextEncoder().encode('chronicle-recovery-v1'))
+  newDEK:function(){return crypto.subtle.generateKey({name:'AES-GCM',length:256},true,['encrypt','decrypt']);},
+  async wrap(dek,kek){const iv=crypto.getRandomValues(new Uint8Array(12));const w=await crypto.subtle.wrapKey('raw',dek,kek,{name:'AES-GCM',iv:iv});return {iv:bufToB64(iv),data:bufToB64(w)};},
+  async unwrap(obj,kek){const iv=new Uint8Array(b64ToBuf(obj.iv));return crypto.subtle.unwrapKey('raw',b64ToBuf(obj.data),kek,{name:'AES-GCM',iv:iv},{name:'AES-GCM',length:256},true,['encrypt','decrypt']);},
+  async encrypt(text,dek){const iv=crypto.getRandomValues(new Uint8Array(12));const c=await crypto.subtle.encrypt({name:'AES-GCM',iv:iv},dek,new TextEncoder().encode(text));return bufToB64(iv)+'.'+bufToB64(c);},
+  async decrypt(str,dek){const parts=str.split('.');const ivB=parts[0];const dB=parts[1];const p=await crypto.subtle.decrypt({name:'AES-GCM',iv:new Uint8Array(b64ToBuf(ivB))},dek,b64ToBuf(dB));return new TextDecoder().decode(p);},
+  recSalt:function(){return bufToB64(new TextEncoder().encode('chronicle-recovery-v1'));}
 };
 
-/* ============================================================
-   2. INDEXEDDB — Stores: entries + vault (config cifrada)
-============================================================ */
+/* ---------- 2. INDEXEDDB (corrigido) ---------- */
 const DB={
-  open:()=>new Promise((res,rej)=>{const r=indexedDB.open('chronicle-db',1);
-    r.onupgradeneeded=e=>{const d=e.target.result;
+  open:function(){return new Promise(function(res,rej){const r=indexedDB.open('chronicle-db',1);
+    r.onupgradeneeded=function(e){const d=e.target.result;
       if(!d.objectStoreNames.contains('entries'))d.createObjectStore('entries',{keyPath:'id'});
       if(!d.objectStoreNames.contains('vault'))d.createObjectStore('vault',{keyPath:'k'});};
-    r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}),
-  async put(store,val){const d=await this.open();return new Promise((res,rej)=>{const t=d.transaction(store,'readwrite');t.objectStore(store).put(val);t.oncomplete=()=>res();t.onerror=()=>rej(t.error);});},
-  async all(store){const d=await this.open();return new Promise((res,rej)=>{const q=d.transaction(store).objectStore(store).getAll();q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});},
-  async get(store,k){const d=await this.open();return new Promise((res,rej)=>{const q=d.transaction(store).objectStore(k?'NO':'NO');res();});}, // helper simplificado abaixo
-  async getVal(store,k){const d=await this.open();return new Promise((res,rej)=>{const q=d.transaction(store).objectStore(store).get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});}
+    r.onsuccess=function(){res(r.result);};r.onerror=function(){rej(r.error);};});},
+  put:function(store,val){return this.open().then(function(d){return new Promise(function(res,rej){const t=d.transaction(store,'readwrite');t.objectStore(store).put(val);t.oncomplete=function(){res();};t.onerror=function(){rej(t.error);};});});},
+  all:function(store){return this.open().then(function(d){return new Promise(function(res,rej){const q=d.transaction(store).objectStore(store).getAll();q.onsuccess=function(){res(q.result);};q.onerror=function(){rej(q.error);};});});},
+  getVal:function(store,k){return this.open().then(function(d){return new Promise(function(res,rej){const q=d.transaction(store).objectStore(store).get(k);q.onsuccess=function(){res(q.result);};q.onerror=function(){rej(q.error);};});});}
 };
 
-/* ============================================================
-   3. GEMINI API (BYOK) & GOOGLE DRIVE (GIS)
-============================================================ */
+/* ---------- 3. GEMINI & DRIVE ---------- */
 const GEMINI_MODEL='gemini-2.5-flash-preview-09-2025';
 async function callGemini(apiKey,parts){
-  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
-    {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts}]})});
-  if(!res.ok)throw new Error('Gemini HTTP '+res.status+': '+(await res.text()).slice(0,180));
+  const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+GEMINI_MODEL+':generateContent?key='+apiKey,
+    {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:parts}]})});
+  if(!res.ok)throw new Error('Gemini HTTP '+res.status);
   const d=await res.json();
-  return d.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('')||'';
+  const cand=d.candidates&&d.candidates[0];
+  if(!cand||!cand.content||!cand.content.parts)return '';
+  return cand.content.parts.map(function(p){return p.text||'';}).join('');
 }
-const transcribeAudio=async(apiKey,b64,mime)=>callGemini(apiKey,[
-  {text:"Transcreva este áudio com precisão absoluta. Retorne APENAS o texto falado."},
-  {inlineData:{mimeType:mime,data:b64}}]);
-
+function transcribeAudio(apiKey,b64,mime){
+  return callGemini(apiKey,[
+    {text:"Transcreva este áudio com precisão absoluta. Retorne APENAS o texto falado."},
+    {inlineData:{mimeType:mime,data:b64}}]);
+}
 let _gis=null;
-function loadGIS(){return _gis||(_gis=new Promise((res,rej)=>{const s=document.createElement('script');
-  s.src='https://accounts.google.com/gsi/client';s.onload=res;s.onerror=()=>rej(new Error('Falha ao carregar Google Identity Services'));document.head.appendChild(s);}));}
-async function driveToken(clientId){
-  await loadGIS();
-  return new Promise((res,rej)=>{
-    const tc=google.accounts.oauth2.initTokenClient({client_id:clientId,
-      scope:'https://www.googleapis.com/auth/drive.file',
-      callback:r=>r.access_token?res(r.access_token):rej(new Error('OAuth negado'))});
-    tc.requestAccessToken();});
-}
+function loadGIS(){if(_gis)return _gis;_gis=new Promise(function(res,rej){const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.onload=res;s.onerror=function(){rej(new Error('GIS falhou'));};document.head.appendChild(s);});return _gis;}
+async function driveToken(clientId){await loadGIS();return new Promise(function(res,rej){const tc=google.accounts.oauth2.initTokenClient({client_id:clientId,scope:'https://www.googleapis.com/auth/drive.file',callback:function(r){r.access_token?res(r.access_token):rej(new Error('OAuth negado'));}});tc.requestAccessToken();});}
 const DRIVE_FILE='chronicle-backup.enc';
-async function driveFind(token){
-  const r=await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE}'&spaces=drive`,{headers:{Authorization:'Bearer '+token}});
-  const d=await r.json();return d.files?.[0]?.id||null;}
+async function driveFind(token){const r=await fetch("https://www.googleapis.com/drive/v3/files?q=name='"+DRIVE_FILE+"'&spaces=drive",{headers:{Authorization:'Bearer '+token}});const d=await r.json();return (d.files&&d.files[0])?d.files[0].id:null;}
 async function driveUpload(token,payloadObj){
   const id=await driveFind(token);const body=JSON.stringify(payloadObj);
-  if(id){await fetch(`https://www.googleapis.com/upload/drive/v3/files/${id}?uploadType=media`,
-    {method:'PATCH',headers:{Authorization:'Bearer '+token,'Content-Type':'application/octet-stream'},body});return id;}
-  const b=new Blob([],{type:'multipart/related'});
+  if(id){await fetch('https://www.googleapis.com/upload/drive/v3/files/'+id+'?uploadType=media',{method:'PATCH',headers:{Authorization:'Bearer '+token,'Content-Type':'application/octet-stream'},body:body});return id;}
   const meta={name:DRIVE_FILE,mimeType:'application/octet-stream'};
   const boundary='chronicle'+Date.now();
-  const multipart=`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${boundary}\r\nContent-Type: application/octet-stream\r\n\r\n${body}\r\n--${boundary}--`;
-  const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
-    {method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':`multipart/related; boundary=${boundary}`},body:multipart});
-  if(!r.ok)throw new Error('Upload falhou: '+r.status);return (await r.json()).id;}
-async function driveDownload(token){const id=await driveFind(token);if(!id)return null;
-  const r=await fetch(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`,{headers:{Authorization:'Bearer '+token}});
-  return r.json();}
-async function driveDelete(token){const id=await driveFind(token);if(id)await fetch(`https://www.googleapis.com/drive/v3/files/${id}`,{method:'DELETE',headers:{Authorization:'Bearer '+token}});}
+  const multipart='--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(meta)+'\r\n--'+boundary+'\r\nContent-Type: application/octet-stream\r\n\r\n'+body+'\r\n--'+boundary+'--';
+  const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'multipart/related; boundary='+boundary},body:multipart});
+  if(!r.ok)throw new Error('Upload falhou: '+r.status);
+  const j=await r.json();return j.id;
+}
+async function driveDownload(token){const id=await driveFind(token);if(!id)return null;const r=await fetch('https://www.googleapis.com/drive/v3/files/'+id+'?alt=media',{headers:{Authorization:'Bearer '+token}});return r.json();}
+async function driveDelete(token){const id=await driveFind(token);if(id)await fetch('https://www.googleapis.com/drive/v3/files/'+id,{method:'DELETE',headers:{Authorization:'Bearer '+token}});}
 
-/* ============================================================
-   4. SERVICE WORKER — Injeção Dinâmica (PWA offline-first)
-   NOTA TÉCNICA: navegadores bloqueiam registro de SW a partir de
-   blob: URLs em produção. Tentamos o registro dinâmico e, se o
-   browser recusar, degradamos com aviso no painel (limitação
-   inerente a single-file; em prod, o GitHub Pages permitiria um
-   /sw.js dedicado — mantido aqui como best-effort).
-============================================================ */
-const SW_CODE=`const C='chronicle-v1';self.addEventListener('install',e=>self.skipWaiting());
-self.addEventListener('activate',e=>e.waitUntil(clients.claim()));
-self.addEventListener('fetch',e=>{e.respondWith(caches.open(C).then(async c=>{
-try{const r=await fetch(e.request);if(e.request.method==='GET'&&r.ok)c.put(e.request,r.clone());return r;}
-catch(_){return(await c.match(e.request))||Response.error();}}));});`;
+/* ---------- 4. SERVICE WORKER ---------- */
+const SW_CODE="const C='chronicle-v1';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{e.respondWith(caches.open(C).then(async c=>{try{const r=await fetch(e.request);if(e.request.method==='GET'&&r.ok)c.put(e.request,r.clone());return r;}catch(_){return(await c.match(e.request))||Response.error();}}));});";
 async function injectSW(){
   if(!('serviceWorker' in navigator))return false;
   try{await navigator.serviceWorker.register(URL.createObjectURL(new Blob([SW_CODE],{type:'text/javascript'})));return true;}
-  catch(e){console.warn('SW blob bloqueado pelo browser:',e);return false;}
+  catch(e){console.warn('SW blob bloqueado:',e);return false;}
 }
 
-/* ============================================================
-   5. ÍCONES (SVG inline — zero dependências)
-============================================================ */
-const I=({d,size=18,className=''})=>(
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    {d.split('|').map((p,i)=><path key={i} d={p}/>)}
-  </svg>);
+/* ---------- 5. ÍCONES SVG ---------- */
+function I(props){
+  const d=props.d;const size=props.size||18;const className=props.className||'';
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    {d.split('|').map(function(p,i){return <path key={i} d={p}/>;})}
+  </svg>;
+}
 const IC={
   shield:'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
   lock:'M5 11h14v10H5z|M7 11V7a5 5 0 0 1 10 0v4',
   mic:'M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z|M19 10v2a7 7 0 0 1-14 0v-2|M12 19v4|M8 23h8',
   stop:'M5 5h14v14H5z',
-  spark:'M12 3l1.9 5.7L19.5 10l-5.6 1.3L12 17l-1.9-5.7L4.5 10l5.6-1.3z|M19 17l.7 2.1L21.8 20l-2.1.7L19 22.8l-.7-2.1-2.1-.7 2.1-.9z',
-  gear:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z|M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+  spark:'M12 3l1.9 5.7L19.5 10l-5.6 1.3L12 17l-1.9-5.7L4.5 10l5.6-1.3z',
+  gear:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z|M19.4 15a1.7 1.7 0 0 0 .3 1.9 2 2 0 1 1-2.8 2.8 1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5 2 2 0 1 1-4 0 1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3 2 2 0 1 1-2.8-2.8 1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1 2 2 0 1 1 0-4 1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9 2 2 0 1 1 2.8-2.8 1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5 2 2 0 1 1 4 0 1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3 2 2 0 1 1 2.8 2.8 1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1 2 2 0 1 1 0 4 1.7 1.7 0 0 0-1.5 1z',
   trash:'M3 6h18|M8 6V4h8v2|M19 6l-1 14H6L5 6|M10 11v6|M14 11v6',
   key:'M21 2l-2 2m-7.6 7.6a5.5 5.5 0 1 1-7.8 7.8 5.5 5.5 0 0 1 7.8-7.8zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4',
   cloud:'M17.5 19a4.5 4.5 0 1 0-.4-9A7 7 0 1 0 4 14.9',
@@ -176,30 +152,53 @@ const IC={
   right:'M9 18l6-6-6-6',
   left:'M15 18l-6-6 6-6',
   alert:'M12 9v4|M12 17h.01|M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z',
-  finger:'M12 11v4|M8 11v5|M16 11v3|M6 8a6 6 0 0 1 12 0v4|M4 13a8 8 0 0 1 2-5.3|M20 13a8 8 0 0 0-2-5.3',
+  finger:'M12 11v4|M8 11v5|M16 11v3|M6 8a6 6 0 0 1 12 0v4',
   pen:'M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z'
 };
 
-/* ============================================================
-   6. COMPONENTES DE UI BASE
-============================================================ */
-const Btn=({children,onClick,variant='primary',disabled,className='',title})=>{
+/* ---------- 6. UI BASE ---------- */
+function Btn(props){
+  const variant=props.variant||'primary';
   const V={primary:'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-900/40',
     ghost:'bg-slate-700/50 hover:bg-slate-600/60 text-slate-200 border border-slate-600/50',
     danger:'bg-red-600/90 hover:bg-red-500 text-white',
     subtle:'text-slate-300 hover:text-white hover:bg-slate-700/40'};
-  return <button title={title} disabled={disabled} onClick={onClick}
-    className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center gap-2 justify-center disabled:opacity-40 disabled:cursor-not-allowed ${V[variant]} ${className}`}>{children}</button>;};
-const Input=props=><input {...props} className={`w-full bg-slate-900/70 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 outline-none rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 transition ${props.className||''}`}/>;
-const StepDots=({n,total})=><div className="flex gap-2 justify-center mb-6">{Array.from({length:total}).map((_,i)=><div key={i} className={`h-1.5 rounded-full transition-all ${i<=n?'bg-indigo-500 w-8':'bg-slate-700 w-4'}`}/>)}</div>;
+  return <button title={props.title} disabled={props.disabled} onClick={props.onClick}
+    className={'px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center gap-2 justify-center disabled:opacity-40 disabled:cursor-not-allowed '+V[variant]+' '+(props.className||'')}>{props.children}</button>;
+}
+function Input(props){
+  const cls=props.className||'';
+  const rest=Object.assign({},props);delete rest.className;
+  return <input {...rest} className={'w-full bg-slate-900/70 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 outline-none rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 transition '+cls}/>;
+}
+function StepDots(props){
+  return <div className="flex gap-2 justify-center mb-6">{Array.from({length:props.total}).map(function(_,i){return <div key={i} className={'h-1.5 rounded-full transition-all '+(i<=props.n?'bg-indigo-500 w-8':'bg-slate-700 w-4')}/>;})}</div>;
+}
+function Toast(props){
+  if(!props.toast)return null;
+  const t=props.toast;
+  const c=t.t==='err'?'border-red-500/50 text-red-300':(t.t==='ok'?'border-emerald-500/50 text-emerald-300':'text-slate-200');
+  return <div className={'fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl text-sm font-medium shadow-2xl fadein glass '+c}>{t.msg}</div>;
+}
 
-function Toast({toast}){if(!toast)return null;
-  return <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl text-sm font-medium shadow-2xl fadein glass ${toast.t==='err'?'border-red-500/50 text-red-300':toast.t==='ok'?'border-emerald-500/50 text-emerald-300':'text-slate-200'}`}>{toast.msg}</div>;}
+/* ---------- 7. ERROR BOUNDARY ---------- */
+class ErrorBoundary extends React.Component{
+  constructor(p){super(p);this.state={err:null};}
+  static getDerivedStateFromError(err){return {err:err};}
+  render(){
+    if(this.state.err){
+      return <div style={{padding:24,color:'#fca5a5',fontFamily:'monospace',maxWidth:700,margin:'40px auto'}}>
+        <h2 style={{fontSize:18,fontWeight:'bold',marginBottom:12}}>⚠ Erro no Chronicle AI</h2>
+        <pre style={{whiteSpace:'pre-wrap',fontSize:12,lineHeight:1.5}}>{String(this.state.err)}{'\n'}{(this.state.err&&this.state.err.stack)?this.state.err.stack:''}</pre>
+      </div>;
+    }
+    return this.props.children;
+  }
+}
 
-/* ============================================================
-   7. SETUP WIZARD — Onboarding BYOK (4 passos)
-============================================================ */
-function SetupWizard({onDone,notify}){
+/* ---------- 8. SETUP WIZARD ---------- */
+function SetupWizard(props){
+  const onDone=props.onDone;const notify=props.notify;
   const [step,setStep]=useState(0);
   const [geminiKey,setGeminiKey]=useState('');
   const [clientId,setClientId]=useState('');
@@ -220,21 +219,15 @@ function SetupWizard({onDone,notify}){
       localStorage.setItem(LS.SALT,saltB64);
       localStorage.setItem(LS.DEK,JSON.stringify(await CRYPTO.wrap(dek,kek)));
       localStorage.setItem(LS.REC,JSON.stringify(await CRYPTO.wrap(dek,rkek)));
-      // Cofre de configurações (BYOK) cifrado com a DEK
-      await DB.put('vault',{k:'config',data:await CRYPTO.encrypt(JSON.stringify({geminiKey,clientId}),dek)});
+      await DB.put('vault',{k:'config',data:await CRYPTO.encrypt(JSON.stringify({geminiKey:geminiKey,clientId:clientId}),dek)});
       if(useBio){
         try{
-          const cred=await navigator.credentials.create({publicKey:{
-            challenge:crypto.getRandomValues(new Uint8Array(32)),
-            rp:{name:'Chronicle AI'},
-            user:{id:crypto.getRandomValues(new Uint8Array(16)),name:'guardiao',displayName:'Guardião do Chronicle'},
-            pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
-            authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required'},timeout:60000}});
+          const cred=await navigator.credentials.create({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),rp:{name:'Chronicle AI'},user:{id:crypto.getRandomValues(new Uint8Array(16)),name:'guardiao',displayName:'Guardião'},pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required'},timeout:60000}});
           localStorage.setItem(LS.WA,bufToB64(cred.rawId));
-        }catch(e){notify('Biometria indisponível neste dispositivo — seguindo sem ela.','err');}
+        }catch(e){notify('Biometria indisponível — seguindo sem ela.','err');}
       }
       localStorage.setItem(LS.SETUP,'1');
-      onDone(dek,{geminiKey,clientId});
+      onDone(dek,{geminiKey:geminiKey,clientId:clientId});
     }catch(e){notify('Erro ao criar o cofre: '+e.message,'err');}
     setBusy(false);
   }
@@ -247,68 +240,79 @@ function SetupWizard({onDone,notify}){
       </div>
       <StepDots n={step} total={4}/>
 
-      {step===0&&<>
-        <h2 className="text-2xl font-bold mb-3 text-center">Bem-vindo ao seu cofre de memórias</h2>
-        <div className="space-y-3 text-sm text-slate-300 leading-relaxed">
-          <p className="flex gap-2"><I d={IC.lock} className="text-indigo-400 shrink-0 mt-0.5"/>O Chronicle é <b>100% privado</b>: tudo é criptografado <i>no seu navegador</i> (AES-GCM 256-bit). Nem nós, nem ninguém, lemos seus textos.</p>
-          <p className="flex gap-2"><I d={IC.book} className="text-indigo-400 shrink-0 mt-0.5"/>Ele é <b>imutável</b>: o passado não pode ser apagado nem reescrito — um antídoto contra o autoengano. Correções existem, mas nunca ocultam o original.</p>
-          <p className="flex gap-2"><I d={IC.key} className="text-indigo-400 shrink-0 mt-0.5"/>Como não temos servidor, <b>você traz suas próprias chaves</b> (BYOK). Vamos configurá-las nos próximos passos.</p>
-        </div>
-        <Btn className="w-full mt-8" onClick={()=>setStep(1)}>Começar configuração <I d={IC.right}/></Btn>
-      </>}
-
-      {step===1&&<>
-        <h2 className="text-xl font-bold mb-2">Passo 2 · O Cérebro (Gemini API)</h2>
-        <p className="text-sm text-slate-400 mb-4 leading-relaxed">Acesse o <a className="text-indigo-400 underline" target="_blank" href="https://aistudio.google.com">Google AI Studio (aistudio.google.com)</a>, crie um projeto e gere uma <b>API Key gratuita</b>. Cole abaixo. Ela será criptografada no seu cofre — nunca fica em código ou servidor.</p>
-        <Input type="password" placeholder="AIza..." value={geminiKey} onChange={e=>setGeminiKey(e.target.value)}/>
-        <p className="text-xs text-slate-500 mt-2">Usada para transcrever áudios e gerar resumos do diário.</p>
-        <div className="flex gap-3 mt-6">
-          <Btn variant="ghost" onClick={()=>setStep(0)}><I d={IC.left}/> Voltar</Btn>
-          <Btn className="flex-1" onClick={()=>setStep(2)}>Continuar <I d={IC.right}/></Btn>
-        </div>
-      </>}
-
-      {step===2&&<>
-        <h2 className="text-xl font-bold mb-2">Passo 3 · O Backup Segredo (Google Drive)</h2>
-        <p className="text-sm text-slate-400 mb-4 leading-relaxed">Vá ao <a className="text-indigo-400 underline" target="_blank" href="https://console.cloud.google.com">Google Cloud Console</a>, ative a <b>Google Drive API</b> e crie uma <b>Credencial OAuth (Web App)</b>. Adicione a URL deste site nas <i>origens autorizadas</i> e cole o <b>Client ID</b> aqui.</p>
-        <Input placeholder="xxxx.apps.googleusercontent.com" value={clientId} onChange={e=>setClientId(e.target.value)}/>
-        <p className="text-xs text-slate-500 mt-2">O backup sobe <b>já criptografado</b> — nem o Google lê o conteúdo.</p>
-        <div className="flex gap-3 mt-6">
-          <Btn variant="ghost" onClick={()=>setStep(1)}><I d={IC.left}/> Voltar</Btn>
-          <Btn className="flex-1" onClick={()=>setStep(3)}>Continuar <I d={IC.right}/></Btn>
-        </div>
-      </>}
-
-      {step===3&&<>
-        <h2 className="text-xl font-bold mb-3">Passo 4 · Segurança Máxima (Cofre)</h2>
-        {!phrase&&<>
-          <label className="text-xs text-slate-400">Senha Mestra (nunca sai do seu navegador)</label>
-          <Input type="password" placeholder="Mínimo 8 caracteres" value={pass} onChange={e=>setPass(e.target.value)} className="mt-1 mb-3"/>
-          <Input type="password" placeholder="Confirme a senha" value={pass2} onChange={e=>setPass2(e.target.value)} className="mb-4"/>
-          <Btn variant="ghost" className="w-full" onClick={()=>setPhrase(genRecoveryPhrase())}><I d={IC.key}/> Gerar Chave de Recuperação</Btn>
-        </>}
-        {phrase&&<>
-          <p className="text-xs text-amber-400 mb-2 flex gap-2 items-center"><I d={IC.alert} size={14}/> Salve estas 12 palavras <b>offline</b> (papel). Elas são a ÚNICA forma de recuperar seu diário se esquecer a senha.</p>
-          <div className="grid grid-cols-3 gap-2 mb-4">{phrase.split(' ').map((w,i)=><div key={i} className="bg-slate-900 border border-slate-700 rounded-lg py-1.5 text-center text-xs font-mono text-indigo-300">{i+1}. {w}</div>)}</div>
-          <label className="flex items-center gap-2 text-sm text-slate-300 mb-2 cursor-pointer">
-            <input type="checkbox" checked={saved} onChange={e=>setSaved(e.target.checked)} className="accent-indigo-500 w-4 h-4"/>Salvei minha Recovery Phrase em local seguro e offline.</label>
-          <label className="flex items-center gap-2 text-sm text-slate-300 mb-4 cursor-pointer">
-            <input type="checkbox" checked={useBio} onChange={e=>setUseBio(e.target.checked)} className="accent-indigo-500 w-4 h-4"/>
-            <I d={IC.finger} size={15} className="text-indigo-400"/>Ativar biometria (WebAuthn) como confirmação de desbloqueio.</label>
-          <div className="flex gap-3">
-            <Btn variant="ghost" onClick={()=>setStep(2)}><I d={IC.left}/> Voltar</Btn>
-            <Btn className="flex-1" disabled={busy} onClick={finish}>{busy?'Selando cofre…':<>Selar Cofre <I d={IC.check}/></>}</Btn>
+      {step===0&&(
+        <div>
+          <h2 className="text-2xl font-bold mb-3 text-center">Bem-vindo ao seu cofre de memórias</h2>
+          <div className="space-y-3 text-sm text-slate-300 leading-relaxed">
+            <p className="flex gap-2"><I d={IC.lock} className="text-indigo-400 shrink-0 mt-0.5"/>O Chronicle é <b>100% privado</b>: tudo é criptografado no seu navegador (AES-GCM 256-bit).</p>
+            <p className="flex gap-2"><I d={IC.book} className="text-indigo-400 shrink-0 mt-0.5"/>Ele é <b>imutável</b>: o passado não pode ser apagado — um antídoto contra o autoengano.</p>
+            <p className="flex gap-2"><I d={IC.key} className="text-indigo-400 shrink-0 mt-0.5"/>Você traz suas próprias chaves (BYOK). Vamos configurá-las agora.</p>
           </div>
-        </>}
-      </>}
+          <Btn className="w-full mt-8" onClick={function(){setStep(1);}}>Começar configuração <I d={IC.right}/></Btn>
+        </div>
+      )}
+
+      {step===1&&(
+        <div>
+          <h2 className="text-xl font-bold mb-2">Passo 2 · O Cérebro (Gemini API)</h2>
+          <p className="text-sm text-slate-400 mb-4 leading-relaxed">Acesse o <a className="text-indigo-400 underline" target="_blank" href="https://aistudio.google.com">Google AI Studio (aistudio.google.com)</a>, crie um projeto e gere uma <b>API Key gratuita</b>. Cole abaixo.</p>
+          <Input type="password" placeholder="AIza..." value={geminiKey} onChange={function(e){setGeminiKey(e.target.value);}}/>
+          <p className="text-xs text-slate-500 mt-2">Usada para transcrever áudios e gerar resumos.</p>
+          <div className="flex gap-3 mt-6">
+            <Btn variant="ghost" onClick={function(){setStep(0);}}><I d={IC.left}/> Voltar</Btn>
+            <Btn className="flex-1" onClick={function(){setStep(2);}}>Continuar <I d={IC.right}/></Btn>
+          </div>
+        </div>
+      )}
+
+      {step===2&&(
+        <div>
+          <h2 className="text-xl font-bold mb-2">Passo 3 · Backup Segredo (Google Drive)</h2>
+          <p className="text-sm text-slate-400 mb-4 leading-relaxed">Vá ao <a className="text-indigo-400 underline" target="_blank" href="https://console.cloud.google.com">Google Cloud Console</a>, ative a <b>Google Drive API</b> e crie uma <b>Credencial OAuth (Web App)</b>. Adicione a URL deste site nas origens autorizadas e cole o Client ID aqui.</p>
+          <Input placeholder="xxxx.apps.googleusercontent.com" value={clientId} onChange={function(e){setClientId(e.target.value);}}/>
+          <p className="text-xs text-slate-500 mt-2">O backup sobe já criptografado — nem o Google lê.</p>
+          <div className="flex gap-3 mt-6">
+            <Btn variant="ghost" onClick={function(){setStep(1);}}><I d={IC.left}/> Voltar</Btn>
+            <Btn className="flex-1" onClick={function(){setStep(3);}}>Continuar <I d={IC.right}/></Btn>
+          </div>
+        </div>
+      )}
+
+      {step===3&&(
+        <div>
+          <h2 className="text-xl font-bold mb-3">Passo 4 · Segurança Máxima (Cofre)</h2>
+          {!phrase&&(
+            <div>
+              <label className="text-xs text-slate-400">Senha Mestra</label>
+              <Input type="password" placeholder="Mínimo 8 caracteres" value={pass} onChange={function(e){setPass(e.target.value);}} className="mt-1 mb-3"/>
+              <Input type="password" placeholder="Confirme a senha" value={pass2} onChange={function(e){setPass2(e.target.value);}} className="mb-4"/>
+              <Btn variant="ghost" className="w-full" onClick={function(){setPhrase(genRecoveryPhrase());}}><I d={IC.key}/> Gerar Chave de Recuperação</Btn>
+            </div>
+          )}
+          {phrase&&(
+            <div>
+              <p className="text-xs text-amber-400 mb-2 flex gap-2 items-center"><I d={IC.alert} size={14}/> Salve estas 12 palavras offline. Elas são a ÚNICA forma de recuperar seu diário.</p>
+              <div className="grid grid-cols-3 gap-2 mb-4">{phrase.split(' ').map(function(w,i){return <div key={i} className="bg-slate-900 border border-slate-700 rounded-lg py-1.5 text-center text-xs font-mono text-indigo-300">{i+1}. {w}</div>;})}</div>
+              <label className="flex items-center gap-2 text-sm text-slate-300 mb-2 cursor-pointer">
+                <input type="checkbox" checked={saved} onChange={function(e){setSaved(e.target.checked);}} className="accent-indigo-500 w-4 h-4"/>Salvei minha Recovery Phrase offline.</label>
+              <label className="flex items-center gap-2 text-sm text-slate-300 mb-4 cursor-pointer">
+                <input type="checkbox" checked={useBio} onChange={function(e){setUseBio(e.target.checked);}} className="accent-indigo-500 w-4 h-4"/>
+                <I d={IC.finger} size={15} className="text-indigo-400"/>Ativar biometria (WebAuthn).</label>
+              <div className="flex gap-3">
+                <Btn variant="ghost" onClick={function(){setStep(2);}}><I d={IC.left}/> Voltar</Btn>
+                <Btn className="flex-1" disabled={busy} onClick={finish}>{busy?'Selando cofre…':'Selar Cofre'} <I d={IC.check}/></Btn>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   </div>);
 }
 
-/* ============================================================
-   8. TELA DE DESBLOQUEIO (senha + biometria + recuperação)
-============================================================ */
-function Unlock({notify,onUnlock}){
+/* ---------- 9. UNLOCK ---------- */
+function Unlock(props){
+  const notify=props.notify;const onUnlock=props.onUnlock;
   const [pass,setPass]=useState('');const [mode,setMode]=useState('pass');
   const [recIn,setRecIn]=useState('');const [newPass,setNewPass]=useState('');
   const [busy,setBusy]=useState(false);
@@ -336,12 +340,11 @@ function Unlock({notify,onUnlock}){
       const rkek=await CRYPTO.pbkdf2(recIn.trim().toLowerCase(),CRYPTO.recSalt(),100000);
       const dek=await CRYPTO.unwrap(JSON.parse(localStorage.getItem(LS.REC)),rkek);
       if(newPass.length<8)throw new Error('Nova senha muito curta (mín. 8).');
-      // Re-embrulha a DEK com a nova senha (mesma salt)
       const kek=await CRYPTO.pbkdf2(newPass,localStorage.getItem(LS.SALT));
       localStorage.setItem(LS.DEK,JSON.stringify(await CRYPTO.wrap(dek,kek)));
       const cfgRaw=await DB.getVal('vault','config');
       const cfg=cfgRaw?JSON.parse(await CRYPTO.decrypt(cfgRaw.data,dek)):{geminiKey:'',clientId:''};
-      notify('Cofre recuperado com sucesso!','ok');onUnlock(dek,cfg);
+      notify('Cofre recuperado!','ok');onUnlock(dek,cfg);
     }catch(e){notify('Recuperação falhou: '+e.message,'err');}
     setBusy(false);
   }
@@ -351,102 +354,106 @@ function Unlock({notify,onUnlock}){
       <div className="mx-auto w-16 h-16 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-4"><I d={IC.shield} size={30}/></div>
       <h1 className="text-xl font-bold mb-1">Chronicle AI</h1>
       <p className="text-xs text-slate-500 mb-6">Seu diário está selado. Insira a Senha Mestra.</p>
-      {mode==='pass'&&<>
-        <Input type="password" placeholder="Senha Mestra" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==='Enter'&&unlock()} className="mb-3 text-center"/>
-        <Btn className="w-full" disabled={busy||!pass} onClick={unlock}><I d={IC.lock}/> {busy?'Descriptografando…':'Desbloquear'}</Btn>
-        <button className="text-xs text-slate-500 hover:text-indigo-400 mt-4" onClick={()=>setMode('rec')}>Esqueci minha senha — usar Recovery Phrase</button>
-      </>}
-      {mode==='rec'&&<>
-        <Input placeholder="Cole suas 12 palavras" value={recIn} onChange={e=>setRecIn(e.target.value)} className="mb-2 text-center font-mono text-xs"/>
-        <Input type="password" placeholder="Defina uma NOVA senha mestra" value={newPass} onChange={e=>setNewPass(e.target.value)} className="mb-3 text-center"/>
-        <Btn className="w-full" disabled={busy||!recIn||!newPass} onClick={recover}><I d={IC.key}/> Recuperar Cofre</Btn>
-        <button className="text-xs text-slate-500 hover:text-indigo-400 mt-4" onClick={()=>setMode('pass')}>Voltar</button>
-      </>}
+      {mode==='pass'&&(
+        <div>
+          <Input type="password" placeholder="Senha Mestra" value={pass} onChange={function(e){setPass(e.target.value);}} onKeyDown={function(e){if(e.key==='Enter')unlock();}} className="mb-3 text-center"/>
+          <Btn className="w-full" disabled={busy||!pass} onClick={unlock}><I d={IC.lock}/> {busy?'Descriptografando…':'Desbloquear'}</Btn>
+          <button className="text-xs text-slate-500 hover:text-indigo-400 mt-4" onClick={function(){setMode('rec');}}>Esqueci minha senha — usar Recovery Phrase</button>
+        </div>
+      )}
+      {mode==='rec'&&(
+        <div>
+          <Input placeholder="Cole suas 12 palavras" value={recIn} onChange={function(e){setRecIn(e.target.value);}} className="mb-2 text-center font-mono text-xs"/>
+          <Input type="password" placeholder="Defina uma NOVA senha mestra" value={newPass} onChange={function(e){setNewPass(e.target.value);}} className="mb-3 text-center"/>
+          <Btn className="w-full" disabled={busy||!recIn||!newPass} onClick={recover}><I d={IC.key}/> Recuperar Cofre</Btn>
+          <button className="text-xs text-slate-500 hover:text-indigo-400 mt-4" onClick={function(){setMode('pass');}}>Voltar</button>
+        </div>
+      )}
     </div>
   </div>);
 }
 
-/* ============================================================
-   9. ENTRY — Renderização imutável + Correções (tooltip)
-============================================================ */
-function EntryCard({entry,onCorrect,highlight}){
+/* ---------- 10. ENTRY CARD ---------- */
+function EntryCard(props){
+  const entry=props.entry;const onCorrect=props.onCorrect;const highlight=props.highlight;
   const bodyRef=useRef(null);
   const [sel,setSel]=useState(null);
   const [corrText,setCorrText]=useState('');
   const [showForm,setShowForm]=useState(false);
 
-  // Segmenta rawText aplicando correções (rawText NUNCA é alterado)
-  const segments=useMemo(()=>{
-    const cs=[...entry.corrections].sort((a,b)=>a.start-b.start);
+  const segments=useMemo(function(){
+    const cs=entry.corrections.slice().sort(function(a,b){return a.start-b.start;});
     const out=[];let pos=0;
-    for(const c of cs){if(c.start>pos)out.push({t:entry.rawText.slice(pos,c.start)});out.push({t:entry.rawText.slice(c.start,c.end),c});pos=c.end;}
+    for(let i=0;i<cs.length;i++){const c=cs[i];if(c.start>pos)out.push({t:entry.rawText.slice(pos,c.start)});out.push({t:entry.rawText.slice(c.start,c.end),c:c});pos=c.end;}
     if(pos<entry.rawText.length)out.push({t:entry.rawText.slice(pos)});
     return out;
   },[entry]);
 
+  function localNotify(m){setSel(null);window.dispatchEvent(new CustomEvent('ch-toast',{detail:{msg:m,t:'err'}}));}
+
   function handleSelect(){
-    const s=window.getSelection();if(!s||s.isCollapsed||!bodyRef.current)return;
+    const s=window.getSelection();
+    if(!s||s.isCollapsed||!bodyRef.current)return;
     const range=s.getRangeAt(0);
     if(!bodyRef.current.contains(range.startContainer)||!bodyRef.current.contains(range.endContainer))return;
     const txt=s.toString();if(!txt.trim())return;
     const idx=entry.rawText.indexOf(txt);if(idx<0)return;
-    const overlap=entry.corrections.some(c=>idx<c.end&&(idx+txt.length)>c.start);
-    if(overlap)return notifyLocal('Trecho já corrigido — o Chronicle não sobrescreve a verdade.');
+    const overlap=entry.corrections.some(function(c){return idx<c.end&&(idx+txt.length)>c.start;});
+    if(overlap)return localNotify('Trecho já corrigido.');
     setSel({start:idx,end:idx+txt.length,text:txt});
   }
-  function notifyLocal(m){setSel(null);window.dispatchEvent(new CustomEvent('ch-toast',{detail:{msg:m,t:'err'}}));}
-
   async function saveCorrection(){
     if(!corrText.trim())return;
     await onCorrect(entry.id,{start:sel.start,end:sel.end,original:sel.text,corrected:corrText.trim(),at:Date.now()});
-    window.getSelection()?.removeAllRanges();
+    const s=window.getSelection();if(s)s.removeAllRanges();
     setSel(null);setCorrText('');setShowForm(false);
   }
 
   return (
-  <article id={`entry-${entry.date}-${entry.id}`} className={`glass rounded-2xl p-5 fadein ${highlight?'ring-2 ring-indigo-500':''}`}>
+  <article id={'entry-'+entry.date+'-'+entry.id} className={'glass rounded-2xl p-5 fadein '+(highlight?'ring-2 ring-indigo-500':'')}>
     <div className="flex items-center justify-between mb-3">
       <div className="flex items-center gap-2 text-xs text-slate-400">
         <I d={IC.book} size={14} className="text-indigo-400"/>{fmtDateTime(entry.ts)}
         <span className="px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 font-mono">{entry.date}</span>
       </div>
-      <span className="text-[10px] font-mono text-slate-600" title="Hash da cadeia de imutabilidade">⛓ {entry.hash.slice(0,10)}</span>
+      <span className="text-[10px] font-mono text-slate-600" title="Hash da cadeia">⛓ {entry.hash.slice(0,10)}</span>
     </div>
     <div ref={bodyRef} onMouseUp={handleSelect} className="text-sm text-slate-200 leading-relaxed whitespace-pre-wrap select-text">
-      {segments.map((s,i)=>s.c?(
-        <span key={i} className="relative group bg-red-900/40 line-through decoration-red-400/70 cursor-help rounded px-0.5">
-          {s.t}
-          <span className="absolute z-30 hidden group-hover:block bottom-full left-0 mb-2 w-64 p-3 rounded-xl glass border-emerald-500/40 text-xs text-emerald-200 no-underline shadow-2xl">
-            <b className="block mb-1 text-emerald-400">✎ Correção registrada ({new Date(s.c.at).toLocaleDateString('pt-BR')}):</b>
-            <span className="text-slate-100 normal-case" style={{textDecoration:'none'}}>{s.c.corrected}</span>
-            <span className="block mt-1 text-[10px] text-slate-500">O texto original permanece preservado.</span>
-          </span>
-        </span>
-      ):<React.Fragment key={i}>{s.t}</React.Fragment>)}
+      {segments.map(function(s,i){
+        if(s.c){
+          return <span key={i} className="relative group bg-red-900/40 line-through decoration-red-400/70 cursor-help rounded px-0.5">
+            {s.t}
+            <span className="absolute z-30 hidden group-hover:block bottom-full left-0 mb-2 w-64 p-3 rounded-xl glass border-emerald-500/40 text-xs text-emerald-200 shadow-2xl">
+              <b className="block mb-1 text-emerald-400">✎ Correção ({new Date(s.c.at).toLocaleDateString('pt-BR')}):</b>
+              <span className="text-slate-100">{s.c.corrected}</span>
+              <span className="block mt-1 text-[10px] text-slate-500">O original permanece preservado.</span>
+            </span>
+          </span>;
+        }
+        return <React.Fragment key={i}>{s.t}</React.Fragment>;
+      })}
     </div>
     {sel&&!showForm&&(
       <div className="mt-3 flex items-center gap-2 bg-slate-900/80 border border-indigo-500/40 rounded-xl p-2 fadein">
         <span className="text-xs text-slate-400 truncate flex-1 px-2">Selecionado: “{sel.text.slice(0,40)}{sel.text.length>40?'…':''}”</span>
-        <Btn variant="ghost" className="!py-1.5 !px-3 text-xs" onClick={()=>{setSel(null);window.getSelection()?.removeAllRanges();}}>Cancelar</Btn>
-        <Btn className="!py-1.5 !px-3 text-xs" onClick={()=>setShowForm(true)}><I d={IC.pen} size={13}/> Adicionar Correção</Btn>
+        <Btn variant="ghost" className="!py-1.5 !px-3 text-xs" onClick={function(){setSel(null);const s=window.getSelection();if(s)s.removeAllRanges();}}>Cancelar</Btn>
+        <Btn className="!py-1.5 !px-3 text-xs" onClick={function(){setShowForm(true);}}><I d={IC.pen} size={13}/> Corrigir</Btn>
       </div>)}
     {showForm&&(
       <div className="mt-3 bg-slate-900/80 border border-emerald-500/30 rounded-xl p-3 fadein">
-        <label className="text-xs text-slate-400">Qual é a correção? (o original jamais será apagado)</label>
-        <textarea value={corrText} onChange={e=>setCorrText(e.target.value)} rows={2}
-          className="w-full mt-1 bg-slate-950 border border-slate-700 rounded-lg p-2 text-sm outline-none focus:border-emerald-500"/>
+        <label className="text-xs text-slate-400">Qual é a correção?</label>
+        <textarea value={corrText} onChange={function(e){setCorrText(e.target.value);}} rows={2} className="w-full mt-1 bg-slate-950 border border-slate-700 rounded-lg p-2 text-sm outline-none focus:border-emerald-500"/>
         <div className="flex justify-end gap-2 mt-2">
-          <Btn variant="ghost" className="!py-1.5 text-xs" onClick={()=>{setShowForm(false);setSel(null);}}>Cancelar</Btn>
+          <Btn variant="ghost" className="!py-1.5 text-xs" onClick={function(){setShowForm(false);setSel(null);}}>Cancelar</Btn>
           <Btn className="!py-1.5 text-xs !bg-emerald-600 hover:!bg-emerald-500" onClick={saveCorrection}><I d={IC.check} size={13}/> Registrar</Btn>
         </div>
       </div>)}
   </article>);
 }
 
-/* ============================================================
-   10. COMPOSER — Texto + Gravação + Transcrição Multimodal
-============================================================ */
-function Composer({cfg,onAdd,notify}){
+/* ---------- 11. COMPOSER ---------- */
+function Composer(props){
+  const cfg=props.cfg;const onAdd=props.onAdd;const notify=props.notify;
   const [text,setText]=useState('');
   const [rec,setRec]=useState(false);const [secs,setSecs]=useState(0);
   const [transcribing,setTranscribing]=useState(false);
@@ -456,29 +463,31 @@ function Composer({cfg,onAdd,notify}){
     try{
       const stream=await navigator.mediaDevices.getUserMedia({audio:true});
       streamRef.current=stream;
-      const mime=['audio/webm;codecs=opus','audio/webm','audio/mp4'].find(m=>MediaRecorder.isTypeSupported(m))||'';
-      const mr=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);
+      const candidates=['audio/webm;codecs=opus','audio/webm','audio/mp4'];
+      let mime='';
+      for(let i=0;i<candidates.length;i++){if(window.MediaRecorder&&MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(candidates[i])){mime=candidates[i];break;}}
+      const mr=mime?new MediaRecorder(stream,{mimeType:mime}):new MediaRecorder(stream);
       chunksRef.current=[];
-      mr.ondataavailable=e=>e.data.size&&chunksRef.current.push(e.data);
-      mr.onstop=async()=>{
-        stream.getTracks().forEach(t=>t.stop());
+      mr.ondataavailable=function(e){if(e.data.size)chunksRef.current.push(e.data);};
+      mr.onstop=async function(){
+        stream.getTracks().forEach(function(t){t.stop();});
         const blob=new Blob(chunksRef.current,{type:mr.mimeType||'audio/webm'});
-        if(!cfg.geminiKey){notify('Configure a Gemini API Key para transcrever.','err');return;}
+        if(!cfg.geminiKey){notify('Configure a Gemini API Key.','err');return;}
         setTranscribing(true);
         try{
           const b64=await blobToB64(blob);
           const txt=await transcribeAudio(cfg.geminiKey,b64,blob.type||'audio/webm');
-          setText(t=>(t?t+'\n\n':'')+txt.trim());
+          setText(function(t){return (t?t+'\n\n':'')+txt.trim();});
           notify('Transcrição concluída.','ok');
         }catch(e){notify('Falha na transcrição: '+e.message,'err');}
         setTranscribing(false);
       };
       mr.start();mrRef.current=mr;setRec(true);setSecs(0);
-      timerRef.current=setInterval(()=>setSecs(s=>s+1),1000);
+      timerRef.current=setInterval(function(){setSecs(function(s){return s+1;});},1000);
     }catch(e){notify('Microfone negado ou indisponível.','err');}
   }
-  function stopRec(){clearInterval(timerRef.current);mrRef.current?.stop();setRec(false);}
-  useEffect(()=>()=>{clearInterval(timerRef.current);streamRef.current?.getTracks().forEach(t=>t.stop());},[]);
+  function stopRec(){clearInterval(timerRef.current);if(mrRef.current)mrRef.current.stop();setRec(false);}
+  useEffect(function(){return function(){clearInterval(timerRef.current);if(streamRef.current)streamRef.current.getTracks().forEach(function(t){t.stop();});};},[]);
 
   async function publish(){
     if(!text.trim())return;
@@ -490,38 +499,36 @@ function Composer({cfg,onAdd,notify}){
       <h3 className="font-semibold text-slate-200 flex items-center gap-2"><I d={IC.pen} className="text-indigo-400"/> Novo Registro · <span className="font-mono text-xs text-slate-400">{todayStr()}</span></h3>
       {transcribing&&<span className="text-xs text-indigo-400 animate-pulse flex items-center gap-1"><I d={IC.spark} size={13}/> Transcrevendo…</span>}
     </div>
-    <textarea value={text} onChange={e=>setText(e.target.value)} rows={4}
+    <textarea value={text} onChange={function(e){setText(e.target.value);}} rows={4}
       placeholder="O que aconteceu hoje? Escreva ou grave sua voz…"
       className="w-full bg-slate-950/70 border border-slate-700 focus:border-indigo-500 outline-none rounded-xl p-4 text-sm text-slate-100 placeholder-slate-600 resize-y"/>
     <div className="flex flex-wrap items-center gap-3 mt-3">
       {rec?
         <Btn variant="danger" onClick={stopRec} className="rec-pulse"><I d={IC.stop}/> Parar ({String(Math.floor(secs/60)).padStart(2,'0')}:{String(secs%60).padStart(2,'0')})</Btn>:
         <Btn variant="ghost" onClick={startRec} disabled={transcribing}><I d={IC.mic} className="text-red-400"/> Gravar</Btn>}
-      <span className="text-[11px] text-slate-600 hidden sm:block">Gravação 100% local → transcrição via Gemini → áudio descartado.</span>
       <div className="flex-1"/>
       <span className="text-[11px] text-slate-600">{text.length} chars</span>
-      <Btn onClick={publish} disabled={!text.trim()||transcribing}><I d={IC.shield}/> Registrar no Chronicle</Btn>
+      <Btn onClick={publish} disabled={!text.trim()||transcribing}><I d={IC.shield}/> Registrar</Btn>
     </div>
-    <p className="text-[10px] text-slate-600 mt-2">⚠ Ao registrar, a entrada torna-se <b>imutável</b>: não poderá ser editada nem apagada.</p>
+    <p className="text-[10px] text-slate-600 mt-2">⚠ Ao registrar, a entrada torna-se imutável.</p>
   </div>);
 }
 
-/* ============================================================
-   11. INSIGHTS — Resumos Gemini + Links de Veracidade
-============================================================ */
-function Insights({entries,cfg,notify,jumpTo}){
+/* ---------- 12. INSIGHTS ---------- */
+function Insights(props){
+  const entries=props.entries;const cfg=props.cfg;const notify=props.notify;const jumpTo=props.jumpTo;
   const [lines,setLines]=useState(null);const [busy,setBusy]=useState(false);
   const DATE_RE=/$(\d{4}-\d{2}-\d{2})$/;
 
   async function generate(){
     if(!cfg.geminiKey)return notify('Gemini API Key não configurada.','err');
-    if(!entries.length)return notify('Nenhuma entrada para resumir.','err');
+    if(!entries.length)return notify('Nenhuma entrada.','err');
     setBusy(true);
     try{
-      const corpus=entries.map(e=>`[${e.date}] ${e.rawText}`).join('\n\n');
-      const prompt=`Você é o arquivista de um diário pessoal imutável. Analise as entradas e gere um resumo APENAS em bullet points (cada linha começando com "• "). Cada bullet DEVE obrigatoriamente terminar com a data da entrada que o origina, no formato exato *(YYYY-MM-DD)*. Não escreva título, introdução ou conclusão.\n\nENTRADAS:\n${corpus}`;
+      const corpus=entries.map(function(e){return '['+e.date+'] '+e.rawText;}).join('\n\n');
+      const prompt='Você é o arquivista de um diário pessoal imutável. Gere um resumo APENAS em bullet points (cada linha começando com "• "). Cada bullet DEVE terminar com a data no formato *(YYYY-MM-DD)*. Sem título ou conclusão.\n\nENTRADAS:\n'+corpus;
       const out=await callGemini(cfg.geminiKey,[{text:prompt}]);
-      const parsed=out.split('\n').map(l=>l.trim()).filter(l=>/^[-•*]/.test(l)).map(l=>{
+      const parsed=out.split('\n').map(function(l){return l.trim();}).filter(function(l){return /^[-•*]/.test(l);}).map(function(l){
         const m=l.match(DATE_RE);
         return m?{text:l.replace(DATE_RE,'').trim(),date:m[1]}:{text:l.replace(/^[-•*]\s*/,''),date:null};
       });
@@ -534,37 +541,37 @@ function Insights({entries,cfg,notify,jumpTo}){
     <div className="glass rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center gap-4">
       <div className="flex-1">
         <h3 className="font-semibold text-slate-200 flex items-center gap-2"><I d={IC.spark} className="text-indigo-400"/> Insights & Links de Veracidade</h3>
-        <p className="text-xs text-slate-500 mt-1">A IA resume o diário em bullet points. Cada data vira um elo direto para a entrada original — a memória nunca é citada sem fonte.</p>
+        <p className="text-xs text-slate-500 mt-1">Resumo em bullets; cada data vira elo para a entrada original.</p>
       </div>
-      <Btn onClick={generate} disabled={busy}>{busy?'Analisando memórias…':'Gerar Resumo com IA'}</Btn>
+      <Btn onClick={generate} disabled={busy}>{busy?'Analisando…':'Gerar Resumo com IA'}</Btn>
     </div>
-    {lines&&lines.length===0&&<p className="text-sm text-slate-500">A IA não retornou bullets. Tente novamente.</p>}
+    {lines&&lines.length===0&&<p className="text-sm text-slate-500">A IA não retornou bullets.</p>}
     {lines&&lines.length>0&&(
       <div className="glass rounded-2xl p-5 space-y-2">
-        {lines.map((l,i)=>(
-          <p key={i} className="text-sm text-slate-300 leading-relaxed flex gap-2 items-start">
+        {lines.map(function(l,i){
+          return <p key={i} className="text-sm text-slate-300 leading-relaxed flex gap-2 items-start">
             <span className="text-indigo-400">•</span>
             <span className="flex-1">{l.text}{' '}
-              {l.date&&<a href={`#entry-${l.date}`} onClick={e=>{e.preventDefault();jumpTo(l.date);}}
+              {l.date&&<a href={'#entry-'+l.date} onClick={function(e){e.preventDefault();jumpTo(l.date);}}
                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-[11px] font-mono hover:bg-indigo-500/30 transition cursor-pointer">
                 📅 {l.date}</a>}
             </span>
-          </p>))}
+          </p>;
+        })}
       </div>)}
   </div>);
 }
 
-/* ============================================================
-   12. CONFIGURAÇÕES — Troca de chaves, Backup, Autodestruição
-============================================================ */
-function Settings({cfg,setCfg,dek,notify,onSelfDestruct,swOk}){
+/* ---------- 13. SETTINGS ---------- */
+function Settings(props){
+  const cfg=props.cfg;const setCfg=props.setCfg;const dek=props.dek;const notify=props.notify;const swOk=props.swOk;
   const [gk,setGk]=useState(cfg.geminiKey);const [cid,setCid]=useState(cfg.clientId);
   const [np,setNp]=useState('');const [busy,setBusy]=useState(false);
   const [wipeTxt,setWipeTxt]=useState('');const [showPhrase,setShowPhrase]=useState(false);const [phrase,setPhrase]=useState('');
 
   async function saveCfg(){
     await DB.put('vault',{k:'config',data:await CRYPTO.encrypt(JSON.stringify({geminiKey:gk,clientId:cid}),dek)});
-    setCfg({geminiKey:gk,clientId:cid});notify('Chaves atualizadas e re-criptografadas.','ok');
+    setCfg({geminiKey:gk,clientId:cid});notify('Chaves atualizadas.','ok');
   }
   async function changePass(){
     if(np.length<8)return notify('Nova senha muito curta.','err');
@@ -572,7 +579,7 @@ function Settings({cfg,setCfg,dek,notify,onSelfDestruct,swOk}){
     try{
       const kek=await CRYPTO.pbkdf2(np,localStorage.getItem(LS.SALT));
       localStorage.setItem(LS.DEK,JSON.stringify(await CRYPTO.wrap(dek,kek)));
-      notify('Senha mestra alterada. A DEK permaneceu intacta.','ok');setNp('');
+      notify('Senha mestra alterada.','ok');setNp('');
     }catch(e){notify('Erro: '+e.message,'err');}
     setBusy(false);
   }
@@ -581,66 +588,65 @@ function Settings({cfg,setCfg,dek,notify,onSelfDestruct,swOk}){
       const p=genRecoveryPhrase();
       const rkek=await CRYPTO.pbkdf2(p.trim().toLowerCase(),CRYPTO.recSalt(),100000);
       localStorage.setItem(LS.REC,JSON.stringify(await CRYPTO.wrap(dek,rkek)));
-      setPhrase(p);setShowPhrase(true);notify('Nova Recovery Phrase gerada. Salve offline!','ok');
+      setPhrase(p);setShowPhrase(true);notify('Nova Recovery Phrase gerada.','ok');
     }catch(e){notify('Erro: '+e.message,'err');}
   }
   async function backup(){
-    if(!cid)return notify('Configure o Client ID do Google Drive.','err');
+    if(!cid)return notify('Configure o Client ID.','err');
     setBusy(true);
     try{
       const token=await driveToken(cid);
       const entries=await DB.all('entries');
       const cfgRaw=await DB.getVal('vault','config');
-      await driveUpload(token,{v:1,exportedAt:Date.now(),entries,vault:{config:cfgRaw},meta:{salt:localStorage.getItem(LS.SALT),dekWrap:JSON.parse(localStorage.getItem(LS.DEK)),recWrap:JSON.parse(localStorage.getItem(LS.REC))}});
-      notify('Backup cifrado enviado ao Drive.','ok');
+      await driveUpload(token,{v:1,exportedAt:Date.now(),entries:entries,vault:{config:cfgRaw},meta:{salt:localStorage.getItem(LS.SALT),dekWrap:JSON.parse(localStorage.getItem(LS.DEK)),recWrap:JSON.parse(localStorage.getItem(LS.REC))}});
+      notify('Backup cifrado enviado.','ok');
     }catch(e){notify('Backup falhou: '+e.message,'err');}
     setBusy(false);
   }
   async function restore(){
-    if(!cid)return notify('Configure o Client ID do Google Drive.','err');
+    if(!cid)return notify('Configure o Client ID.','err');
     setBusy(true);
     try{
       const token=await driveToken(cid);
       const data=await driveDownload(token);
-      if(!data)return notify('Nenhum backup encontrado no Drive.','err');
-      const existing=new Set((await DB.all('entries')).map(e=>e.id));
+      if(!data)return notify('Nenhum backup encontrado.','err');
+      const existing=new Set((await DB.all('entries')).map(function(e){return e.id;}));
       let n=0;
-      for(const e of data.entries||[]){if(!existing.has(e.id)){await DB.put('entries',e);n++;}}
-      notify(`Restauração concluída: ${n} entrada(s) nova(s). Recarregando…`,'ok');
-      setTimeout(()=>location.reload(),1200);
+      const list=data.entries||[];
+      for(let i=0;i<list.length;i++){const e=list[i];if(!existing.has(e.id)){await DB.put('entries',e);n++;}}
+      notify('Restauração: '+n+' nova(s). Recarregando…','ok');
+      setTimeout(function(){location.reload();},1200);
     }catch(e){notify('Restore falhou: '+e.message,'err');}
     setBusy(false);
   }
   async function wipe(){
     if(wipeTxt!=='APAGAR')return;
-    // 1) Remoto (best-effort)
     if(cid){try{const t=await driveToken(cid);await driveDelete(t);notify('Backup remoto destruído.','ok');}catch(e){notify('Não foi possível apagar o backup remoto.','err');}}
-    // 2) Local
     indexedDB.deleteDatabase('chronicle-db');localStorage.clear();
-    setTimeout(()=>location.reload(),800);
+    setTimeout(function(){location.reload();},800);
   }
   return (
   <div className="space-y-4 fadein">
     <div className="glass rounded-2xl p-5 space-y-3">
       <h3 className="font-semibold text-slate-200 flex items-center gap-2"><I d={IC.key} className="text-indigo-400"/> Chaves BYOK</h3>
       <div><label className="text-xs text-slate-500">Gemini API Key</label>
-        <Input type="password" value={gk} onChange={e=>setGk(e.target.value)} className="mt-1"/></div>
+        <Input type="password" value={gk} onChange={function(e){setGk(e.target.value);}} className="mt-1"/></div>
       <div><label className="text-xs text-slate-500">Google OAuth Client ID</label>
-        <Input value={cid} onChange={e=>setCid(e.target.value)} className="mt-1"/></div>
+        <Input value={cid} onChange={function(e){setCid(e.target.value);}} className="mt-1"/></div>
       <Btn onClick={saveCfg} disabled={busy}>Salvar & Re-criptografar</Btn>
     </div>
 
     <div className="glass rounded-2xl p-5 space-y-3">
       <h3 className="font-semibold text-slate-200 flex items-center gap-2"><I d={IC.lock} className="text-indigo-400"/> Cofre & Senha Mestra</h3>
       <div className="flex gap-2">
-        <Input type="password" placeholder="Nova Senha Mestra" value={np} onChange={e=>setNp(e.target.value)}/>
+        <Input type="password" placeholder="Nova Senha Mestra" value={np} onChange={function(e){setNp(e.target.value);}}/>
         <Btn variant="ghost" onClick={changePass} disabled={busy||!np}>Alterar</Btn>
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 items-center">
         <Btn variant="ghost" onClick={regenPhrase}><I d={IC.key} size={14}/> Nova Recovery Phrase</Btn>
-        <span className="text-[11px] text-slate-600 self-center">Status PWA/SW: {swOk?'✅ ativo':'⚠️ indisponível via blob neste browser'}</span>
+        <span className="text-[11px] text-slate-600">PWA/SW: {swOk?'✅ ativo':'⚠️ indisponível via blob'}</span>
       </div>
-      {showPhrase&&<div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 text-xs text-amber-300 font-mono">{phrase}<p className="text-amber-400 mt-1 font-sans">Salve offline agora. Esta frase não será mostrada novamente.</p></div>}
+      {showPhrase&&<div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 text-xs text-amber-300 font-mono">{phrase}<p className="text-amber-400 mt-1 font-sans">Salve offline agora.</p></div>}
     </div>
 
     <div className="glass rounded-2xl p-5 space-y-3">
@@ -653,31 +659,36 @@ function Settings({cfg,setCfg,dek,notify,onSelfDestruct,swOk}){
 
     <div className="glass rounded-2xl p-5 border-red-500/30 space-y-3">
       <h3 className="font-semibold text-red-400 flex items-center gap-2"><I d={IC.trash}/> Modo Autodestruição</h3>
-      <p className="text-xs text-slate-500">Apaga <b>tudo</b>: IndexedDB, localStorage e o backup remoto no Drive. Irreversível.</p>
+      <p className="text-xs text-slate-500">Apaga tudo: IndexedDB, localStorage e backup remoto. Irreversível.</p>
       <div className="flex gap-2">
-        <Input placeholder='Digite "APAGAR" para confirmar' value={wipeTxt} onChange={e=>setWipeTxt(e.target.value)}/>
+        <Input placeholder='Digite "APAGAR" para confirmar' value={wipeTxt} onChange={function(e){setWipeTxt(e.target.value);}}/>
         <Btn variant="danger" disabled={wipeTxt!=='APAGAR'} onClick={wipe}>Detonar</Btn>
       </div>
     </div>
   </div>);
 }
 
-/* ============================================================
-   13. APP PRINCIPAL
-============================================================ */
+/* ---------- 14. APP ---------- */
 function App(){
-  const [stage,setStage]=useState('loading'); // loading | wizard | unlock | app
+  const [stage,setStage]=useState('loading');
   const [dek,setDek]=useState(null);const [cfg,setCfg]=useState({geminiKey:'',clientId:''});
   const [entries,setEntries]=useState([]);
   const [view,setView]=useState('diary');
   const [toast,setToast]=useState(null);const [swOk,setSwOk]=useState(false);
   const [highlightDate,setHighlightDate]=useState(null);
 
-  const notify=(msg,t='info')=>{setToast({msg,t});clearTimeout(window._tt);window._tt=setTimeout(()=>setToast(null),3500);};
-  useEffect(()=>{const h=e=>notify(e.detail.msg,e.detail.t);window.addEventListener('ch-toast',h);return()=>window.removeEventListener('ch-toast',h);},[]);
+  function notify(msg,t){
+    t=t||'info';setToast({msg:msg,t:t});
+    clearTimeout(window._tt);window._tt=setTimeout(function(){setToast(null);},3500);
+  }
+  useEffect(function(){
+    const h=function(e){notify(e.detail.msg,e.detail.t);};
+    window.addEventListener('ch-toast',h);
+    return function(){window.removeEventListener('ch-toast',h);};
+  },[]);
 
-  useEffect(()=>{
-    (async()=>{
+  useEffect(function(){
+    (async function(){
       setSwOk(await injectSW());
       if(!localStorage.getItem(LS.SETUP))setStage('wizard');
       else setStage('unlock');
@@ -686,36 +697,42 @@ function App(){
 
   async function bootSession(dekObj,cfgObj){
     const raw=await DB.all('entries');
-    const dec=await Promise.all(raw.sort((a,b)=>a.ts-b.ts).map(async e=>{
-      try{const d=JSON.parse(await CRYPTO.decrypt(e.data,dekObj));return {...e,rawText:d.rawText,corrections:d.corrections||[]};}
-      catch(_){return null;}}));
-    setEntries(dec.filter(Boolean));setDek(dekObj);setCfg(cfgObj);setStage('app');
+    const sorted=raw.sort(function(a,b){return a.ts-b.ts;});
+    const dec=[];
+    for(let i=0;i<sorted.length;i++){
+      const e=sorted[i];
+      try{
+        const d=JSON.parse(await CRYPTO.decrypt(e.data,dekObj));
+        dec.push(Object.assign({},e,{rawText:d.rawText,corrections:d.corrections||[]}));
+      }catch(_){}
+    }
+    setEntries(dec);setDek(dekObj);setCfg(cfgObj);setStage('app');
   }
   async function addEntry(rawText){
     const ts=Date.now();const date=todayStr();
-    const payload={rawText,corrections:[]};
+    const payload={rawText:rawText,corrections:[]};
     const data=await CRYPTO.encrypt(JSON.stringify(payload),dek);
     const last=entries[entries.length-1];const prevHash=last?last.hash:'GENESIS';
     const hash=await sha256Hex(prevHash+'|'+data);
-    const rec={id:crypto.randomUUID(),ts,date,prevHash,hash,data};
+    const rec={id:(crypto.randomUUID?crypto.randomUUID():String(Date.now())),ts:ts,date:date,prevHash:prevHash,hash:hash,data:data};
     await DB.put('entries',rec);
-    setEntries(e=>[...e,{...rec,...payload}]);
+    setEntries(function(e){return e.concat([Object.assign({},rec,payload)]);});
     notify('Registro selado na cadeia imutável.','ok');
   }
   async function addCorrection(id,c){
-    const e=entries.find(x=>x.id===id);if(!e)return;
-    const payload={rawText:e.rawText,corrections:[...e.corrections,c]};
+    const e=entries.find(function(x){return x.id===id;});if(!e)return;
+    const payload={rawText:e.rawText,corrections:e.corrections.concat([c])};
     const data=await CRYPTO.encrypt(JSON.stringify(payload),dek);
-    await DB.put('entries',{id:e.id,ts:e.ts,date:e.date,prevHash:e.prevHash,hash:e.hash,data});
-    setEntries(list=>list.map(x=>x.id===id?{...x,corrections:payload.corrections}:x));
-    notify('Correção anexada. O original permanece intacto.','ok');
+    await DB.put('entries',{id:e.id,ts:e.ts,date:e.date,prevHash:e.prevHash,hash:e.hash,data:data});
+    setEntries(function(list){return list.map(function(x){return x.id===id?Object.assign({},x,{corrections:payload.corrections}):x;});});
+    notify('Correção anexada.','ok');
   }
   function jumpTo(date){
     setView('diary');setHighlightDate(date);
-    setTimeout(()=>{
-      const el=document.querySelector(`[id^="entry-${date}"]`);
+    setTimeout(function(){
+      const el=document.querySelector('[id^="entry-'+date+'"]');
       if(el)el.scrollIntoView({behavior:'smooth',block:'center'});
-      setTimeout(()=>setHighlightDate(null),2500);
+      setTimeout(function(){setHighlightDate(null);},2500);
     },150);
   }
   function lock(){setDek(null);setEntries([]);setStage('unlock');}
@@ -724,30 +741,35 @@ function App(){
   if(stage==='wizard')return <SetupWizard onDone={bootSession} notify={notify}/>;
   if(stage==='unlock')return <Unlock onUnlock={bootSession} notify={notify}/>;
 
-  const sorted=[...entries].sort((a,b)=>b.ts-a.ts);
+  const sorted=entries.slice().sort(function(a,b){return b.ts-a.ts;});
+  const navs=[['diary','Diário',IC.book],['insights','Insights',IC.spark],['settings','Config',IC.gear]];
   return (
-  <div className="min-h-screen bg-gradient-to-br from-slate-950 via-[#0b1120] to-indigo-950/60">
+  <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/60">
     <header className="sticky top-0 z-40 glass border-x-0 border-t-0">
       <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
         <div className="flex items-center gap-2 text-indigo-400 font-bold"><I d={IC.shield}/> Chronicle AI</div>
         <nav className="flex gap-1 ml-2">
-          {[['diary','Diário',IC.book],['insights','Insights',IC.spark],['settings','Config',IC.gear]].map(([v,l,ic])=>(
-            <button key={v} onClick={()=>setView(v)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition ${view===v?'bg-indigo-600 text-white':'text-slate-400 hover:text-white hover:bg-slate-700/40'}`}>
-              <I d={ic} size={13}/>{l}</button>))}
+          {navs.map(function(item){
+            const v=item[0],l=item[1],ic=item[2];
+            return <button key={v} onClick={function(){setView(v);}}
+              className={'px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition '+(view===v?'bg-indigo-600 text-white':'text-slate-400 hover:text-white hover:bg-slate-700/40')}>
+              <I d={ic} size={13}/>{l}</button>;
+          })}
         </nav>
         <div className="flex-1"/>
         <span className="hidden sm:block text-[10px] font-mono text-emerald-400 border border-emerald-500/30 bg-emerald-500/10 rounded-full px-2 py-1">🔒 E2E · AES-GCM 256</span>
-        <Btn variant="ghost" className="!px-3 !py-1.5 text-xs" onClick={lock} title="Bloquear e limpar a chave da memória"><I d={IC.lock} size={14}/></Btn>
+        <Btn variant="ghost" className="!px-3 !py-1.5 text-xs" onClick={lock} title="Bloquear"><I d={IC.lock} size={14}/></Btn>
       </div>
     </header>
     <main className="max-w-3xl mx-auto px-4 py-6 space-y-5">
-      {view==='diary'&&<>
-        <Composer cfg={cfg} onAdd={addEntry} notify={notify}/>
-        {sorted.length===0&&<div className="text-center py-12 text-slate-600 text-sm">Seu diário está vazio. O primeiro registro torna-se história permanente.</div>}
-        {sorted.map(e=><EntryCard key={e.id} entry={e} onCorrect={addCorrection} highlight={highlightDate===e.date}/>)}
-      </>}
-      {view==='insights'&&<Insights entries={[...entries].sort((a,b)=>a.ts-b.ts)} cfg={cfg} notify={notify} jumpTo={jumpTo}/>}
+      {view==='diary'&&(
+        <div className="space-y-5">
+          <Composer cfg={cfg} onAdd={addEntry} notify={notify}/>
+          {sorted.length===0&&<div className="text-center py-12 text-slate-600 text-sm">Seu diário está vazio.</div>}
+          {sorted.map(function(e){return <EntryCard key={e.id} entry={e} onCorrect={addCorrection} highlight={highlightDate===e.date}/>;})}
+        </div>
+      )}
+      {view==='insights'&&<Insights entries={entries.slice().sort(function(a,b){return a.ts-b.ts;})} cfg={cfg} notify={notify} jumpTo={jumpTo}/>}
       {view==='settings'&&<Settings cfg={cfg} setCfg={setCfg} dek={dek} notify={notify} swOk={swOk}/>}
     </main>
     <footer className="max-w-3xl mx-auto px-4 pb-8 text-center text-[10px] text-slate-700">
@@ -757,7 +779,9 @@ function App(){
   </div>);
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
-    </script>
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <ErrorBoundary><App/></ErrorBoundary>
+);
+</script>
 </body>
 </html>
