@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
@@ -84,10 +84,8 @@
             isolation: isolate;
             overflow: hidden;
             min-height: 720px;
-            /* Base da cortiça */
             background-color: #9a6239;
             background-image:
-                /* fibras claras */
                 repeating-linear-gradient(
                     17deg,
                     rgba(255,255,255,.035) 0px,
@@ -95,7 +93,6 @@
                     transparent 1px,
                     transparent 7px
                 ),
-                /* fibras escuras */
                 repeating-linear-gradient(
                     103deg,
                     rgba(52,28,15,.08) 0px,
@@ -103,7 +100,6 @@
                     transparent 1px,
                     transparent 11px
                 ),
-                /* pequenos poros */
                 radial-gradient(
                     ellipse at 20% 30%,
                     rgba(63,34,18,.25) 0px,
@@ -128,7 +124,6 @@
                 17px 19px,
                 23px 21px,
                 auto;
-            /* Profundidade física */
             box-shadow:
                 inset 0 0 0 2px rgba(255,255,255,.08),
                 inset 0 0 35px rgba(38,20,10,.65),
@@ -136,7 +131,7 @@
                 0 25px 50px rgba(45,25,15,.28);
             transform: translateZ(0);
         }
-        /* Variação natural da cortiça */
+
         .cork-board::before {
             content: "";
             position: absolute;
@@ -145,24 +140,12 @@
             opacity: .35;
             pointer-events: none;
             background:
-                radial-gradient(
-                    ellipse at 15% 20%,
-                    rgba(255,220,170,.16),
-                    transparent 16%
-                ),
-                radial-gradient(
-                    ellipse at 80% 25%,
-                    rgba(40,20,10,.15),
-                    transparent 20%
-                ),
-                radial-gradient(
-                    ellipse at 35% 80%,
-                    rgba(255,230,190,.12),
-                    transparent 18%
-                );
+                radial-gradient(ellipse at 15% 20%, rgba(255,220,170,.16), transparent 16%),
+                radial-gradient(ellipse at 80% 25%, rgba(40,20,10,.15), transparent 20%),
+                radial-gradient(ellipse at 35% 80%, rgba(255,230,190,.12), transparent 18%);
             mix-blend-mode: multiply;
         }
-        /* Vinheta nas bordas */
+
         .cork-board::after {
             content: "";
             position: absolute;
@@ -173,9 +156,7 @@
                 inset 0 0 55px rgba(38,20,10,.55),
                 inset 0 0 120px rgba(38,20,10,.22);
         }
-        /* =========================================================
-           ÁREA ONDE OS POST-ITS SÃO POSICIONADOS
-           ========================================================= */
+
         #mural-container {
             position: relative;
             width: 100%;
@@ -184,9 +165,7 @@
             perspective: 1400px;
             perspective-origin: 50% 50%;
         }
-        /* =========================================================
-           POST-IT FÍSICO
-           ========================================================= */
+
         .real-postit {
             position: absolute;
             width: 190px;
@@ -195,19 +174,9 @@
             border-radius: 1px 2px 3px 1px;
             transform-style: preserve-3d;
             cursor: default;
-            /* Papel */
             background:
-                linear-gradient(
-                    135deg,
-                    rgba(255,255,255,.34),
-                    transparent 30%
-                ),
-                linear-gradient(
-                    110deg,
-                    rgba(0,0,0,.035),
-                    transparent 55%
-                );
-            /* sombra física */
+                linear-gradient(135deg, rgba(255,255,255,.34), transparent 30%),
+                linear-gradient(110deg, rgba(0,0,0,.035), transparent 55%);
             box-shadow:
                 0 2px 3px rgba(0,0,0,.18),
                 2px 6px 8px rgba(0,0,0,.18),
@@ -221,7 +190,7 @@
                 filter .35s ease;
             overflow: visible;
         }
-        /* Pequena irregularidade na parte inferior */
+
         .real-postit::before {
             content: "";
             position: absolute;
@@ -231,22 +200,12 @@
             height: 7px;
             background: inherit;
             clip-path: polygon(
-                0 0,
-                8% 25%,
-                17% 5%,
-                28% 30%,
-                40% 8%,
-                52% 27%,
-                65% 5%,
-                78% 25%,
-                90% 8%,
-                100% 20%,
-                100% 100%,
-                0 100%
+                0 0, 8% 25%, 17% 5%, 28% 30%, 40% 8%, 52% 27%,
+                65% 5%, 78% 25%, 90% 8%, 100% 20%, 100% 100%, 0 100%
             );
             filter: brightness(.97);
         }
-        /* Dobra de papel */
+
         .real-postit::after {
             content: "";
             position: absolute;
@@ -254,35 +213,21 @@
             bottom: 0;
             width: 27px;
             height: 27px;
-            background:
-                linear-gradient(
-                    135deg,
-                    rgba(0,0,0,.08),
-                    rgba(255,255,255,.32)
-                );
-            clip-path: polygon(
-                100% 0,
-                100% 100%,
-                0 100%
-            );
+            background: linear-gradient(135deg, rgba(0,0,0,.08), rgba(255,255,255,.32));
+            clip-path: polygon(100% 0, 100% 100%, 0 100%);
             opacity: .65;
         }
-        /* Hover */
+
         .real-postit:hover {
             z-index: 50;
-            transform:
-                translateZ(45px)
-                scale(1.07)
-                rotateZ(0deg) !important;
+            transform: translateZ(45px) scale(1.07) rotateZ(0deg) !important;
             box-shadow:
                 0 3px 5px rgba(0,0,0,.18),
                 5px 12px 15px rgba(0,0,0,.20),
                 12px 25px 35px rgba(30,15,5,.25);
             filter: brightness(1.025);
         }
-        /* =========================================================
-           TEXTO DO POST-IT
-           ========================================================= */
+
         .postit-header {
             position: relative;
             z-index: 4;
@@ -293,12 +238,14 @@
             padding-bottom: 8px;
             border-bottom: 1px solid rgba(70,40,20,.13);
         }
+
         .postit-author {
             font-family: var(--font-sans);
             font-size: 12px;
             font-weight: 700;
             line-height: 1.15;
         }
+
         .postit-relation {
             display: block;
             margin-top: 2px;
@@ -306,12 +253,14 @@
             font-size: 9px;
             opacity: .65;
         }
+
         .postit-date {
             font-family: var(--font-sans);
             font-size: 8px;
             opacity: .5;
             white-space: nowrap;
         }
+
         .postit-message {
             position: relative;
             z-index: 4;
@@ -321,26 +270,21 @@
             line-height: 1.05;
             letter-spacing: .15px;
             word-break: break-word;
-            text-shadow:
-                0 .3px 0 rgba(255,255,255,.25);
+            text-shadow: 0 .3px 0 rgba(255,255,255,.25);
             transform: translateZ(2px);
         }
-        /* =========================================================
-           PIN / ALFINETE 3D
-           ========================================================= */
+
         .real-pin {
             position: absolute;
             left: 50%;
             top: -13px;
             width: 25px;
             height: 25px;
-            transform:
-                translateX(-50%)
-                translateZ(45px);
+            transform: translateX(-50%) translateZ(45px);
             z-index: 30;
             pointer-events: none;
         }
-        /* Cabeça do alfinete */
+
         .real-pin::before {
             content: "";
             position: absolute;
@@ -349,16 +293,7 @@
             width: 21px;
             height: 21px;
             border-radius: 50%;
-            background:
-                radial-gradient(
-                    circle at 32% 27%,
-                    #fff 0%,
-                    #fff 5%,
-                    #e8e8e8 11%,
-                    #a8a8a8 35%,
-                    #555 66%,
-                    #222 100%
-                );
+            background: radial-gradient(circle at 32% 27%, #fff 0%, #fff 5%, #e8e8e8 11%, #a8a8a8 35%, #555 66%, #222 100%);
             box-shadow:
                 0 2px 2px rgba(0,0,0,.35),
                 2px 4px 5px rgba(0,0,0,.25),
@@ -366,7 +301,7 @@
                 inset 2px 2px 3px rgba(255,255,255,.75);
             border: 1px solid rgba(0,0,0,.28);
         }
-        /* Ponta que entra no papel */
+
         .real-pin::after {
             content: "";
             position: absolute;
@@ -374,41 +309,25 @@
             top: 17px;
             width: 4px;
             height: 19px;
-            background:
-                linear-gradient(
-                    90deg,
-                    #444,
-                    #ddd 45%,
-                    #666
-                );
-            clip-path: polygon(
-                20% 0,
-                100% 0,
-                58% 100%,
-                0 100%
-            );
-            filter:
-                drop-shadow(1px 2px 1px rgba(0,0,0,.35));
+            background: linear-gradient(90deg, #444, #ddd 45%, #666);
+            clip-path: polygon(20% 0, 100% 0, 58% 100%, 0 100%);
+            filter: drop-shadow(1px 2px 1px rgba(0,0,0,.35));
             transform-origin: top;
         }
-        /* Sombra de contato do pin */
+
         .pin-shadow {
             position: absolute;
             left: 50%;
             top: 17px;
             width: 24px;
             height: 10px;
-            transform:
-                translateX(-50%)
-                rotateX(70deg);
+            transform: translateX(-50%) rotateX(70deg);
             background: rgba(0,0,0,.22);
             filter: blur(4px);
             border-radius: 50%;
             z-index: 2;
         }
-        /* =========================================================
-           SELO DO GAME
-           ========================================================= */
+
         .postit-badge {
             position: relative;
             z-index: 5;
@@ -420,63 +339,26 @@
             font-family: monospace;
             font-size: 9px;
             font-weight: 700;
-            box-shadow:
-                inset 0 1px rgba(255,255,255,.25);
+            box-shadow: inset 0 1px rgba(255,255,255,.25);
         }
-        /* =========================================================
-           ANIMAÇÃO DE FIXAÇÃO
-           ========================================================= */
+
         @keyframes postit-arrive {
             0% {
                 opacity: 0;
-                transform:
-                    translateY(-80px)
-                    translateZ(100px)
-                    rotateZ(12deg)
-                    scale(.75);
+                transform: translateY(-80px) translateZ(100px) rotateZ(12deg) scale(.75);
             }
-            45% {
-                opacity: 1;
-            }
-            75% {
-                transform:
-                    translateY(7px)
-                    translateZ(15px)
-                    rotateZ(-3deg)
-                    scale(1.02);
-            }
-            100% {
-                transform:
-                    translateY(0)
-                    translateZ(0)
-                    rotateZ(var(--postit-rotation));
-            }
+            45% { opacity: 1; }
+            75% { transform: translateY(7px) translateZ(15px) rotateZ(-3deg) scale(1.02); }
+            100% { transform: translateY(0) translateZ(0) rotateZ(var(--postit-rotation)); }
         }
-        /* =========================================================
-           CELULAR
-           ========================================================= */
+
         @media (max-width: 640px) {
-            .cork-board {
-                min-height: 900px;
-                padding: 10px !important;
-            }
-            #mural-container {
-                min-height: 850px;
-            }
-            .real-postit {
-                width: 155px;
-                min-height: 155px;
-                padding: 22px 13px 14px;
-            }
-            .postit-message {
-                font-size: 19px;
-            }
-            .postit-author {
-                font-size: 10px;
-            }
-            .postit-date {
-                font-size: 7px;
-            }
+            .cork-board { min-height: 900px; padding: 10px !important; }
+            #mural-container { min-height: 850px; }
+            .real-postit { width: 155px; min-height: 155px; padding: 22px 13px 14px; }
+            .postit-message { font-size: 19px; }
+            .postit-author { font-size: 10px; }
+            .postit-date { font-size: 7px; }
         }
     </style>
 </head>
@@ -541,7 +423,6 @@
         <!-- INÍCIO COM HERO 3D -->
         <section id="tab-home" class="tab-content active space-y-12 pb-10">
             <div class="text-center pt-16 pb-20 bg-gradient-to-b from-red-100/60 to-red-50 relative overflow-hidden rounded-3xl min-h-[460px] flex flex-col justify-center items-center">
-                <!-- Canvas 3D Interativo -->
                 <canvas id="canvas-3d-bg"></canvas>
 
                 <div class="relative z-10 pointer-events-none px-4 max-w-3xl">
@@ -673,7 +554,7 @@
             </div>
         </section>
 
-        <!-- MURAL DE POST-ITS (ESTILO QUADRO FÍSICO) -->
+        <!-- MURAL DE POST-ITS -->
         <section id="tab-mural" class="tab-content py-10 max-w-5xl mx-auto">
             <div class="text-center mb-10">
                 <h2 class="font-serif text-4xl text-red-900 font-bold mb-3">Mural de Lembranças & Recados</h2>
@@ -712,7 +593,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-xl text-sm shadow flex items-center justify-center gap-2 transition-all">
+                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-xl text-sm shadow flex items-center justify-center gap-2 transition-all cursor-pointer">
                     <i data-lucide="pin" class="w-4 h-4"></i> Fixar Post-it no Mural
                 </button>
             </form>
@@ -1041,14 +922,17 @@
 
         window.switchTab = (tabId) => {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.getElementById('tab-' + tabId).classList.add('active');
+            const target = document.getElementById('tab-' + tabId);
+            if (target) target.classList.add('active');
+            
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.className = btn.dataset.target === tabId ? 
                     "nav-btn px-4 py-2 rounded-full transition-all capitalize bg-red-600 text-white shadow-md" : 
                     "nav-btn px-4 py-2 rounded-full transition-all capitalize hover:bg-red-100 hover:text-red-700";
             });
+            
             if (tabId === 'mural') {
-                renderMural();
+                setTimeout(() => renderMural(), 50);
             }
         };
 
@@ -1130,8 +1014,12 @@
         };
 
         const initAuth = async () => {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
-            else await signInAnonymously(auth);
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
+                else await signInAnonymously(auth);
+            } catch (e) {
+                console.warn("Auth initialization fallback:", e);
+            }
         };
 
         onAuthStateChanged(auth, (user) => {
@@ -1142,8 +1030,8 @@
                 if (docSnap.exists()) {
                     state.settings = { ...state.settings, ...docSnap.data() };
                     updateSiteContent();
-                } else setDoc(settingsRef, state.settings);
-            });
+                } else setDoc(settingsRef, state.settings).catch(() => {});
+            }, () => {});
 
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), snap => {
                 if (snap.empty) {
@@ -1152,22 +1040,24 @@
                     state.gifts = snap.docs.map(d => ({id: d.id, ...d.data()}));
                     renderGifts();
                 }
-            });
+            }, () => {});
 
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), snap => {
-                state.messages = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-                renderMural();
-            });
+                if (!snap.empty) {
+                    state.messages = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    renderMural();
+                }
+            }, () => {});
 
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'contributions'), snap => {
                 state.contributions = snap.docs.map(d => ({id: d.id, ...d.data()}));
                 renderAdmin();
-            });
+            }, () => {});
 
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'rsvps'), snap => {
                 state.rsvps = snap.docs.map(d => ({id: d.id, ...d.data()}));
                 renderAdmin();
-            });
+            }, () => {});
         });
 
         initAuth();
@@ -1225,7 +1115,7 @@
         };
 
         /* =========================================================
-           MURAL REALISTA
+           MURAL REALISTA (CÁLCULO SEGURO DE POSIÇÃO)
            ========================================================= */
         const escapeHTML = (value) => {
             if (value === null || value === undefined) return '';
@@ -1238,24 +1128,25 @@
         };
 
         const generatePostItPosition = (index, total) => {
-            const cols = window.innerWidth <= 640 ? 2 : 4;
+            const isMobile = window.innerWidth <= 640;
+            const cols = isMobile ? 2 : 3;
             const row = Math.floor(index / cols);
             const col = index % cols;
-            const boardWidth = document.getElementById('mural-container')?.clientWidth || 900;
-            const boardHeight = window.innerWidth <= 640 ? 850 : 650;
-            const postitWidth = window.innerWidth <= 640 ? 155 : 190;
-            const postitHeight = window.innerWidth <= 640 ? 155 : 175;
-            const horizontalSpace = Math.max(0, boardWidth - postitWidth - 20);
-            const verticalSpace = Math.max(0, boardHeight - postitHeight - 20);
-            let x;
-            let y;
-            const cellWidth = horizontalSpace / Math.max(cols - 1, 1);
-            x = 10 + col * cellWidth + (Math.random() * 35 - 17);
-            y = 35 + row * 190 + (Math.random() * 45 - 22);
-            x = Math.max(5, Math.min(x, Math.max(5, boardWidth - postitWidth - 5)));
-            y = Math.max(15, Math.min(y, Math.max(15, verticalSpace)));
-            const rotations = [-5.5, -4, -2.5, -1, 1, 2, 3.5, 5];
-            const rotation = rotations[Math.floor(Math.random() * rotations.length)];
+            
+            const container = document.getElementById('mural-container');
+            const boardWidth = (container && container.clientWidth > 150)
+                ? container.clientWidth
+                : (isMobile ? window.innerWidth - 60 : 860);
+
+            const postitWidth = isMobile ? 145 : 190;
+            const colWidth = boardWidth / cols;
+
+            const x = Math.max(10, Math.min(boardWidth - postitWidth - 10, col * colWidth + (colWidth - postitWidth) / 2 + (Math.sin(index * 3) * 16)));
+            const y = 30 + row * (isMobile ? 180 : 210) + (Math.cos(index * 2) * 12);
+
+            const rotations = [-5, -3, -1.5, 1.5, 3, 5, -4, 4];
+            const rotation = rotations[index % rotations.length];
+
             return { x, y, rotation };
         };
 
@@ -1284,16 +1175,25 @@
         const renderMural = () => {
             const container = document.getElementById('mural-container');
             if (!container) return;
+
             if (!state.messages || state.messages.length === 0) {
                 container.innerHTML = `
-                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center text-white/70 pointer-events-none">
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center text-white/70 pointer-events-none py-20">
                         <div class="text-6xl mb-4 opacity-70">📌</div>
                         <p class="font-serif text-2xl">O mural ainda está vazio</p>
                         <p class="text-sm mt-2 opacity-70">Seja o primeiro a deixar uma lembrança para os noivos.</p>
                     </div>
                 `;
+                container.style.minHeight = "650px";
                 return;
             }
+
+            const isMobile = window.innerWidth <= 640;
+            const cols = isMobile ? 2 : 3;
+            const totalRows = Math.ceil(state.messages.length / cols);
+            const calculatedHeight = Math.max(isMobile ? 850 : 650, totalRows * (isMobile ? 185 : 215) + 80);
+            container.style.minHeight = `${calculatedHeight}px`;
+
             container.innerHTML = state.messages.map((m, index) => {
                 const position = generatePostItPosition(index, state.messages.length);
                 const color = getPostItColor(m.color);
@@ -1313,7 +1213,7 @@
                             --postit-rotation: ${position.rotation}deg;
                             background: ${color.background};
                             color: ${color.text};
-                            animation-delay: ${Math.min(index * 70, 700)}ms;
+                            animation-delay: ${Math.min(index * 50, 500)}ms;
                         "
                     >
                         <div class="pin-shadow"></div>
@@ -1354,53 +1254,100 @@
                 radioUrl: document.getElementById('cfg-radio').value,
                 adminPass: newPass ? newPass : state.settings.adminPass
             };
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), updated);
+            try {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), updated);
+            } catch(err) {
+                state.settings = { ...state.settings, ...updated };
+            }
             window.showToast("Configurações Salvas!");
         });
 
+        // ENVIO DO POST-IT COM ATUALIZAÇÃO OTIMISTA E TRATAMENTO DE ERRO
         document.getElementById('form-mural').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            const author = document.getElementById('mural-author').value.trim();
+            const relation = document.getElementById('mural-relation').value.trim();
+            const text = document.getElementById('mural-text').value.trim();
             const colorSelected = document.querySelector('input[name="postit-color"]:checked')?.value || 'yellow';
-            const badgeText = document.getElementById('mural-badge-text').value;
+            const badgeText = document.getElementById('mural-badge-text').value.trim();
 
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), {
-                author: document.getElementById('mural-author').value,
-                relation: document.getElementById('mural-relation').value,
-                text: document.getElementById('mural-text').value,
+            if (!author || !text) {
+                window.showToast("Preencha o seu nome e mensagem!");
+                return;
+            }
+
+            const msgObj = {
+                id: 'local-' + Date.now(),
+                author: author,
+                relation: relation || 'Convidado(a)',
+                text: text,
                 badge: badgeText || null,
                 color: colorSelected,
                 timestamp: new Date().toISOString()
-            });
-            
+            };
+
+            // Atualização Otimista Imediata
+            state.messages.unshift(msgObj);
+            renderMural();
+
+            // Limpa formulário
             e.target.reset();
             document.getElementById('mural-badge-wrapper').classList.add('hidden');
             document.getElementById('mural-badge-text').value = '';
             window.showToast("Post-it fixado no mural com sucesso!");
+
+            // Persistência no Firestore
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), {
+                    author: msgObj.author,
+                    relation: msgObj.relation,
+                    text: msgObj.text,
+                    badge: msgObj.badge,
+                    color: msgObj.color,
+                    timestamp: msgObj.timestamp
+                });
+            } catch (err) {
+                console.warn("Firestore sync fallback in-memory:", err);
+            }
         });
 
         document.getElementById('form-rsvp').addEventListener('submit', async (e) => {
             e.preventDefault();
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'rsvps'), {
+            const rsvpObj = {
                 name: document.getElementById('rsvp-name').value,
                 email: document.getElementById('rsvp-email').value,
                 count: parseInt(document.getElementById('rsvp-count').value),
                 message: document.getElementById('rsvp-msg').value,
                 timestamp: new Date().toISOString()
-            });
-            e.target.reset(); window.showToast("Presença Confirmada!");
+            };
+            state.rsvps.unshift(rsvpObj);
+            renderAdmin();
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'rsvps'), rsvpObj);
+            } catch(e){}
+            e.target.reset();
+            window.showToast("Presença Confirmada!");
         });
 
         document.getElementById('form-add-gift').addEventListener('submit', async (e) => {
             e.preventDefault();
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), {
+            const giftObj = {
                 title: document.getElementById('ag-title').value,
                 totalAmount: parseFloat(document.getElementById('ag-amount').value),
                 category: document.getElementById('ag-category').value,
                 imageUrl: document.getElementById('ag-image').value,
                 description: document.getElementById('ag-desc').value,
                 currentAmount: 0
-            });
-            e.target.reset(); window.closeAddGiftModal(); window.showToast("Presente adicionado!");
+            };
+            state.gifts.push({ id: 'g-' + Date.now(), ...giftObj });
+            renderGifts();
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), giftObj);
+            } catch(e){}
+            e.target.reset();
+            window.closeAddGiftModal();
+            window.showToast("Presente adicionado!");
         });
 
         window.openPixModal = (giftId) => {
@@ -1457,15 +1404,23 @@
 
         window.confirmContribution = async () => {
             const amount = parseFloat(document.getElementById('pix-amount').value);
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'contributions'), {
+            const contribObj = {
                 giftId: state.selectedGift.id, giftTitle: state.selectedGift.title,
                 guestName: document.getElementById('pix-name').value, amount: amount,
                 message: document.getElementById('pix-msg').value, timestamp: new Date().toISOString()
-            });
-            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'gifts', state.selectedGift.id), {
-                currentAmount: (state.selectedGift.currentAmount || 0) + amount
-            });
-            window.closePixModal(); window.showToast("Cota confirmada com sucesso!");
+            };
+            state.contributions.unshift(contribObj);
+            state.selectedGift.currentAmount = (state.selectedGift.currentAmount || 0) + amount;
+            renderGifts();
+            renderAdmin();
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'contributions'), contribObj);
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'gifts', state.selectedGift.id), {
+                    currentAmount: state.selectedGift.currentAmount
+                });
+            } catch(e){}
+            window.closePixModal();
+            window.showToast("Cota confirmada com sucesso!");
         };
 
         setInterval(() => {
@@ -1526,7 +1481,7 @@
                     box.innerText = QUIZ[state.gameStep].q;
                     opts.className = "grid grid-cols-1 md:grid-cols-2 gap-4 text-[10px] md:text-xs";
                     opts.innerHTML = QUIZ[state.gameStep].opts.map((o, i) => `
-                        <button id="opt-btn-${i}" onclick="window.answerGame(${i})" class="game-opt-btn p-4 bg-black border-2 border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black uppercase text-left group">
+                        <button id="opt-btn-${i}" onclick="window.answerGame(${i})" class="game-opt-btn p-4 bg-black border-2 border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black uppercase text-left group cursor-pointer">
                             <span class="text-transparent group-hover:text-black mr-2">►</span> ${o}
                         </button>
                     `).join('');
@@ -1535,12 +1490,12 @@
                     box.innerText = LIKELY[state.gameStep].q;
                     opts.className = "flex justify-around items-end pt-8";
                     opts.innerHTML = `
-                        <button id="likely-btn-P1" onclick="window.answerGame('P1')" class="game-opt-btn flex flex-col items-center gap-4 hover:scale-110 p-3 rounded-2xl transition-all">
+                        <button id="likely-btn-P1" onclick="window.answerGame('P1')" class="game-opt-btn flex flex-col items-center gap-4 hover:scale-110 p-3 rounded-2xl transition-all cursor-pointer">
                             ${getSprite('groom')}
                             <span class="bg-black px-3 py-2 border-2 border-cyan-400 text-cyan-400 text-[10px]">P1 (JÚNIOR)</span>
                         </button>
                         <span class="text-red-500 text-xl font-bold animate-pulse">VS</span>
-                        <button id="likely-btn-P2" onclick="window.answerGame('P2')" class="game-opt-btn flex flex-col items-center gap-4 hover:scale-110 p-3 rounded-2xl transition-all">
+                        <button id="likely-btn-P2" onclick="window.answerGame('P2')" class="game-opt-btn flex flex-col items-center gap-4 hover:scale-110 p-3 rounded-2xl transition-all cursor-pointer">
                             ${getSprite('bride')}
                             <span class="bg-black px-3 py-2 border-2 border-pink-500 text-pink-500 text-[10px]">P2 (NOIVA)</span>
                         </button>
@@ -1576,13 +1531,13 @@
                 const correctBtn = document.getElementById(`opt-btn-${correctAns}`);
 
                 if (isCorrect) {
-                    clickedBtn.classList.add('game-opt-correct');
+                    if (clickedBtn) clickedBtn.classList.add('game-opt-correct');
                     state.currentScore += (100 / (QUIZ.length + LIKELY.length));
                     fb.className = "text-center text-xs h-6 font-bold text-emerald-400";
                     fb.innerText = "✔ RESPOSTA CORRETA! (+PONTOS)";
                 } else {
-                    clickedBtn.classList.add('game-opt-wrong');
-                    correctBtn.classList.add('game-opt-correct');
+                    if (clickedBtn) clickedBtn.classList.add('game-opt-wrong');
+                    if (correctBtn) correctBtn.classList.add('game-opt-correct');
                     state.currentHp = Math.max(0, state.currentHp - 25);
                     fb.className = "text-center text-xs h-6 font-bold text-red-400";
                     fb.innerText = "✖ RESPOSTA ERRADA! (-25 HP)";
@@ -1608,13 +1563,13 @@
                 const rightBtn = document.getElementById(`likely-btn-${correctAns}`);
 
                 if (isCorrect) {
-                    chosenBtn.classList.add('game-opt-correct');
+                    if (chosenBtn) chosenBtn.classList.add('game-opt-correct');
                     state.currentScore += (100 / (QUIZ.length + LIKELY.length));
                     fb.className = "text-center text-xs h-6 font-bold text-emerald-400";
                     fb.innerText = "✔ EM CHEIO! VOCÊ CONHECE ELES!";
                 } else {
-                    chosenBtn.classList.add('game-opt-wrong');
-                    rightBtn.classList.add('game-opt-correct');
+                    if (chosenBtn) chosenBtn.classList.add('game-opt-wrong');
+                    if (rightBtn) rightBtn.classList.add('game-opt-correct');
                     state.currentHp = Math.max(0, state.currentHp - 15);
                     fb.className = "text-center text-xs h-6 font-bold text-red-400";
                     fb.innerText = "✖ ERROU! NA VERDADE É QUEM ESTÁ DESTACADO!";
@@ -1648,6 +1603,7 @@
         window.addEventListener('load', () => {
             init3DHero();
             lucide.createIcons();
+            renderMural();
         });
     </script>
 </body>
