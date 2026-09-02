@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="pt-BR" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
@@ -9,6 +9,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Three.js (Efeito 3D) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Press+Start+2P&display=swap');
@@ -48,19 +50,7 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Estilo Quadro de Cortiça */
-        .cork-board {
-            background-color: #d7a86e;
-            background-image: radial-gradient(#b88648 15%, transparent 16%), radial-gradient(#a37237 15%, transparent 16%);
-            background-size: 16px 16px;
-            background-position: 0 0, 8px 8px;
-            box-shadow: inset 0 0 40px rgba(74, 43, 37, 0.4);
-        }
-
-        /* Animações de Botões no Jogo */
-        .game-opt-btn {
-            transition: all 0.25s ease;
-        }
+        .game-opt-btn { transition: all 0.25s ease; }
         .game-opt-correct {
             background-color: #10b981 !important;
             border-color: #34d399 !important;
@@ -75,6 +65,419 @@
             opacity: 0.85;
             box-shadow: 0 0 15px rgba(239, 68, 68, 0.8);
         }
+
+        #canvas-3d-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: auto;
+            z-index: 1;
+        }
+
+        /* =========================================================
+           MURAL REALISTA DE CORTIÇA
+           ========================================================= */
+        .cork-board {
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+            min-height: 720px;
+            /* Base da cortiça */
+            background-color: #9a6239;
+            background-image:
+                /* fibras claras */
+                repeating-linear-gradient(
+                    17deg,
+                    rgba(255,255,255,.035) 0px,
+                    rgba(255,255,255,.035) 1px,
+                    transparent 1px,
+                    transparent 7px
+                ),
+                /* fibras escuras */
+                repeating-linear-gradient(
+                    103deg,
+                    rgba(52,28,15,.08) 0px,
+                    rgba(52,28,15,.08) 1px,
+                    transparent 1px,
+                    transparent 11px
+                ),
+                /* pequenos poros */
+                radial-gradient(
+                    ellipse at 20% 30%,
+                    rgba(63,34,18,.25) 0px,
+                    rgba(63,34,18,.25) 1px,
+                    transparent 2px
+                ),
+                radial-gradient(
+                    ellipse at 70% 70%,
+                    rgba(255,220,170,.18) 0px,
+                    rgba(255,220,170,.18) 1px,
+                    transparent 2px
+                ),
+                linear-gradient(
+                    135deg,
+                    #a86d40,
+                    #8c5631 45%,
+                    #a2673b
+                );
+            background-size:
+                auto,
+                auto,
+                17px 19px,
+                23px 21px,
+                auto;
+            /* Profundidade física */
+            box-shadow:
+                inset 0 0 0 2px rgba(255,255,255,.08),
+                inset 0 0 35px rgba(38,20,10,.65),
+                inset 0 0 100px rgba(48,25,10,.35),
+                0 25px 50px rgba(45,25,15,.28);
+            transform: translateZ(0);
+        }
+        /* Variação natural da cortiça */
+        .cork-board::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            opacity: .35;
+            pointer-events: none;
+            background:
+                radial-gradient(
+                    ellipse at 15% 20%,
+                    rgba(255,220,170,.16),
+                    transparent 16%
+                ),
+                radial-gradient(
+                    ellipse at 80% 25%,
+                    rgba(40,20,10,.15),
+                    transparent 20%
+                ),
+                radial-gradient(
+                    ellipse at 35% 80%,
+                    rgba(255,230,190,.12),
+                    transparent 18%
+                );
+            mix-blend-mode: multiply;
+        }
+        /* Vinheta nas bordas */
+        .cork-board::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 20;
+            box-shadow:
+                inset 0 0 55px rgba(38,20,10,.55),
+                inset 0 0 120px rgba(38,20,10,.22);
+        }
+        /* =========================================================
+           ÁREA ONDE OS POST-ITS SÃO POSICIONADOS
+           ========================================================= */
+        #mural-container {
+            position: relative;
+            width: 100%;
+            min-height: 650px;
+            display: block;
+            perspective: 1400px;
+            perspective-origin: 50% 50%;
+        }
+        /* =========================================================
+           POST-IT FÍSICO
+           ========================================================= */
+        .real-postit {
+            position: absolute;
+            width: 190px;
+            min-height: 175px;
+            padding: 25px 18px 18px;
+            border-radius: 1px 2px 3px 1px;
+            transform-style: preserve-3d;
+            cursor: default;
+            /* Papel */
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(255,255,255,.34),
+                    transparent 30%
+                ),
+                linear-gradient(
+                    110deg,
+                    rgba(0,0,0,.035),
+                    transparent 55%
+                );
+            /* sombra física */
+            box-shadow:
+                0 2px 3px rgba(0,0,0,.18),
+                2px 6px 8px rgba(0,0,0,.18),
+                7px 13px 18px rgba(0,0,0,.18),
+                0 22px 25px rgba(48,25,10,.16);
+            border: 1px solid rgba(80,45,15,.10);
+            animation: postit-arrive .65s cubic-bezier(.2,.8,.2,1) both;
+            transition:
+                transform .35s cubic-bezier(.2,.8,.2,1),
+                box-shadow .35s ease,
+                filter .35s ease;
+            overflow: visible;
+        }
+        /* Pequena irregularidade na parte inferior */
+        .real-postit::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -1px;
+            height: 7px;
+            background: inherit;
+            clip-path: polygon(
+                0 0,
+                8% 25%,
+                17% 5%,
+                28% 30%,
+                40% 8%,
+                52% 27%,
+                65% 5%,
+                78% 25%,
+                90% 8%,
+                100% 20%,
+                100% 100%,
+                0 100%
+            );
+            filter: brightness(.97);
+        }
+        /* Dobra de papel */
+        .real-postit::after {
+            content: "";
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 27px;
+            height: 27px;
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(0,0,0,.08),
+                    rgba(255,255,255,.32)
+                );
+            clip-path: polygon(
+                100% 0,
+                100% 100%,
+                0 100%
+            );
+            opacity: .65;
+        }
+        /* Hover */
+        .real-postit:hover {
+            z-index: 50;
+            transform:
+                translateZ(45px)
+                scale(1.07)
+                rotateZ(0deg) !important;
+            box-shadow:
+                0 3px 5px rgba(0,0,0,.18),
+                5px 12px 15px rgba(0,0,0,.20),
+                12px 25px 35px rgba(30,15,5,.25);
+            filter: brightness(1.025);
+        }
+        /* =========================================================
+           TEXTO DO POST-IT
+           ========================================================= */
+        .postit-header {
+            position: relative;
+            z-index: 4;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(70,40,20,.13);
+        }
+        .postit-author {
+            font-family: var(--font-sans);
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.15;
+        }
+        .postit-relation {
+            display: block;
+            margin-top: 2px;
+            font-family: var(--font-sans);
+            font-size: 9px;
+            opacity: .65;
+        }
+        .postit-date {
+            font-family: var(--font-sans);
+            font-size: 8px;
+            opacity: .5;
+            white-space: nowrap;
+        }
+        .postit-message {
+            position: relative;
+            z-index: 4;
+            margin-top: 11px;
+            font-family: var(--font-handwriting);
+            font-size: 22px;
+            line-height: 1.05;
+            letter-spacing: .15px;
+            word-break: break-word;
+            text-shadow:
+                0 .3px 0 rgba(255,255,255,.25);
+            transform: translateZ(2px);
+        }
+        /* =========================================================
+           PIN / ALFINETE 3D
+           ========================================================= */
+        .real-pin {
+            position: absolute;
+            left: 50%;
+            top: -13px;
+            width: 25px;
+            height: 25px;
+            transform:
+                translateX(-50%)
+                translateZ(45px);
+            z-index: 30;
+            pointer-events: none;
+        }
+        /* Cabeça do alfinete */
+        .real-pin::before {
+            content: "";
+            position: absolute;
+            left: 2px;
+            top: 1px;
+            width: 21px;
+            height: 21px;
+            border-radius: 50%;
+            background:
+                radial-gradient(
+                    circle at 32% 27%,
+                    #fff 0%,
+                    #fff 5%,
+                    #e8e8e8 11%,
+                    #a8a8a8 35%,
+                    #555 66%,
+                    #222 100%
+                );
+            box-shadow:
+                0 2px 2px rgba(0,0,0,.35),
+                2px 4px 5px rgba(0,0,0,.25),
+                inset -2px -2px 3px rgba(0,0,0,.35),
+                inset 2px 2px 3px rgba(255,255,255,.75);
+            border: 1px solid rgba(0,0,0,.28);
+        }
+        /* Ponta que entra no papel */
+        .real-pin::after {
+            content: "";
+            position: absolute;
+            left: 11px;
+            top: 17px;
+            width: 4px;
+            height: 19px;
+            background:
+                linear-gradient(
+                    90deg,
+                    #444,
+                    #ddd 45%,
+                    #666
+                );
+            clip-path: polygon(
+                20% 0,
+                100% 0,
+                58% 100%,
+                0 100%
+            );
+            filter:
+                drop-shadow(1px 2px 1px rgba(0,0,0,.35));
+            transform-origin: top;
+        }
+        /* Sombra de contato do pin */
+        .pin-shadow {
+            position: absolute;
+            left: 50%;
+            top: 17px;
+            width: 24px;
+            height: 10px;
+            transform:
+                translateX(-50%)
+                rotateX(70deg);
+            background: rgba(0,0,0,.22);
+            filter: blur(4px);
+            border-radius: 50%;
+            z-index: 2;
+        }
+        /* =========================================================
+           SELO DO GAME
+           ========================================================= */
+        .postit-badge {
+            position: relative;
+            z-index: 5;
+            margin-top: 9px;
+            padding: 5px 7px;
+            background: rgba(0,0,0,.075);
+            border: 1px solid rgba(0,0,0,.08);
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 9px;
+            font-weight: 700;
+            box-shadow:
+                inset 0 1px rgba(255,255,255,.25);
+        }
+        /* =========================================================
+           ANIMAÇÃO DE FIXAÇÃO
+           ========================================================= */
+        @keyframes postit-arrive {
+            0% {
+                opacity: 0;
+                transform:
+                    translateY(-80px)
+                    translateZ(100px)
+                    rotateZ(12deg)
+                    scale(.75);
+            }
+            45% {
+                opacity: 1;
+            }
+            75% {
+                transform:
+                    translateY(7px)
+                    translateZ(15px)
+                    rotateZ(-3deg)
+                    scale(1.02);
+            }
+            100% {
+                transform:
+                    translateY(0)
+                    translateZ(0)
+                    rotateZ(var(--postit-rotation));
+            }
+        }
+        /* =========================================================
+           CELULAR
+           ========================================================= */
+        @media (max-width: 640px) {
+            .cork-board {
+                min-height: 900px;
+                padding: 10px !important;
+            }
+            #mural-container {
+                min-height: 850px;
+            }
+            .real-postit {
+                width: 155px;
+                min-height: 155px;
+                padding: 22px 13px 14px;
+            }
+            .postit-message {
+                font-size: 19px;
+            }
+            .postit-author {
+                font-size: 10px;
+            }
+            .postit-date {
+                font-size: 7px;
+            }
+        }
     </style>
 </head>
 <body class="bg-red-50 text-stone-800 pb-24 selection:bg-red-200">
@@ -85,9 +488,8 @@
         <span id="toast-msg" class="text-sm font-medium"></span>
     </div>
 
-    <!-- Widget de Música Flutuante (Suporta Spotify e MP3) -->
+    <!-- Widget de Música Flutuante (Spotify e MP3) -->
     <div class="fixed bottom-5 left-5 z-40">
-        <!-- Janela Expandida do Spotify -->
         <div id="spotify-popup" class="hidden mb-3 bg-stone-900/95 backdrop-blur-md p-3 rounded-2xl shadow-2xl border border-stone-700 w-80 sm:w-96 transition-all duration-300">
             <div class="flex items-center justify-between pb-2 mb-2 border-b border-stone-800">
                 <span class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
@@ -102,7 +504,6 @@
             </div>
         </div>
 
-        <!-- Botão Controlador Principal -->
         <div class="bg-white/95 backdrop-blur-md p-2.5 rounded-full shadow-xl border border-red-200 flex items-center gap-3">
             <button id="music-btn" onclick="window.toggleMusicWidget()" class="w-10 h-10 bg-emerald-500 hover:bg-emerald-600 text-stone-950 font-bold rounded-full flex items-center justify-center shadow-md transition-all">
                 <i id="music-icon" data-lucide="music-2" class="w-5 h-5"></i>
@@ -135,27 +536,33 @@
         </div>
     </nav>
 
-    <main class="pt-24 px-4 max-w-5xl mx-auto">
+    <main class="pt-20 px-4 max-w-5xl mx-auto">
         
-        <!-- INÍCIO -->
+        <!-- INÍCIO COM HERO 3D -->
         <section id="tab-home" class="tab-content active space-y-12 pb-10">
-            <div class="text-center pt-10 pb-16 bg-gradient-to-b from-red-100/50 to-red-50 relative overflow-hidden rounded-3xl">
-                <span class="text-red-600 text-sm font-semibold tracking-widest uppercase">Vamos Nos Casar!</span>
-                <h1 id="hero-names" class="font-serif text-5xl md:text-7xl text-red-900 font-bold leading-tight mt-4 mb-6">Júnior & Noiva</h1>
-                <p class="text-stone-600 text-lg font-light max-w-2xl mx-auto px-4">"Grandes histórias de amor começam com detalhes simples. Venha celebrar este capítulo conosco."</p>
-                <div class="pt-8 flex flex-wrap justify-center items-center gap-4 text-stone-700 font-medium">
-                    <span class="flex items-center gap-1 bg-white px-4 py-2 rounded-full shadow-sm" id="hero-date"><i data-lucide="calendar" class="w-5 h-5 text-red-500"></i> 14/11/2026</span>
-                    <a id="hero-maps-link" href="#" target="_blank" class="flex items-center gap-1 bg-white px-4 py-2 rounded-full shadow-sm hover:text-red-600 transition-colors"><i data-lucide="map-pin" class="w-5 h-5 text-red-500"></i> <span id="hero-location">Espaço das Flores - Curitiba, PR</span></a>
+            <div class="text-center pt-16 pb-20 bg-gradient-to-b from-red-100/60 to-red-50 relative overflow-hidden rounded-3xl min-h-[460px] flex flex-col justify-center items-center">
+                <!-- Canvas 3D Interativo -->
+                <canvas id="canvas-3d-bg"></canvas>
+
+                <div class="relative z-10 pointer-events-none px-4 max-w-3xl">
+                    <span class="text-red-600 text-xs md:text-sm font-semibold tracking-widest uppercase bg-white/80 px-4 py-1.5 rounded-full backdrop-blur shadow-sm">Vamos Nos Casar!</span>
+                    <h1 id="hero-names" class="font-serif text-5xl md:text-7xl text-red-900 font-bold leading-tight mt-4 mb-4 drop-shadow-sm">Júnior & Noiva</h1>
+                    <p class="text-stone-600 text-base md:text-lg font-light max-w-2xl mx-auto">"Grandes histórias de amor começam com detalhes simples. Venha celebrar este capítulo conosco."</p>
+                    <div class="pt-6 flex flex-wrap justify-center items-center gap-4 text-stone-700 font-medium pointer-events-auto">
+                        <span class="flex items-center gap-1.5 bg-white/90 px-4 py-2 rounded-full shadow-sm text-sm"><i data-lucide="calendar" class="w-4 h-4 text-red-500"></i> <span id="hero-date">14/11/2026</span></span>
+                        <a id="hero-maps-link" href="#" target="_blank" class="flex items-center gap-1.5 bg-white/90 px-4 py-2 rounded-full shadow-sm hover:text-red-600 text-sm transition-colors"><i data-lucide="map-pin" class="w-4 h-4 text-red-500"></i> <span id="hero-location">Curitiba, PR</span></a>
+                    </div>
                 </div>
             </div>
 
-            <div class="glass-card rounded-3xl p-6 md:p-10 shadow-xl border border-red-200 text-center max-w-4xl mx-auto -mt-20 relative z-10">
+            <!-- Contador -->
+            <div class="glass-card rounded-3xl p-6 md:p-10 shadow-xl border border-red-200 text-center max-w-4xl mx-auto -mt-16 relative z-10">
                 <h2 class="font-serif text-2xl md:text-3xl text-red-900 mb-6 font-semibold">Contagem Regressiva para o Grande Dia</h2>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="countdown"></div>
             </div>
         </section>
 
-        <!-- NOSSA HISTÓRIA -->
+        <!-- HISTÓRIA -->
         <section id="tab-history" class="tab-content py-10 max-w-4xl mx-auto">
             <div class="text-center mb-16">
                 <h2 class="font-serif text-4xl text-red-900 font-bold mb-3">Nossa Trajetória</h2>
@@ -168,7 +575,7 @@
                     <div class="w-[calc(100%-3rem)] md:w-[calc(50%-2.5rem)] bg-white p-6 rounded-2xl shadow-md border border-red-100">
                         <span class="text-xs font-semibold text-red-500 uppercase tracking-wider">A Troca de Turno</span>
                         <h3 class="font-serif text-xl font-bold text-stone-800 mt-1 mb-2">A Mesa do Jantar</h3>
-                        <p class="text-stone-600 text-sm leading-relaxed">Nos conhecemos na empresa na troca de turno. Ele chegava com a Saveiro do Denis chamando a atenção, mas eu nem ligava! Até que na fila da janta, sem querer, sentei na mesma mesa que ele e fiquei por vergonha de me levantar. No final, acabei pedindo o contato dele!</p>
+                        <p class="text-stone-600 text-sm leading-relaxed">Nos conhecemos na empresa na troca de turno. Ele chegava com a Saveiro chamando a atenção, mas eu nem ligava! Até que na fila da janta, sem querer, sentei na mesma mesa que ele e fiquei por vergonha de me levantar. No final, acabei pedindo o contato dele!</p>
                     </div>
                 </div>
 
@@ -211,7 +618,7 @@
             <div id="gifts-container" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
         </section>
 
-        <!-- DESAFIO DO CASAL 16-BITS -->
+        <!-- DESAFIO 16-BITS -->
         <section id="tab-games" class="tab-content py-10 bg-black text-white px-4 relative overflow-hidden rounded-3xl shadow-2xl border-4 border-emerald-500">
             <div class="absolute inset-0 crt-overlay"></div>
             <div class="max-w-3xl mx-auto relative z-10 font-pixel" id="game-container">
@@ -266,14 +673,13 @@
             </div>
         </section>
 
-        <!-- MURAL DE POST-ITS (ESTILO QUADRO DE RECADOS) -->
+        <!-- MURAL DE POST-ITS (ESTILO QUADRO FÍSICO) -->
         <section id="tab-mural" class="tab-content py-10 max-w-5xl mx-auto">
             <div class="text-center mb-10">
                 <h2 class="font-serif text-4xl text-red-900 font-bold mb-3">Mural de Lembranças & Recados</h2>
                 <p class="text-stone-600">Deixe um post-it carinhoso com seus votos ou publique o resultado do seu jogo!</p>
             </div>
 
-            <!-- Formulário de Envio -->
             <form id="form-mural" class="glass-card p-6 rounded-3xl border border-red-200 mb-12 shadow-sm space-y-4 max-w-2xl mx-auto">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -286,7 +692,6 @@
                     </div>
                 </div>
 
-                <!-- Campo de Selo/Jogo (Bloqueado para Edição) -->
                 <div id="mural-badge-wrapper" class="hidden bg-yellow-50 p-3 rounded-xl border border-yellow-200 text-xs">
                     <label class="block font-bold text-stone-700 uppercase mb-1">Resultado Oficial do Game (Não editável)</label>
                     <input type="text" id="mural-badge-text" readonly class="w-full bg-white p-2 rounded-lg border border-yellow-300 font-mono text-xs text-stone-800 outline-none cursor-not-allowed"/>
@@ -312,15 +717,12 @@
                 </button>
             </form>
 
-            <!-- Quadro de Cortiça com Post-its -->
-            <div class="cork-board rounded-3xl p-6 md:p-10 border-8 border-[#78472a] min-h-[450px]">
-                <div id="mural-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 items-start">
-                    <!-- Post-its Injetados via JS -->
-                </div>
+            <div class="cork-board rounded-3xl p-4 md:p-8 border-8 border-[#78472a]">
+                <div id="mural-container"></div>
             </div>
         </section>
 
-        <!-- CONFIRMAÇÃO DE PRESENÇA (RSVP) -->
+        <!-- RSVP -->
         <section id="tab-rsvp" class="tab-content">
             <div class="max-w-xl mx-auto glass-card p-8 rounded-3xl border border-red-200 shadow-sm text-center mt-10">
                 <i data-lucide="user-check" class="w-12 h-12 text-red-600 mx-auto mb-4"></i>
@@ -344,7 +746,7 @@
             </div>
         </section>
 
-        <!-- PAINEL DE CONTROLE DO ADMINISTRADOR -->
+        <!-- PAINEL DE CONTROLE -->
         <section id="tab-admin" class="tab-content mt-10 max-w-4xl mx-auto">
             <div class="bg-stone-900 text-white p-6 rounded-3xl flex justify-between items-center shadow-lg mb-6">
                 <h2 class="font-serif text-xl font-bold flex items-center gap-2"><i data-lucide="settings" class="w-5 h-5 text-red-500"></i> Painel do Casal</h2>
@@ -366,8 +768,7 @@
                         <label class="block text-xs font-bold text-emerald-700 uppercase flex items-center gap-1">
                             <i data-lucide="music" class="w-3.5 h-3.5"></i> Link da Música (Spotify ou MP3)
                         </label>
-                        <input type="text" id="cfg-radio" placeholder="Cole o link da Playlist/Música do Spotify (ex: https://open.spotify.com/playlist/...) ou link direto .mp3" class="w-full mt-1 p-2.5 border border-emerald-300 rounded-xl focus:outline-none focus:border-emerald-500 text-xs"/>
-                        <span class="text-[11px] text-stone-400 mt-1 block">💡 Dica Spotify: No app do Spotify, vá na sua playlist > Compartilhar > Copiar link e cole aqui!</span>
+                        <input type="text" id="cfg-radio" placeholder="Cole o link da Playlist/Música do Spotify ou arquivo .mp3" class="w-full mt-1 p-2.5 border border-emerald-300 rounded-xl focus:outline-none focus:border-emerald-500 text-xs"/>
                     </div>
                     <div><label class="block text-xs font-bold text-stone-500 uppercase">Nova Senha do Painel</label><input type="password" id="cfg-pass" placeholder="Manter atual" class="w-full mt-1 p-2.5 border rounded-xl"/></div>
                     <div class="md:col-span-2"><button type="submit" class="px-6 py-3 bg-stone-900 text-white rounded-xl text-xs font-bold hover:bg-red-600 transition-colors">Salvar Alterações</button></div>
@@ -395,14 +796,14 @@
 
     </main>
 
-    <!-- MODAL DE SENHA DO ADMIN (SEGURO E CONFIÁVEL) -->
+    <!-- MODAL DE SENHA DO ADMIN -->
     <div id="modal-admin-login" class="fixed inset-0 z-50 bg-stone-900/80 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 border border-stone-200 text-center space-y-4">
             <div class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto">
                 <i data-lucide="lock" class="w-6 h-6"></i>
             </div>
             <h3 class="font-serif text-xl font-bold text-stone-900">Acesso Restrito aos Noivos</h3>
-            <p class="text-xs text-stone-500">Digite a senha de administrador para gerenciar o site:</p>
+            <p class="text-xs text-stone-500">Digite a senha de administrador:</p>
             <input type="password" id="admin-input-pass" placeholder="Senha do Painel" class="w-full px-4 py-3 border border-stone-200 rounded-xl text-center text-sm focus:outline-none focus:border-red-500 font-mono"/>
             <div class="flex gap-2">
                 <button onclick="window.closeAdminModal()" class="w-1/2 py-2.5 border rounded-xl text-xs font-bold text-stone-500 hover:bg-stone-50">Cancelar</button>
@@ -411,7 +812,7 @@
         </div>
     </div>
 
-    <!-- MODAL DE PAGAMENTO PIX -->
+    <!-- MODAL PIX -->
     <div id="modal-pix" class="fixed inset-0 z-50 bg-stone-900/80 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-stone-200">
             <div class="bg-red-600 p-5 text-white flex justify-between items-center">
@@ -447,7 +848,7 @@
         </div>
     </div>
 
-    <!-- MODAL DE ADICIONAR NOVO PRESENTE -->
+    <!-- MODAL NOVO PRESENTE -->
     <div id="modal-add-gift" class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-3xl p-6 border border-stone-200 shadow-2xl">
             <h3 class="font-serif text-xl font-bold mb-4 text-stone-900">Adicionar Presente</h3>
@@ -470,7 +871,7 @@
         <p class="mt-2 text-[10px] uppercase tracking-widest text-stone-300" id="footer-names">© 2026 Júnior & Noiva</p>
     </footer>
 
-    <!-- LÓGICA E FIREBASE -->
+    <!-- LÓGICA E THREE.JS 3D -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -499,7 +900,126 @@
             }
         };
 
-        // Detector e Formatador de Links do Spotify
+        // --- SISTEMA 3D COM THREE.JS NO HERO ---
+        function init3DHero() {
+            const canvas = document.getElementById('canvas-3d-bg');
+            if (!canvas) return;
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(60, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+            camera.position.z = 25;
+
+            const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+            scene.add(ambientLight);
+            const dirLight = new THREE.DirectionalLight(0xff7788, 1.2);
+            dirLight.position.set(10, 20, 15);
+            scene.add(dirLight);
+
+            const x = 0, y = 0;
+            const heartShape = new THREE.Shape();
+            heartShape.moveTo(x + 2.5, y + 2.5);
+            heartShape.bezierCurveTo(x + 2.5, y + 2.5, x + 2.0, y, x, y);
+            heartShape.bezierCurveTo(x - 3.0, y, x - 3.0, y + 3.5, x - 3.0, y + 3.5);
+            heartShape.bezierCurveTo(x - 3.0, y + 5.5, x - 1.0, y + 7.7, x + 2.5, y + 9.5);
+            heartShape.bezierCurveTo(x + 6.0, y + 7.7, x + 8.0, y + 5.5, x + 8.0, y + 3.5);
+            heartShape.bezierCurveTo(x + 8.0, y + 3.5, x + 8.0, y, x + 5.0, y);
+            heartShape.bezierCurveTo(x + 3.5, y, x + 2.5, y + 2.5, x + 2.5, y + 2.5);
+
+            const extrudeSettings = { depth: 0.8, bevelEnabled: true, bevelSegments: 3, steps: 2, bevelSize: 0.3, bevelThickness: 0.3 };
+            const heartGeo = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
+            heartGeo.center();
+
+            const heartMat = new THREE.MeshPhongMaterial({
+                color: 0xbe8a7d,
+                emissive: 0x4a2b25,
+                specular: 0xffffff,
+                shininess: 60,
+                transparent: true,
+                opacity: 0.85
+            });
+
+            const hearts = [];
+            for (let i = 0; i < 18; i++) {
+                const mesh = new THREE.Mesh(heartGeo, heartMat.clone());
+                mesh.position.set(
+                    (Math.random() - 0.5) * 40,
+                    (Math.random() - 0.5) * 25,
+                    (Math.random() - 0.5) * 20
+                );
+                const scale = (Math.random() * 0.25 + 0.15);
+                mesh.scale.set(scale, scale, scale);
+                mesh.rotation.x = Math.PI;
+                mesh.rotation.y = Math.random() * Math.PI;
+                mesh.userData = {
+                    speedY: Math.random() * 0.02 + 0.01,
+                    rotSpeedX: (Math.random() - 0.5) * 0.02,
+                    rotSpeedY: (Math.random() - 0.5) * 0.02,
+                    initialY: mesh.position.y
+                };
+                scene.add(mesh);
+                hearts.push(mesh);
+            }
+
+            const partGeo = new THREE.BufferGeometry();
+            const partCount = 120;
+            const posArray = new Float32Array(partCount * 3);
+            for (let i = 0; i < partCount * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 50;
+            }
+            partGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            const partMat = new THREE.PointsMaterial({ size: 0.3, color: 0xe8d5d0, transparent: true, opacity: 0.7 });
+            const particles = new THREE.Points(partGeo, partMat);
+            scene.add(particles);
+
+            let mouseX = 0, mouseY = 0;
+            const onPointerMove = (e) => {
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                mouseX = (clientX / window.innerWidth) * 2 - 1;
+                mouseY = -(clientY / window.innerHeight) * 2 + 1;
+            };
+            window.addEventListener('mousemove', onPointerMove, { passive: true });
+            window.addEventListener('touchmove', onPointerMove, { passive: true });
+
+            const resize = () => {
+                if (!canvas.parentElement) return;
+                const width = canvas.parentElement.clientWidth;
+                const height = canvas.parentElement.clientHeight;
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+                renderer.setSize(width, height);
+            };
+            window.addEventListener('resize', resize);
+            resize();
+
+            function animate() {
+                requestAnimationFrame(animate);
+
+                hearts.forEach((h) => {
+                    h.position.y += h.userData.speedY;
+                    h.rotation.x += h.userData.rotSpeedX;
+                    h.rotation.y += h.userData.rotSpeedY;
+
+                    if (h.position.y > 18) {
+                        h.position.y = -18;
+                    }
+                });
+
+                particles.rotation.y += 0.001;
+
+                camera.position.x += (mouseX * 5 - camera.position.x) * 0.05;
+                camera.position.y += (mouseY * 3 - camera.position.y) * 0.05;
+                camera.lookAt(scene.position);
+
+                renderer.render(scene, camera);
+            }
+            animate();
+        }
+
         function getSpotifyEmbedUrl(url) {
             if (!url || typeof url !== 'string') return null;
             const cleanUrl = url.trim();
@@ -527,9 +1047,11 @@
                     "nav-btn px-4 py-2 rounded-full transition-all capitalize bg-red-600 text-white shadow-md" : 
                     "nav-btn px-4 py-2 rounded-full transition-all capitalize hover:bg-red-100 hover:text-red-700";
             });
+            if (tabId === 'mural') {
+                renderMural();
+            }
         };
 
-        // Modal de Senha do Painel
         window.openAdminModal = () => {
             document.getElementById('admin-input-pass').value = '';
             document.getElementById('modal-admin-login').style.display = 'flex';
@@ -543,9 +1065,9 @@
             if (pwd === correctPass) {
                 window.closeAdminModal();
                 window.switchTab('admin');
-                window.showToast("Bem-vindos ao Painel de Controle!");
+                window.showToast("Bem-vindos ao Painel!");
             } else {
-                window.showToast("Senha incorreta! Tente novamente.");
+                window.showToast("Senha incorreta!");
             }
         };
 
@@ -553,17 +1075,14 @@
             if (e.key === 'Enter') window.submitAdminLogin();
         });
 
-        // Controle do Widget de Música (Spotify / MP3)
         window.toggleMusicWidget = () => {
             const spotifyUrl = getSpotifyEmbedUrl(state.settings.radioUrl);
             const popup = document.getElementById('spotify-popup');
             const audioPlayer = document.getElementById('audio-player');
 
             if (spotifyUrl) {
-                // Modo Spotify: Abre/fecha popup com o player embed oficial
                 popup.classList.toggle('hidden');
             } else if (state.settings.radioUrl) {
-                // Modo MP3: Reproduz/pausa áudio direto
                 if (state.isMp3Playing) {
                     audioPlayer.pause();
                     state.isMp3Playing = false;
@@ -576,11 +1095,11 @@
                         document.getElementById('music-status').innerText = "Tocando Música 🎵";
                         document.getElementById('music-subtitle').innerText = "Toque para pausar";
                     }).catch(() => {
-                        window.showToast("Não foi possível reproduzir o áudio.");
+                        window.showToast("Erro ao reproduzir arquivo MP3.");
                     });
                 }
             } else {
-                window.showToast("Nenhuma música ou Spotify configurado no painel!");
+                window.showToast("Nenhuma música ou link configurado no painel!");
             }
         };
 
@@ -593,7 +1112,7 @@
 
             if (spotifyEmbed) {
                 musicBtn.className = "w-10 h-10 bg-emerald-500 hover:bg-emerald-600 text-stone-950 font-bold rounded-full flex items-center justify-center shadow-md transition-all";
-                musicStatus.innerText = "Spotify dos Noivos";
+                musicStatus.innerText = "Spotify do Casal";
                 musicSubtitle.innerText = "Abrir Player";
                 wrapper.innerHTML = `
                     <iframe style="border-radius:12px" src="${spotifyEmbed}" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
@@ -705,39 +1224,110 @@
             lucide.createIcons();
         };
 
-        // Renderiza o Mural de Post-its Coloridos e Inclinados
-        const renderMural = () => {
-            const rotations = ['rotate-1', '-rotate-2', 'rotate-2', '-rotate-1', 'rotate-3', '-rotate-3'];
-            const colorClasses = {
-                yellow: 'bg-yellow-200 border-yellow-300 text-yellow-950',
-                pink: 'bg-pink-200 border-pink-300 text-pink-950',
-                green: 'bg-emerald-200 border-emerald-300 text-emerald-950',
-                blue: 'bg-sky-200 border-sky-300 text-sky-950'
+        /* =========================================================
+           MURAL REALISTA
+           ========================================================= */
+        const escapeHTML = (value) => {
+            if (value === null || value === undefined) return '';
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        };
+
+        const generatePostItPosition = (index, total) => {
+            const cols = window.innerWidth <= 640 ? 2 : 4;
+            const row = Math.floor(index / cols);
+            const col = index % cols;
+            const boardWidth = document.getElementById('mural-container')?.clientWidth || 900;
+            const boardHeight = window.innerWidth <= 640 ? 850 : 650;
+            const postitWidth = window.innerWidth <= 640 ? 155 : 190;
+            const postitHeight = window.innerWidth <= 640 ? 155 : 175;
+            const horizontalSpace = Math.max(0, boardWidth - postitWidth - 20);
+            const verticalSpace = Math.max(0, boardHeight - postitHeight - 20);
+            let x;
+            let y;
+            const cellWidth = horizontalSpace / Math.max(cols - 1, 1);
+            x = 10 + col * cellWidth + (Math.random() * 35 - 17);
+            y = 35 + row * 190 + (Math.random() * 45 - 22);
+            x = Math.max(5, Math.min(x, Math.max(5, boardWidth - postitWidth - 5)));
+            y = Math.max(15, Math.min(y, Math.max(15, verticalSpace)));
+            const rotations = [-5.5, -4, -2.5, -1, 1, 2, 3.5, 5];
+            const rotation = rotations[Math.floor(Math.random() * rotations.length)];
+            return { x, y, rotation };
+        };
+
+        const getPostItColor = (color) => {
+            const colors = {
+                yellow: {
+                    background: `linear-gradient(135deg, rgba(255,255,255,.35), transparent 35%), linear-gradient(110deg, #fff59d, #f8e879)`,
+                    text: '#4a3b08'
+                },
+                pink: {
+                    background: `linear-gradient(135deg, rgba(255,255,255,.38), transparent 35%), linear-gradient(110deg, #ffd0dc, #f5aebe)`,
+                    text: '#5c172b'
+                },
+                green: {
+                    background: `linear-gradient(135deg, rgba(255,255,255,.38), transparent 35%), linear-gradient(110deg, #d2f5c8, #a9df9d)`,
+                    text: '#21451d'
+                },
+                blue: {
+                    background: `linear-gradient(135deg, rgba(255,255,255,.40), transparent 35%), linear-gradient(110deg, #cceeff, #9dd8ee)`,
+                    text: '#143b4d'
+                }
             };
+            return colors[color] || colors.yellow;
+        };
 
-            document.getElementById('mural-container').innerHTML = state.messages.map((m, idx) => {
-                const rot = rotations[idx % rotations.length];
-                const col = colorClasses[m.color] || colorClasses.yellow;
-                return `
-                    <div class="p-6 rounded-2xl shadow-xl transform ${rot} hover:scale-105 hover:rotate-0 transition-all duration-300 border-t-8 ${col} relative space-y-3">
-                        <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-red-600 border border-red-800 shadow-md"></div>
-                        
-                        <div class="flex justify-between items-start border-b border-black/10 pb-2">
-                            <div>
-                                <h4 class="font-bold text-sm font-sans">${m.author}</h4>
-                                <span class="text-[11px] opacity-75 font-sans">${m.relation || 'Convidado(a)'}</span>
-                            </div>
-                            <span class="text-[10px] opacity-60 font-sans">${new Date(m.timestamp).toLocaleDateString()}</span>
-                        </div>
-
-                        ${m.badge ? `
-                            <div class="bg-black/10 p-2 rounded-lg text-xs font-mono font-bold flex items-center gap-1">
-                                <span>🏆</span> <span>${m.badge}</span>
-                            </div>
-                        ` : ''}
-
-                        <p class="font-handwriting text-xl leading-snug break-words">${m.text}</p>
+        const renderMural = () => {
+            const container = document.getElementById('mural-container');
+            if (!container) return;
+            if (!state.messages || state.messages.length === 0) {
+                container.innerHTML = `
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center text-white/70 pointer-events-none">
+                        <div class="text-6xl mb-4 opacity-70">📌</div>
+                        <p class="font-serif text-2xl">O mural ainda está vazio</p>
+                        <p class="text-sm mt-2 opacity-70">Seja o primeiro a deixar uma lembrança para os noivos.</p>
                     </div>
+                `;
+                return;
+            }
+            container.innerHTML = state.messages.map((m, index) => {
+                const position = generatePostItPosition(index, state.messages.length);
+                const color = getPostItColor(m.color);
+                const author = escapeHTML(m.author || 'Convidado(a)');
+                const relation = escapeHTML(m.relation || 'Convidado(a)');
+                const message = escapeHTML(m.text || '');
+                const badge = escapeHTML(m.badge || '');
+                const date = m.timestamp
+                    ? new Date(m.timestamp).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })
+                    : '';
+                return `
+                    <article
+                        class="real-postit"
+                        style="
+                            left: ${position.x}px;
+                            top: ${position.y}px;
+                            --postit-rotation: ${position.rotation}deg;
+                            background: ${color.background};
+                            color: ${color.text};
+                            animation-delay: ${Math.min(index * 70, 700)}ms;
+                        "
+                    >
+                        <div class="pin-shadow"></div>
+                        <div class="real-pin" aria-hidden="true"></div>
+                        <div class="postit-header">
+                            <div>
+                                <div class="postit-author">${author}</div>
+                                <span class="postit-relation">${relation}</span>
+                            </div>
+                            <span class="postit-date">${date}</span>
+                        </div>
+                        ${badge ? `<div class="postit-badge">🏆 ${badge}</div>` : ''}
+                        <p class="postit-message">${message}</p>
+                    </article>
                 `;
             }).join('');
         };
@@ -894,7 +1484,7 @@
             }
         }, 1000);
 
-        // --- LÓGICA DO JOGO 16-BITS COM FEEDBACK VISUAL ---
+        // --- 16-BIT GAME LOGIC ---
         const QUIZ = [
             { q: "Qual foi a aposta que gerou o primeiro beijo?", opts: ["Dar um beijo no Leite Ninho", "Pagar uma Heineken", "Dar uma volta de Saveiro", "Troca de turno"], ans: 0 },
             { q: "O que o casal foi beber antes de ir trabalhar no primeiro encontro?", opts: ["Budweiser & Heineken", "Caipirinha & Vinho", "Café & Suco de Laranja", "Água de Coco"], ans: 0 },
@@ -1052,10 +1642,13 @@
             document.getElementById('mural-badge-text').value = `${badgeTitle} (${totalScore} pts / ${state.currentHp} HP)`;
             document.getElementById('mural-text').placeholder = "Complete aqui com sua mensagem carinhosa para os noivos...";
             document.getElementById('mural-text').focus();
-            window.showToast("Resultado anexado ao formulário! Adicione seu recado e publique.");
+            window.showToast("Resultado anexado ao formulário!");
         };
 
-        lucide.createIcons();
+        window.addEventListener('load', () => {
+            init3DHero();
+            lucide.createIcons();
+        });
     </script>
 </body>
 </html>
