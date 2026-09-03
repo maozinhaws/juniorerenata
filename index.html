@@ -14,7 +14,7 @@
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Press+Start+2P&display=swap');
-        
+    
         :root {
             --font-serif: 'Cormorant Garamond', serif;
             --font-sans: 'Plus Jakarta Sans', sans-serif;
@@ -709,23 +709,24 @@
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // =========================================================================
-        // ATENÇÃO: COLE AQUI AS CREDENCIAIS DO SEU PROJETO FIREBASE REAL
-        // =========================================================================
         const firebaseConfig = {
-            apiKey: "COLE_SUA_API_KEY_AQUI",
-            authDomain: "COLE_SEU_AUTH_DOMAIN_AQUI",
-            projectId: "COLE_SEU_PROJECT_ID_AQUI",
-            storageBucket: "COLE_SEU_STORAGE_BUCKET_AQUI",
-            messagingSenderId: "COLE_SEU_MESSAGING_SENDER_ID_AQUI",
-            appId: "COLE_SEU_APP_ID_AQUI"
+            apiKey: "AIzaSyCYUx_0e4Xfsit8cGKR9Tx648lBsNkZkf8",
+            authDomain: "casamentojer-f582b.firebaseapp.com",
+            projectId: "casamentojer-f582b",
+            storageBucket: "casamentojer-f582b.firebasestorage.app",
+            messagingSenderId: "1045448989382",
+            appId: "1:1045448989382:web:c62c868d5104154be1d5c7",
+            measurementId: "G-PM73MG69PF"
         };
-        // =========================================================================
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const appId = 'wedding-prod';
+
+        // ... MANTENHA O RESTANTE DO CÓDIGO INTACTO A PARTIR DAQUI ...
+        
+        const DEFAULT_GIFTS = [
 
         const DEFAULT_GIFTS = [
             { title: "Cota para Lua de Mel", totalAmount: 3000, currentAmount: 0, category: "Viagem", description: "Ajuda para o nosso merecido descanso na praia!", imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80" },
