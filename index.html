@@ -76,7 +76,6 @@
             z-index: 1;
         }
 
-        /* MURAL REALISTA DE CORTIÇA */
         .cork-board {
             position: relative;
             isolation: isolate;
@@ -424,12 +423,10 @@
             <div id="gifts-container" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
         </section>
 
-        <!-- LOVE CUP 3D (NOVO MODO FUTEBOL) -->
+        <!-- LOVE CUP 3D -->
         <section id="tab-games" class="tab-content py-10 bg-slate-950 text-white px-4 relative overflow-hidden rounded-3xl shadow-2xl border-4 border-emerald-500">
             <div class="absolute inset-0 crt-overlay"></div>
             <div class="max-w-3xl mx-auto relative z-10 font-pixel" id="game-container">
-                
-                <!-- TELA INICIAL DO JOGO -->
                 <div id="game-start" class="text-center space-y-8 py-10">
                     <h2 class="text-2xl md:text-4xl text-yellow-300 drop-shadow-[4px_4px_0_#ff00ff]">LOVE CUP 3D</h2>
                     <p class="text-[10px] md:text-xs text-emerald-400 leading-relaxed max-w-md mx-auto">
@@ -444,7 +441,6 @@
                     </button>
                 </div>
 
-                <!-- TELA DE JOGO / PERGUNTA E CAMPO -->
                 <div id="game-play" class="hidden space-y-6 py-6 px-2">
                     <div class="flex justify-between items-end border-b-4 border-yellow-300 pb-3 text-[10px] md:text-xs">
                         <div class="text-cyan-400">
@@ -458,17 +454,14 @@
                         </div>
                     </div>
 
-                    <!-- MINI CAMPO 3D / PREVIEW DO GOL -->
                     <div id="soccer-field-view" class="w-full h-44 bg-emerald-900 border-4 border-white relative overflow-hidden rounded-xl flex items-center justify-center shadow-inner">
                         <div class="absolute inset-x-12 top-6 bottom-4 border-2 border-white/60 border-b-0 flex items-center justify-center">
-                            <!-- Goleiro & Bola -->
                             <div id="keeper-sprite" class="transition-all duration-500 transform translate-x-0">🥅🤖</div>
                         </div>
                         <div id="ball-sprite" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-2xl transition-all duration-500">⚽</div>
                         <div id="field-msg" class="absolute inset-0 bg-black/60 flex items-center justify-center text-xs text-yellow-300 font-bold opacity-0 transition-opacity pointer-events-none"></div>
                     </div>
 
-                    <!-- BLOCO DE PERGUNTA OU ESCOLHA DE DIREÇÃO -->
                     <div class="min-h-[160px] flex flex-col justify-center gap-4">
                         <div id="game-question-box" class="bg-blue-900 border-4 border-white p-4 text-xs md:text-sm leading-relaxed text-center text-yellow-300"></div>
                         <div id="game-options" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-[10px] md:text-xs"></div>
@@ -477,7 +470,6 @@
                     <div id="game-feedback-text" class="text-center text-xs h-6 font-bold"></div>
                 </div>
 
-                <!-- TELA DE RESULTADO FINAL -->
                 <div id="game-result" class="hidden text-center space-y-8 py-8">
                     <h2 class="text-2xl md:text-3xl text-yellow-300 animate-pulse">PARTIDA ENCERRADA!</h2>
                     <div class="bg-black border-4 border-white p-6 max-w-sm mx-auto space-y-3 text-xs">
@@ -883,7 +875,6 @@
             setTimeout(() => t.classList.add('opacity-0', 'pointer-events-none'), 3500);
         };
 
-        // Delegação global de eventos via data-*
         document.addEventListener('click', (e) => {
             const btn = e.target.closest('[data-tab], [data-action], [data-direction]');
             if (!btn) return;
@@ -1104,7 +1095,7 @@
             document.getElementById('admin-rsvps').innerHTML = state.rsvps.map(r => `<tr><td class="py-3 font-bold">${escapeHTML(r.name)}</td><td><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-bold">${r.count}</span></td><td class="text-stone-500 text-xs">${escapeHTML(r.email || '-')}</td></tr>`).join('');
         };
 
-        // --- LOVE CUP 3D (NOVO MODO FUTEBOL) ---
+        // --- LOVE CUP 3D ---
         window.startFootballGame = () => {
             footballGame.status = 'question';
             footballGame.roundIndex = 0;
@@ -1184,17 +1175,13 @@
             const ball = document.getElementById('ball-sprite');
             const fieldMsg = document.getElementById('field-msg');
 
-            // Lógica de resultado
             let outcome = 'goal';
             if (!footballGame.selectedAnswer) {
-                const rand = Math.random();
-                outcome = rand > 0.5 ? 'save' : 'corner';
+                outcome = Math.random() > 0.5 ? 'save' : 'corner';
             } else {
-                // Chance leve de erro mesmo acertando a pergunta
                 if (Math.random() < 0.2) outcome = 'save';
             }
 
-            // Animação CSS 3D simulada
             let keeperX = 0;
             if (direction === 'left') keeperX = -70;
             if (direction === 'right') keeperX = 70;
@@ -1249,33 +1236,57 @@
             document.getElementById('mural-text').focus();
         };
 
-        // --- FIREBASE SYNC ---
+        // --- FIREBASE SYNC & PERSISTÊNCIA CORRIGIDA ---
         const startFirebase = async () => {
-            try { await signInAnonymously(auth); } catch(e) { console.error("Firebase Auth Error:", e); }
+            try { 
+                await signInAnonymously(auth); 
+            } catch(e) { 
+                console.error("Firebase Auth Error:", e); 
+            }
             
+            // Sincronização de configurações
             onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), snap => {
-                if (snap.exists()) { state.settings = { ...state.settings, ...snap.data() }; updateSiteContent(); }
-                else setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), state.settings).catch(()=>{});
+                if (snap.exists()) { 
+                    state.settings = { ...state.settings, ...snap.data() }; 
+                    updateSiteContent(); 
+                } else {
+                    setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), state.settings).catch(()=>{});
+                }
+            }, (err) => {
+                console.warn("Snapshot settings error:", err);
             });
+
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), snap => {
-                if (snap.empty) DEFAULT_GIFTS.forEach(g => addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), g));
-                else { state.gifts = snap.docs.map(d => ({id: d.id, ...d.data()})); renderGifts(); }
-            });
+                if (snap.empty) {
+                    DEFAULT_GIFTS.forEach(g => addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), g));
+                } else { 
+                    state.gifts = snap.docs.map(d => ({id: d.id, ...d.data()})); 
+                    renderGifts(); 
+                }
+            }, () => {});
+
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), snap => {
-                if (!snap.empty) { state.messages = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)); renderMural(); }
-            });
+                if (!snap.empty) { 
+                    state.messages = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)); 
+                    renderMural(); 
+                }
+            }, () => {});
+
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'contributions'), snap => {
-                state.contributions = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)); renderAdmin();
-            });
+                state.contributions = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)); 
+                renderAdmin(); 
+            }, () => {});
+
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'rsvps'), snap => {
-                state.rsvps = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)); renderAdmin();
-            });
+                state.rsvps = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)); 
+                renderAdmin(); 
+            }, () => {});
         };
 
         document.getElementById('form-config').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-save-cfg');
-            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Salvando...`;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> A salvador...`;
             
             state.settings = {
                 ...state.settings,
@@ -1293,10 +1304,16 @@
             updateSiteContent();
             
             try {
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), state.settings, { merge: true });
-                window.showToast("Alterações salvas e sincronizadas!");
-            } catch(err) { window.showToast("Erro ao conectar no banco de dados.", true); }
-            finally { btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> Salvar Alterações`; lucide.createIcons(); }
+                const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config');
+                await setDoc(configRef, state.settings, { merge: true });
+                window.showToast("Alterações salvas e sincronizadas com sucesso!");
+            } catch(err) { 
+                console.error("Erro ao gravar no Firestore:", err);
+                window.showToast("Erro ao gravar dados. Verifique permissões do Firestore.", true); 
+            } finally { 
+                btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> Salvar Alterações`; 
+                lucide.createIcons(); 
+            }
         });
 
         document.getElementById('form-mural').addEventListener('submit', async (e) => {
@@ -1310,9 +1327,13 @@
                 timestamp: new Date().toISOString()
             };
             e.target.reset(); document.getElementById('mural-badge-wrapper').classList.add('hidden');
-            window.showToast("Fixando post-it...");
-            try { await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), msgObj); window.showToast("Post-it fixado no mural!"); }
-            catch(err) { window.showToast("Erro ao salvar mensagem.", true); }
+            window.showToast("A fixar post-it...");
+            try { 
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), msgObj); 
+                window.showToast("Post-it fixado no mural!"); 
+            } catch(err) { 
+                window.showToast("Erro ao salvar mensagem.", true); 
+            }
         });
 
         document.getElementById('form-rsvp').addEventListener('submit', async (e) => {
@@ -1322,9 +1343,13 @@
                 count: parseInt(document.getElementById('rsvp-count').value), message: document.getElementById('rsvp-msg').value,
                 timestamp: new Date().toISOString()
             };
-            e.target.reset(); window.showToast("Enviando...");
-            try { await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'rsvps'), rsvpObj); window.showToast("Presença Confirmada!"); }
-            catch(err) { window.showToast("Erro ao confirmar.", true); }
+            e.target.reset(); window.showToast("A enviar...");
+            try { 
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'rsvps'), rsvpObj); 
+                window.showToast("Presença confirmada!"); 
+            } catch(err) { 
+                window.showToast("Erro ao confirmar.", true); 
+            }
         });
 
         document.getElementById('form-add-gift').addEventListener('submit', async (e) => {
@@ -1334,9 +1359,13 @@
                 category: document.getElementById('ag-category').value, imageUrl: document.getElementById('ag-image').value,
                 description: document.getElementById('ag-desc').value, currentAmount: 0
             };
-            window.closeAddGiftModal(); e.target.reset(); window.showToast("Adicionando presente...");
-            try { await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), giftObj); window.showToast("Presente salvo!"); }
-            catch(err) { window.showToast("Erro ao salvar presente.", true); }
+            window.closeAddGiftModal(); e.target.reset(); window.showToast("A adicionar presente...");
+            try { 
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), giftObj); 
+                window.showToast("Presente salvo!"); 
+            } catch(err) { 
+                window.showToast("Erro ao salvar presente.", true); 
+            }
         });
 
         window.openPixModal = (id) => {
@@ -1385,7 +1414,7 @@
 
         window.confirmContribution = async () => {
             const amount = parseFloat(document.getElementById('pix-amount').value);
-            window.closePixModal(); window.showToast("Processando...");
+            window.closePixModal(); window.showToast("A processar...");
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'contributions'), { giftId: state.selectedGift.id, giftTitle: state.selectedGift.title, guestName: document.getElementById('pix-name').value, amount: amount, message: document.getElementById('pix-msg').value, timestamp: new Date().toISOString() });
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'gifts', state.selectedGift.id), { currentAmount: (state.selectedGift.currentAmount || 0) + amount });
