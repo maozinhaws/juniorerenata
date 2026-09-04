@@ -390,11 +390,14 @@
     </nav>
 
     <main class="pt-20 px-4 max-w-5xl mx-auto">
-        <!-- INÍCIO COM HERO 3D -->
+        <!-- INÍCIO COM HERO 3D E FOTO DO CASAL -->
         <section id="tab-home" class="tab-content active space-y-12 pb-10">
-            <div class="text-center pt-16 pb-20 bg-gradient-to-b from-red-100/60 to-red-50 relative overflow-hidden rounded-3xl min-h-[460px] flex flex-col justify-center items-center">
+            <div class="text-center pt-16 pb-20 bg-gradient-to-b from-red-100/60 to-red-50 relative overflow-hidden rounded-3xl min-h-[460px] flex flex-col justify-center items-center shadow-sm">
                 <canvas id="canvas-3d-bg"></canvas>
                 <div class="relative z-10 pointer-events-none px-4 max-w-3xl">
+                    <div id="homepage-photo-container" class="mb-4 inline-block">
+                        <img id="homepage-couple-img" src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80" alt="Casal" class="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-white shadow-xl mx-auto pointer-events-auto"/>
+                    </div>
                     <span class="text-red-600 text-xs md:text-sm font-semibold tracking-widest uppercase bg-white/80 px-4 py-1.5 rounded-full backdrop-blur shadow-sm">Vamos Nos Casar!</span>
                     <h1 id="hero-names" class="font-serif text-5xl md:text-7xl text-red-900 font-bold leading-tight mt-4 mb-4 drop-shadow-sm">Júnior & Noiva</h1>
                     <p class="text-stone-600 text-base md:text-lg font-light max-w-2xl mx-auto">"Grandes histórias de amor começam com detalhes simples. Venha celebrar este capítulo conosco."</p>
@@ -417,7 +420,7 @@
                 <h2 class="font-serif text-4xl text-red-900 font-bold mb-3">Nossa Trajetória</h2>
                 <p class="text-stone-600">Da troca de turno na fábrica ao altar</p>
             </div>
-            <div id="timeline-container" class="space-y-12 relative before:absolute before:inset-0 before:left-1/2 before:-ml-px before:w-0.5 before:bg-red-200"></div>
+            <div id="timeline-container" class="space-y-16 relative before:absolute before:inset-0 before:left-1/2 before:-ml-px before:w-0.5 before:bg-red-200"></div>
         </section>
 
         <!-- LISTA DE COTAS PIX -->
@@ -544,15 +547,12 @@
                 <p class="text-sm text-stone-600 mb-6">Digite seu nome para localizar seu convite e ver os acompanhantes.</p>
                 
                 <div class="space-y-4 text-left relative">
-                    <!-- Campo de Autopreenchimento e Lista Suspensa -->
                     <div class="relative">
                         <label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Pesquisar Seu Nome</label>
                         <input type="text" id="rsvp-search-input" placeholder="Digite seu nome..." autocomplete="off" class="w-full px-4 py-3 rounded-xl border border-stone-200 text-sm focus:outline-none focus:border-red-500 bg-white"/>
-                        <!-- Lista Suspensa de Sugestões -->
                         <div id="rsvp-suggestions" class="absolute left-0 right-0 top-full mt-1 bg-white border border-stone-200 rounded-xl shadow-xl max-h-48 overflow-y-auto z-30 hidden"></div>
                     </div>
 
-                    <!-- Exibição de Acompanhantes e Ações -->
                     <div id="rsvp-details-card" class="hidden bg-stone-50 border border-stone-200 p-5 rounded-2xl space-y-4">
                         <div>
                             <span class="text-xs font-bold text-red-600 uppercase">Convidado Principal</span>
@@ -607,7 +607,7 @@
             
             <div class="bg-white p-6 md:p-8 rounded-3xl border border-stone-200 shadow-sm space-y-6">
                 <h3 class="font-serif text-lg font-bold text-stone-900 border-b pb-2 flex items-center gap-2">
-                    <i data-lucide="sliders" class="w-5 h-5 text-red-600"></i> Configurações Gerais do Site
+                    <i data-lucide="sliders" class="w-5 h-5 text-red-600"></i> Configurações Gerais & Foto da Homepage
                 </h3>
                 <form id="form-config" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div><label class="block text-xs font-bold text-stone-500 uppercase">Nomes do Casal</label><input type="text" id="cfg-names" class="w-full mt-1 p-2.5 border rounded-xl"/></div>
@@ -618,6 +618,17 @@
                     <div><label class="block text-xs font-bold text-stone-500 uppercase">Titular da Conta Pix</label><input type="text" id="cfg-receiver" class="w-full mt-1 p-2.5 border rounded-xl"/></div>
                     <div><label class="block text-xs font-bold text-stone-500 uppercase">Cidade Pix</label><input type="text" id="cfg-city" class="w-full mt-1 p-2.5 border rounded-xl"/></div>
                     <div><label class="block text-xs font-bold text-stone-500 uppercase">Nova Senha do Painel</label><input type="password" id="cfg-pass" placeholder="Manter atual" class="w-full mt-1 p-2.5 border rounded-xl"/></div>
+                    
+                    <!-- Upload de Foto da Homepage via Drag & Drop / Base64 otimizado -->
+                    <div class="md:col-span-2 bg-stone-50 p-4 rounded-2xl border border-stone-200 space-y-2">
+                        <label class="block text-xs font-bold text-stone-700 uppercase flex items-center gap-1.5"><i data-lucide="image" class="w-4 h-4 text-red-600"></i> Foto de Perfil da Homepage (Casal)</label>
+                        <div id="dropzone-homepage" class="border-2 border-dashed border-stone-300 rounded-xl p-4 text-center bg-white cursor-pointer hover:border-red-500 transition-colors">
+                            <input type="file" id="file-homepage" accept="image/*" class="hidden"/>
+                            <p class="text-xs text-stone-500">Arraste uma foto aqui ou <span class="text-red-600 font-bold">clique para selecionar</span></p>
+                        </div>
+                        <input type="hidden" id="cfg-homepage-img"/>
+                    </div>
+
                     <div class="md:col-span-2 bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200 space-y-1">
                         <label class="block text-xs font-bold text-emerald-900 uppercase flex items-center gap-1.5"><i data-lucide="music" class="w-4 h-4 text-emerald-600"></i> Link da Playlist ou Música (Spotify ou MP3)</label>
                         <input type="text" id="cfg-radio" placeholder="Cole o link do Spotify ou arquivo .mp3" class="w-full mt-1 p-2.5 border border-emerald-300 rounded-xl text-xs bg-white focus:outline-none focus:border-emerald-500"/>
@@ -628,6 +639,31 @@
                         </button>
                     </div>
                 </form>
+            </div>
+
+            <!-- GESTÃO DA HISTÓRIA DO CASAL (MARCOS CRONOLÓGICOS EDITÁVEIS COM FOTO) -->
+            <div class="bg-white p-6 md:p-8 rounded-3xl border border-stone-200 shadow-sm space-y-6">
+                <div class="flex justify-between items-center border-b pb-3">
+                    <h3 class="font-serif text-lg font-bold text-stone-900 flex items-center gap-2">
+                        <i data-lucide="book-open" class="w-5 h-5 text-red-600"></i> Gestão da História & Marcos Cronológicos
+                    </h3>
+                    <button data-action="open-add-timeline" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg cursor-pointer flex items-center gap-1">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Adicionar Marco
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="border-b text-stone-400 uppercase text-xs">
+                                <th class="py-2">Data / Tag</th>
+                                <th class="py-2">Título & Texto</th>
+                                <th class="py-2">Foto</th>
+                                <th class="py-2">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-timeline-list" class="divide-y divide-stone-100"></tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- GESTÃO DA LISTA DE CONVIDADOS DOS NOIVOS -->
@@ -702,6 +738,37 @@
         </div>
     </div>
 
+    <!-- MODAL ADICIONAR / EDITAR TIMELINE / HISTÓRIA -->
+    <div id="modal-add-timeline" class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl p-6 border border-stone-200 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 id="modal-timeline-title" class="font-serif text-xl font-bold text-stone-900">Adicionar Marco Cronológico</h3>
+                <button data-action="close-add-timeline" class="text-stone-400 hover:text-stone-700 cursor-pointer"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form id="form-add-timeline" class="space-y-3 text-sm">
+                <input type="hidden" id="edit-timeline-id"/>
+                <div><label class="block text-xs font-bold text-stone-600 uppercase mb-1">Tag / Data (Ex: 2021 ou A Troca de Turno)</label><input required type="text" id="tl-tag" class="w-full px-4 py-2.5 border rounded-xl"/></div>
+                <div><label class="block text-xs font-bold text-stone-600 uppercase mb-1">Título do Evento</label><input required type="text" id="tl-title" class="w-full px-4 py-2.5 border rounded-xl"/></div>
+                <div><label class="block text-xs font-bold text-stone-600 uppercase mb-1">Texto da História</label><textarea required rows="3" id="tl-text" class="w-full px-4 py-2.5 border rounded-xl resize-none"></textarea></div>
+                
+                <!-- Drag & Drop para foto do marco -->
+                <div>
+                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Foto do Evento (Arrastar ou Clicar)</label>
+                    <div id="dropzone-timeline" class="border-2 border-dashed border-stone-300 rounded-xl p-3 text-center bg-stone-50 cursor-pointer hover:border-red-500 transition-colors">
+                        <input type="file" id="file-timeline" accept="image/*" class="hidden"/>
+                        <p id="timeline-file-label" class="text-xs text-stone-500">Arraste uma foto ou selecione</p>
+                    </div>
+                    <input type="hidden" id="tl-image"/>
+                </div>
+
+                <div class="flex gap-2 pt-2 border-t">
+                    <button type="button" data-action="close-add-timeline" class="w-1/3 py-2.5 border rounded-xl font-bold text-stone-500 cursor-pointer">Cancelar</button>
+                    <button type="submit" class="w-2/3 py-2.5 bg-red-600 text-white rounded-xl font-bold cursor-pointer">Salvar Marco</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- MODAL ADICIONAR / EDITAR CONVIDADO (NOIVOS) -->
     <div id="modal-add-guest" class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-3xl p-6 border border-stone-200 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
@@ -764,7 +831,7 @@
         </div>
     </div>
 
-    <!-- MODAL NOVO PRESENTE -->
+    <!-- MODAL NOVO PRESENTE (COM DRAG & DROP DE FOTO) -->
     <div id="modal-add-gift" class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-3xl p-6 border border-stone-200 shadow-2xl">
             <h3 class="font-serif text-xl font-bold mb-4 text-stone-900">Adicionar Presente</h3>
@@ -772,7 +839,17 @@
                 <input required type="text" id="ag-title" placeholder="Título do Presente" class="w-full px-4 py-3 border rounded-xl"/>
                 <input required type="number" id="ag-amount" placeholder="Valor Total (R$)" class="w-full px-4 py-3 border rounded-xl"/>
                 <input type="text" id="ag-category" placeholder="Categoria (ex: Cozinha, Lua de Mel)" class="w-full px-4 py-3 border rounded-xl"/>
-                <input type="url" id="ag-image" placeholder="URL da Imagem" class="w-full px-4 py-3 border rounded-xl"/>
+                
+                <!-- Drag & Drop para foto do presente -->
+                <div>
+                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Foto de Referência (Arraste ou Clique)</label>
+                    <div id="dropzone-gift" class="border-2 border-dashed border-stone-300 rounded-xl p-3 text-center bg-stone-50 cursor-pointer hover:border-red-500 transition-colors">
+                        <input type="file" id="file-gift" accept="image/*" class="hidden"/>
+                        <p id="gift-file-label" class="text-xs text-stone-500">Arraste uma foto ou selecione</p>
+                    </div>
+                    <input type="hidden" id="ag-image"/>
+                </div>
+
                 <textarea id="ag-desc" placeholder="Breve descrição" class="w-full px-4 py-3 border rounded-xl"></textarea>
                 <div class="flex gap-2 pt-2">
                     <button type="button" data-action="close-add-gift" class="w-1/3 py-3 border rounded-xl font-bold text-stone-500 cursor-pointer">Cancelar</button>
@@ -813,19 +890,20 @@
             { title: "Fogão e Forno", totalAmount: 2200, currentAmount: 0, category: "Cozinha", description: "Para jantares e memórias especiais na casa nova.", imageUrl: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=80" }
         ];
 
-        const TIMELINE_DATA = [
-            { step: 1, tag: "A Troca de Turno", title: "A Mesa do Jantar", text: "Nos conhecemos na empresa na troca de turno. Ele chegava com a Saveiro chamando a atenção, mas eu nem ligava! Até que na fila da janta, sem querer, sentei na mesma mesa que ele e fiquei por vergonha de me levantar. No final, acabei pedindo o contato dele!" },
-            { step: 2, tag: "O Desabafo & Cervejas", title: "Budweiser, Heineken & Café", text: "Antes do turno ele me chamou para beber: me trouxe uma Bud, bebeu uma Heineken, tomamos um chopp e conversamos um monte sobre a vida. No final, se convidou para tomar café na minha casa no sábado seguinte!" },
-            { step: 3, tag: "A Aposta", title: "O Beijo no Leite Ninho", text: "No café de sábado, minha amiga desafiou: 'Duvido você levantar e dar um beijo no Leite Ninho!'. Levantei e beijei ele do nada! Depois disso ele já saiu de mão dada na rua, trouxe o irmão, fez amizade com a minha mãe e nunca mais saiu de lá!" },
-            { step: 4, tag: "A Praia", title: "O Pedido de Madrugada", text: "Passados 3 meses, me pediu em namoro na praia. Recusei porque ele tinha bebido e falei para pedir são. De madrugada ele me acordou e refez a pergunta com toda a certeza. Já se passaram quase 5 anos juntos!" }
+        const DEFAULT_TIMELINE = [
+            { id: 't1', tag: "A Troca de Turno", title: "A Mesa do Jantar", text: "Nos conhecemos na empresa na troca de turno. Ele chegava com a Saveiro chamando a atenção, mas eu nem ligava! Até que na fila da janta, sem querer, sentei na mesma mesa que ele e fiquei por vergonha de me levantar. No final, acabei pedindo o contato dele!", imageUrl: "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=600&q=80" },
+            { id: 't2', tag: "O Desabafo & Cervejas", title: "Budweiser, Heineken & Café", text: "Antes do turno ele me chamou para beber: me trouxe uma Bud, bebeu uma Heineken, tomamos um chopp e conversamos um monte sobre a vida. No final, se convidou para tomar café na minha casa no sábado seguinte!", imageUrl: "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=600&q=80" },
+            { id: 't3', tag: "A Aposta", title: "O Beijo no Leite Ninho", text: "No café de sábado, minha amiga desafiou: 'Duvido você levantar e dar um beijo no Leite Ninho!'. Levantei e beijei ele do nada! Depois disso ele já saiu de mão dada na rua, trouxe o irmão, fez amizade com a minha mãe e nunca mais saiu de lá!", imageUrl: "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=600&q=80" },
+            { id: 't4', tag: "A Praia", title: "O Pedido de Madrugada", text: "Passados 3 meses, me pediu em namoro na praia. Recusei porque ele tinha bebido e falei para pedir são. De madrugada ele me acordou e refez a pergunta com toda a certeza. Já se passaram quase 5 anos juntos!", imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80" }
         ];
 
         let state = {
-            gifts: [], rsvps: [], contributions: [], messages: [], guests: [],
+            gifts: [], rsvps: [], contributions: [], messages: [], guests: [], timeline: [],
             selectedGift: null, selectedRsvpGuest: null, isMp3Playing: false,
             settings: { 
                 names: "Júnior & Noiva", date: "2026-11-14T17:00", location: "Espaço das Flores - Curitiba, PR", maps: "https://maps.google.com", 
-                pixKey: "12345678900", receiverName: "Júnior e Noiva", cityName: "Curitiba", radioUrl: "", adminPass: "admin123" 
+                pixKey: "12345678900", receiverName: "Júnior e Noiva", cityName: "Curitiba", radioUrl: "", adminPass: "admin123",
+                homepageImg: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"
             }
         };
 
@@ -836,6 +914,64 @@
             { q: "Onde foi o pedido de namoro recusado inicialmente?", opts: ["Na empresa", "Na praia", "Na casa da sogra", "No carro"], ans: 1 },
             { q: "Quem tomou a iniciativa de pedir o contato primeiro?", opts: ["Júnior", "A Noiva", "O Irmão", "A Amiga"], ans: 1 }
         ];
+
+        // --- SISTEMA DRAG & DROP UNIVERSAL PARA IMAGENS (CONVERTE PARA BASE64 OTIMIZADO) ---
+        const setupDragAndDrop = (dropzoneId, inputId, fileInputId, labelId) => {
+            const dropzone = document.getElementById(dropzoneId);
+            const fileInput = document.getElementById(fileInputId);
+            const hiddenInput = document.getElementById(inputId);
+            const label = document.getElementById(labelId);
+            if (!dropzone) return;
+
+            dropzone.addEventListener('click', () => fileInput.click());
+            dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('border-red-500', 'bg-red-50'); });
+            dropzone.addEventListener('dragleave', () => { dropzone.classList.remove('border-red-500', 'bg-red-50'); });
+            dropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('border-red-500', 'bg-red-50');
+                if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+            });
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length) handleFile(e.target.files[0]);
+            });
+
+            function handleFile(file) {
+                if (!file.type.startsWith('image/')) {
+                    window.showToast("Por favor, selecione apenas arquivos de imagem.", true);
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    // Otimiza/redimensiona a imagem via canvas
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 800;
+                        const MAX_HEIGHT = 800;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                        } else {
+                            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+                        hiddenInput.value = dataUrl;
+                        if (label) label.innerText = `✅ Imagem carregada com sucesso (${file.name})`;
+                        window.showToast("Foto anexada com sucesso!");
+                    };
+                };
+                reader.readAsDataURL(file);
+            }
+        };
 
         // --- SISTEMA 3D (HERO) ---
         let threeScene = null, threeCamera = null, threeRenderer = null, heartMeshGroup = [], threeParticles = null;
@@ -986,6 +1122,8 @@
                 if (act === 'close-add-gift') window.closeAddGiftModal();
                 if (act === 'open-add-guest') window.openAddGuestModal();
                 if (act === 'close-add-guest') window.closeAddGuestModal();
+                if (act === 'open-add-timeline') window.openAddTimelineModal();
+                if (act === 'close-add-timeline') window.closeAddTimelineModal();
                 if (act === 'add-companion-row') window.addCompanionRow();
                 if (act === 'start-game') window.startFootballGame();
                 if (act === 'post-game') window.postFootballResult();
@@ -1046,6 +1184,32 @@
 
         window.closeAddGuestModal = () => document.getElementById('modal-add-guest').style.display = 'none';
 
+        window.openAddTimelineModal = (timelineId = null) => {
+            document.getElementById('edit-timeline-id').value = '';
+            document.getElementById('tl-tag').value = '';
+            document.getElementById('tl-title').value = '';
+            document.getElementById('tl-text').value = '';
+            document.getElementById('tl-image').value = '';
+            document.getElementById('timeline-file-label').innerText = 'Arraste uma foto ou selecione';
+            document.getElementById('modal-timeline-title').innerText = "Adicionar Marco Cronológico";
+
+            if (timelineId) {
+                const item = state.timeline.find(x => x.id === timelineId);
+                if (item) {
+                    document.getElementById('edit-timeline-id').value = item.id;
+                    document.getElementById('tl-tag').value = item.tag;
+                    document.getElementById('tl-title').value = item.title;
+                    document.getElementById('tl-text').value = item.text;
+                    document.getElementById('tl-image').value = item.imageUrl || '';
+                    if (item.imageUrl) document.getElementById('timeline-file-label').innerText = '✅ Foto já anexada';
+                    document.getElementById('modal-timeline-title').innerText = "Editar Marco Cronológico";
+                }
+            }
+            document.getElementById('modal-add-timeline').style.display = 'flex';
+        };
+
+        window.closeAddTimelineModal = () => document.getElementById('modal-add-timeline').style.display = 'none';
+
         window.addCompanionRow = (name = '', age = '', rel = 'Amigo') => {
             const container = document.getElementById('companions-container');
             const row = document.createElement('div');
@@ -1072,6 +1236,15 @@
                 try {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'guests', id));
                     window.showToast("Convidado removido!");
+                } catch(e) { window.showToast("Erro ao remover.", true); }
+            }
+        };
+
+        window.deleteTimeline = async (id) => {
+            if (confirm("Deseja remover este marco da história?")) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'timeline', id));
+                    window.showToast("Marco removido!");
                 } catch(e) { window.showToast("Erro ao remover.", true); }
             }
         };
@@ -1127,7 +1300,6 @@
                 `).join('');
             }
 
-            // Atualiza botões baseado no status atual
             const confirmBtn = document.getElementById('btn-confirm-attendance');
             const cancelBtn = document.getElementById('btn-cancel-attendance');
             if (guest.status === 'declined') {
@@ -1222,6 +1394,12 @@
             document.getElementById('hero-maps-link').href = state.settings.maps || "#";
             document.getElementById('footer-names').innerText = `© 2026 ${state.settings.names}`;
             
+            // Foto da Homepage
+            if (state.settings.homepageImg) {
+                document.getElementById('homepage-couple-img').src = state.settings.homepageImg;
+                document.getElementById('cfg-homepage-img').value = state.settings.homepageImg;
+            }
+
             document.getElementById('cfg-names').value = state.settings.names;
             document.getElementById('cfg-date').value = state.settings.date;
             document.getElementById('cfg-location').value = state.settings.location;
@@ -1234,16 +1412,33 @@
         };
 
         const renderTimeline = () => {
-            document.getElementById('timeline-container').innerHTML = TIMELINE_DATA.map((t, idx) => `
-                <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
-                    <div class="flex items-center justify-center w-10 h-10 rounded-full bg-red-500 text-white font-bold shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow">${t.step}</div>
-                    <div class="w-[calc(100%-3rem)] md:w-[calc(50%-2.5rem)] bg-white p-6 rounded-2xl shadow-md border border-red-100">
-                        <span class="text-xs font-semibold text-red-500 uppercase tracking-wider">${escapeHTML(t.tag)}</span>
-                        <h3 class="font-serif text-xl font-bold text-stone-800 mt-1 mb-2">${escapeHTML(t.title)}</h3>
-                        <p class="text-stone-600 text-sm leading-relaxed">${escapeHTML(t.text)}</p>
+            const container = document.getElementById('timeline-container');
+            if (!container) return;
+
+            // Ordena timeline por tag ou inserção
+            const sorted = [...state.timeline];
+
+            container.innerHTML = sorted.map((t, idx) => {
+                const isEven = idx % 2 === 0;
+                // Foto na diagonal / jogada em cima do texto (estética Polaroid sutil)
+                const imgHtml = t.imageUrl ? `
+                    <div class="mb-4 overflow-hidden rounded-2xl shadow-xl border-4 border-white transform ${isEven ? 'rotate-1' : '-rotate-1'} hover:rotate-0 transition-transform bg-white p-2">
+                        <img src="${escapeHTML(t.imageUrl)}" class="w-full h-56 object-cover rounded-xl"/>
                     </div>
-                </div>
-            `).join('');
+                ` : '';
+
+                return `
+                    <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                        <div class="flex items-center justify-center w-10 h-10 rounded-full bg-red-500 text-white font-bold shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-md">${idx + 1}</div>
+                        <div class="w-[calc(100%-3rem)] md:w-[calc(50%-2.5rem)] bg-white p-6 rounded-3xl shadow-lg border border-red-100">
+                            ${imgHtml}
+                            <span class="text-xs font-semibold text-red-500 uppercase tracking-wider">${escapeHTML(t.tag)}</span>
+                            <h3 class="font-serif text-2xl font-bold text-stone-800 mt-1 mb-2">${escapeHTML(t.title)}</h3>
+                            <p class="text-stone-600 text-sm leading-relaxed">${escapeHTML(t.text)}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         };
 
         const renderGifts = () => {
@@ -1316,7 +1511,6 @@
         const renderAdmin = () => {
             document.getElementById('admin-contribs').innerHTML = state.contributions.map(c => `<tr><td class="py-3 font-bold">${escapeHTML(c.guestName)}</td><td class="text-emerald-600 font-bold">R$ ${parseFloat(c.amount).toFixed(2)}</td><td class="text-stone-500 text-xs truncate max-w-[100px]">${escapeHTML(c.giftTitle)}</td></tr>`).join('');
             
-            // Cálculo do Total de Convidados Gerados e Confirmados
             let totalGenerated = 0;
             let totalConfirmed = 0;
 
@@ -1330,6 +1524,26 @@
 
             document.getElementById('stat-total-guests').innerText = totalGenerated;
             document.getElementById('stat-confirmed-guests').innerText = totalConfirmed;
+
+            // Renderiza Tabela da Timeline no Painel
+            const timelineTable = document.getElementById('admin-timeline-list');
+            if (timelineTable) {
+                if (!state.timeline.length) {
+                    timelineTable.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-stone-400 text-xs">Nenhum marco cadastrado.</td></tr>`;
+                } else {
+                    timelineTable.innerHTML = state.timeline.map(t => `
+                        <tr>
+                            <td class="py-3 font-bold text-red-600">${escapeHTML(t.tag)}</td>
+                            <td class="py-3"><b class="text-stone-900">${escapeHTML(t.title)}</b><p class="text-xs text-stone-500 truncate max-w-xs">${escapeHTML(t.text)}</p></td>
+                            <td class="py-3">${t.imageUrl ? `<img src="${escapeHTML(t.imageUrl)}" class="w-10 h-10 object-cover rounded-lg"/>` : '<span class="text-stone-400 text-xs">Sem foto</span>'}</td>
+                            <td class="py-3 flex gap-2">
+                                <button onclick="window.openAddTimelineModal('${t.id}')" class="text-blue-600 hover:text-blue-800 text-xs font-bold cursor-pointer">Editar</button>
+                                <button onclick="window.deleteTimeline('${t.id}')" class="text-red-500 hover:text-red-700 text-xs font-bold cursor-pointer">Excluir</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            }
 
             // Renderiza Lista Oficial de Convidados no Painel
             const guestsTable = document.getElementById('admin-guests-list');
@@ -1538,6 +1752,10 @@
                 if (snap.empty) DEFAULT_GIFTS.forEach(g => addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), g));
                 else { state.gifts = snap.docs.map(d => ({id: d.id, ...d.data()})); renderGifts(); }
             });
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'timeline'), snap => {
+                if (snap.empty) DEFAULT_TIMELINE.forEach(t => addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'timeline'), t));
+                else { state.timeline = snap.docs.map(d => ({id: d.id, ...d.data()})); renderTimeline(); renderAdmin(); }
+            });
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), snap => {
                 if (!snap.empty) { state.messages = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)); renderMural(); }
             });
@@ -1568,6 +1786,7 @@
                 receiverName: document.getElementById('cfg-receiver').value.trim(),
                 cityName: document.getElementById('cfg-city').value.trim() || 'Curitiba',
                 radioUrl: document.getElementById('cfg-radio').value.trim(),
+                homepageImg: document.getElementById('cfg-homepage-img').value.trim() || state.settings.homepageImg,
                 adminPass: document.getElementById('cfg-pass').value.trim() || state.settings.adminPass
             };
             
@@ -1578,6 +1797,31 @@
                 window.showToast("Configurações salvas e sincronizadas!");
             } catch(err) { window.showToast("Erro ao gravar dados.", true); }
             finally { btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> Salvar Alterações`; lucide.createIcons(); }
+        });
+
+        // Cadastro ou Edição de Marco Cronológico (Timeline)
+        document.getElementById('form-add-timeline').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const editId = document.getElementById('edit-timeline-id').value;
+            const timelineObj = {
+                tag: document.getElementById('tl-tag').value.trim(),
+                title: document.getElementById('tl-title').value.trim(),
+                text: document.getElementById('tl-text').value.trim(),
+                imageUrl: document.getElementById('tl-image').value.trim()
+            };
+
+            window.closeAddTimelineModal();
+            window.showToast("Salvando marco...");
+
+            try {
+                if (editId) {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'timeline', editId), timelineObj);
+                    window.showToast("Marco atualizado com sucesso!");
+                } else {
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'timeline'), timelineObj);
+                    window.showToast("Marco adicionado com sucesso!");
+                }
+            } catch(e) { window.showToast("Erro ao salvar marco.", true); }
         });
 
         // Cadastro ou Edição de Convidado Principal + Acompanhantes pelos Noivos
@@ -1710,6 +1954,11 @@
             createScene();
             lucide.createIcons();
             startFirebase();
+
+            // Ativa áreas de Drag & Drop
+            setupDragAndDrop('dropzone-homepage', 'cfg-homepage-img', 'file-homepage', null);
+            setupDragAndDrop('dropzone-timeline', 'tl-image', 'file-timeline', 'timeline-file-label');
+            setupDragAndDrop('dropzone-gift', 'ag-image', 'file-gift', 'gift-file-label');
         });
     </script>
 </body>
