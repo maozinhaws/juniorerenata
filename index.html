@@ -325,6 +325,12 @@
             .postit-author { font-size: 10px; }
             .postit-date { font-size: 7px; }
         }
+
+        @media print {
+            body * { visibility: hidden; }
+            #printable-pdf-area, #printable-pdf-area * { visibility: visible; }
+            #printable-pdf-area { position: absolute; left: 0; top: 0; width: 100%; background: white; color: black; }
+        }
     </style>
 </head>
 <body class="bg-red-50 text-stone-800 pb-24 selection:bg-red-200">
@@ -532,25 +538,40 @@
 
         <!-- RSVP -->
         <section id="tab-rsvp" class="tab-content">
-            <div class="max-w-xl mx-auto glass-card p-8 rounded-3xl border border-red-200 shadow-sm text-center mt-10">
+            <div class="max-w-xl mx-auto glass-card p-8 rounded-3xl border border-red-200 shadow-sm text-center mt-10 relative">
                 <i data-lucide="user-check" class="w-12 h-12 text-red-600 mx-auto mb-4"></i>
                 <h2 class="text-3xl font-serif text-red-900 font-bold mb-2">Confirmar Presença</h2>
-                <p class="text-sm text-stone-600 mb-6">Por favor, confirme sua presença para organizarmos tudo com carinho.</p>
-                <form id="form-rsvp" class="space-y-4 text-left">
-                    <input required type="text" id="rsvp-name" placeholder="Nome Completo" class="w-full px-4 py-3 rounded-xl border border-stone-200 text-sm focus:outline-none focus:border-red-500"/>
-                    <input type="text" id="rsvp-email" placeholder="E-mail ou WhatsApp" class="w-full px-4 py-3 rounded-xl border border-stone-200 text-sm focus:outline-none focus:border-red-500"/>
-                    <select id="rsvp-count" class="w-full px-4 py-3 rounded-xl border border-stone-200 text-sm bg-white focus:outline-none focus:border-red-500">
-                        <option value="1">1 Pessoa</option>
-                        <option value="2">2 Pessoas</option>
-                        <option value="3">3 Pessoas</option>
-                        <option value="4">4 Pessoas</option>
-                        <option value="5">5 Pessoas</option>
-                    </select>
-                    <textarea id="rsvp-msg" rows="2" placeholder="Nome dos acompanhantes / Restrições alimentares" class="w-full px-4 py-3 rounded-xl border border-stone-200 text-sm focus:outline-none focus:border-red-500"></textarea>
-                    <button type="submit" class="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer">
-                        <i data-lucide="check-circle" class="w-5 h-5"></i> Confirmar Presença
-                    </button>
-                </form>
+                <p class="text-sm text-stone-600 mb-6">Digite seu nome para localizar seu convite e ver os acompanhantes.</p>
+                
+                <div class="space-y-4 text-left relative">
+                    <!-- Campo de Autopreenchimento e Lista Suspensa -->
+                    <div class="relative">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Pesquisar Seu Nome</label>
+                        <input type="text" id="rsvp-search-input" placeholder="Digite seu nome..." autocomplete="off" class="w-full px-4 py-3 rounded-xl border border-stone-200 text-sm focus:outline-none focus:border-red-500 bg-white"/>
+                        <!-- Lista Suspensa de Sugestões -->
+                        <div id="rsvp-suggestions" class="absolute left-0 right-0 top-full mt-1 bg-white border border-stone-200 rounded-xl shadow-xl max-h-48 overflow-y-auto z-30 hidden"></div>
+                    </div>
+
+                    <!-- Exibição de Acompanhantes e Ações -->
+                    <div id="rsvp-details-card" class="hidden bg-stone-50 border border-stone-200 p-5 rounded-2xl space-y-4">
+                        <div>
+                            <span class="text-xs font-bold text-red-600 uppercase">Convidado Principal</span>
+                            <h3 id="rsvp-selected-name" class="font-serif text-xl font-bold text-stone-900"></h3>
+                        </div>
+                        <div class="border-t pt-3">
+                            <span class="text-xs font-bold text-stone-600 uppercase block mb-2">Acompanhantes Vinculados:</span>
+                            <div id="rsvp-companions-list" class="space-y-2 text-xs"></div>
+                        </div>
+                        <div class="flex gap-3 pt-3 border-t">
+                            <button id="btn-confirm-attendance" onclick="window.setAttendanceStatus(true)" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1 cursor-pointer shadow">
+                                <i data-lucide="check" class="w-4 h-4"></i> Confirmar Presença
+                            </button>
+                            <button id="btn-cancel-attendance" onclick="window.setAttendanceStatus(false)" class="flex-1 py-3 bg-stone-700 hover:bg-stone-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1 cursor-pointer shadow">
+                                <i data-lucide="x" class="w-4 h-4"></i> Não Poderei Ir (Avisar Noivos)
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -564,6 +585,24 @@
                 <button data-action="open-add-gift" class="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer shadow">
                     <i data-lucide="plus" class="w-4 h-4"></i> Novo Presente
                 </button>
+            </div>
+
+            <!-- ESTATÍSTICAS DO CASAMENTO -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="bg-white p-6 rounded-3xl border border-stone-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold uppercase text-stone-400">Total de Convidados Gerados</span>
+                        <h3 id="stat-total-guests" class="font-serif text-3xl font-bold text-stone-900 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center"><i data-lucide="users" class="w-6 h-6"></i></div>
+                </div>
+                <div class="bg-white p-6 rounded-3xl border border-stone-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold uppercase text-stone-400">Total Confirmados</span>
+                        <h3 id="stat-confirmed-guests" class="font-serif text-3xl font-bold text-emerald-600 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center"><i data-lucide="user-check" class="w-6 h-6"></i></div>
+                </div>
             </div>
             
             <div class="bg-white p-6 md:p-8 rounded-3xl border border-stone-200 shadow-sm space-y-6">
@@ -591,6 +630,36 @@
                 </form>
             </div>
 
+            <!-- GESTÃO DA LISTA DE CONVIDADOS DOS NOIVOS -->
+            <div class="bg-white p-6 md:p-8 rounded-3xl border border-stone-200 shadow-sm space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-3 gap-3">
+                    <h3 class="font-serif text-lg font-bold text-stone-900 flex items-center gap-2">
+                        <i data-lucide="users" class="w-5 h-5 text-red-600"></i> Gestão da Lista Oficial de Convidados
+                    </h3>
+                    <div class="flex gap-2">
+                        <button onclick="window.printPDFList()" class="px-3 py-1.5 bg-stone-800 hover:bg-stone-900 text-white text-xs font-bold rounded-lg cursor-pointer flex items-center gap-1">
+                            <i data-lucide="printer" class="w-4 h-4"></i> Gerar PDF / Imprimir Lista
+                        </button>
+                        <button data-action="open-add-guest" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg cursor-pointer flex items-center gap-1">
+                            <i data-lucide="user-plus" class="w-4 h-4"></i> Adicionar Convidado
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="border-b text-stone-400 uppercase text-xs">
+                                <th class="py-2">Convidado Principal</th>
+                                <th class="py-2">Acompanhantes & Detalhes</th>
+                                <th class="py-2">Status Presença</th>
+                                <th class="py-2">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-guests-list" class="divide-y divide-stone-100"></tbody>
+                    </table>
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-white p-6 rounded-3xl border border-stone-200 shadow-sm overflow-x-auto">
                     <h3 class="font-serif text-lg font-bold text-stone-900 mb-4 flex items-center gap-2"><i data-lucide="dollar-sign" class="w-5 h-5 text-emerald-600"></i> Cotas Pix Recebidas</h3>
@@ -599,17 +668,25 @@
                         <tbody id="admin-contribs" class="divide-y divide-stone-100"></tbody>
                     </table>
                 </div>
-                
-                <div class="bg-white p-6 rounded-3xl border border-stone-200 shadow-sm overflow-x-auto">
-                    <h3 class="font-serif text-lg font-bold text-stone-900 mb-4 flex items-center gap-2"><i data-lucide="user-check" class="w-5 h-5 text-blue-600"></i> Confirmações (RSVP)</h3>
-                    <table class="w-full text-left text-sm">
-                        <thead><tr class="border-b text-stone-400 uppercase text-xs"><th class="py-2">Nome</th><th class="py-2">Qtd</th><th class="py-2">Contato</th></tr></thead>
-                        <tbody id="admin-rsvps" class="divide-y divide-stone-100"></tbody>
-                    </table>
-                </div>
             </div>
         </section>
     </main>
+
+    <!-- ÁREA OCULTA PARA IMPRESSÃO PDF DA LISTA DE CONFIRMADOS -->
+    <div id="printable-pdf-area" class="hidden p-8 font-sans">
+        <h1 class="text-2xl font-bold mb-2">Lista Oficial de Convidados Confirmados</h1>
+        <p class="text-xs text-stone-500 mb-6" id="pdf-date-gen"></p>
+        <table class="w-full text-left text-xs border-collapse border border-stone-300">
+            <thead>
+                <tr class="bg-stone-100 border-b">
+                    <th class="p-2 border">Convidado Principal</th>
+                    <th class="p-2 border">Acompanhantes</th>
+                    <th class="p-2 border">Total no Grupo</th>
+                </tr>
+            </thead>
+            <tbody id="pdf-table-body"></tbody>
+        </table>
+    </div>
 
     <!-- MODAL DE SENHA DO ADMIN -->
     <div id="modal-admin-login" class="fixed inset-0 z-50 bg-stone-900/80 backdrop-blur-sm hidden items-center justify-center p-4">
@@ -622,6 +699,34 @@
                 <button data-action="close-admin" class="w-1/2 py-2.5 border rounded-xl text-xs font-bold text-stone-500 hover:bg-stone-50 cursor-pointer">Cancelar</button>
                 <button data-action="submit-admin" class="w-1/2 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold cursor-pointer">Acessar</button>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL ADICIONAR / EDITAR CONVIDADO (NOIVOS) -->
+    <div id="modal-add-guest" class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-3xl p-6 border border-stone-200 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 id="modal-guest-title" class="font-serif text-xl font-bold text-stone-900">Cadastrar Convidado e Acompanhantes</h3>
+                <button data-action="close-add-guest" class="text-stone-400 hover:text-stone-700 cursor-pointer"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form id="form-add-guest" class="space-y-4 text-sm">
+                <input type="hidden" id="edit-guest-id"/>
+                <div>
+                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Nome do Convidado Principal</label>
+                    <input required type="text" id="guest-main-name" placeholder="Ex: Carlos Silva" class="w-full px-4 py-3 border rounded-xl"/>
+                </div>
+                <div class="border-t pt-3">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-xs font-bold text-stone-600 uppercase">Acompanhantes (Até 2º Grau ou Amigo/Outro)</label>
+                        <button type="button" data-action="add-companion-row" class="px-2.5 py-1 bg-stone-900 text-white text-[10px] font-bold rounded-lg cursor-pointer">+ Acompanhante</button>
+                    </div>
+                    <div id="companions-container" class="space-y-3"></div>
+                </div>
+                <div class="flex gap-2 pt-3 border-t">
+                    <button type="button" data-action="close-add-guest" class="w-1/3 py-3 border rounded-xl font-bold text-stone-500 cursor-pointer">Cancelar</button>
+                    <button type="submit" class="w-2/3 py-3 bg-red-600 text-white rounded-xl font-bold cursor-pointer">Salvar na Lista</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -686,7 +791,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCYUx_0e4Xfsit8cGKR9Tx648lBsNkZkf8",
@@ -716,25 +821,15 @@
         ];
 
         let state = {
-            gifts: [], rsvps: [], contributions: [], messages: [],
-            selectedGift: null, isMp3Playing: false,
+            gifts: [], rsvps: [], contributions: [], messages: [], guests: [],
+            selectedGift: null, selectedRsvpGuest: null, isMp3Playing: false,
             settings: { 
                 names: "Júnior & Noiva", date: "2026-11-14T17:00", location: "Espaço das Flores - Curitiba, PR", maps: "https://maps.google.com", 
                 pixKey: "12345678900", receiverName: "Júnior e Noiva", cityName: "Curitiba", radioUrl: "", adminPass: "admin123" 
             }
         };
 
-        const footballGame = {
-            status: 'start',
-            roundIndex: 0,
-            selectedAnswer: null,
-            goals: 0,
-            saves: 0,
-            corners: 0,
-            shots: 0,
-            locked: false
-        };
-
+        const footballGame = { status: 'start', roundIndex: 0, selectedAnswer: null, goals: 0, saves: 0, corners: 0, shots: 0, locked: false };
         const FOOTBALL_QUESTIONS = [
             { q: "Qual foi a aposta que gerou o primeiro beijo?", opts: ["Dar um beijo no Leite Ninho", "Pagar uma Heineken", "Dar uma volta de Saveiro", "Troca de turno"], ans: 0 },
             { q: "O que o casal foi beber antes de ir trabalhar no primeiro encontro?", opts: ["Budweiser & Heineken", "Caipirinha & Vinho", "Café & Suco de Laranja", "Água de Coco"], ans: 0 },
@@ -742,7 +837,7 @@
             { q: "Quem tomou a iniciativa de pedir o contato primeiro?", opts: ["Júnior", "A Noiva", "O Irmão", "A Amiga"], ans: 1 }
         ];
 
-        // --- SISTEMA 3D REFATORADO (HERO) ---
+        // --- SISTEMA 3D (HERO) ---
         let threeScene = null, threeCamera = null, threeRenderer = null, heartMeshGroup = [], threeParticles = null;
         let isTabVisible = true;
 
@@ -791,9 +886,7 @@
         const createHearts = () => {
             const geo = createHeartGeometry();
             const mat = new THREE.MeshPhongMaterial({ color: 0xbe8a7d, emissive: 0x4a2b25, specular: 0xffffff, shininess: 60, transparent: true, opacity: 0.85 });
-            
-            const isMobile = window.innerWidth <= 640;
-            const count = isMobile ? 8 : 12;
+            const count = window.innerWidth <= 640 ? 8 : 12;
 
             for (let i = 0; i < count; i++) {
                 const mesh = new THREE.Mesh(geo, mat);
@@ -859,11 +952,9 @@
             threeRenderer.render(threeScene, threeCamera);
         };
 
-        document.addEventListener("visibilitychange", () => {
-            isTabVisible = document.visibilityState === 'visible';
-        });
+        document.addEventListener("visibilitychange", () => { isTabVisible = document.visibilityState === 'visible'; });
 
-        // --- UTILITÁRIOS & GESTÃO DE ESTADO ---
+        // --- GESTÃO DE UI E EVENTOS ---
         const escapeHTML = v => (v == null ? '' : String(v).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])));
 
         window.showToast = (msg, isError = false) => {
@@ -893,6 +984,9 @@
                 if (act === 'confirm-pix') window.confirmContribution();
                 if (act === 'open-add-gift') window.openAddGiftModal();
                 if (act === 'close-add-gift') window.closeAddGiftModal();
+                if (act === 'open-add-guest') window.openAddGuestModal();
+                if (act === 'close-add-guest') window.closeAddGuestModal();
+                if (act === 'add-companion-row') window.addCompanionRow();
                 if (act === 'start-game') window.startFootballGame();
                 if (act === 'post-game') window.postFootballResult();
             } else if (btn.dataset.direction) {
@@ -904,11 +998,9 @@
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById('tab-' + tabId)?.classList.add('active');
             document.querySelectorAll('nav [data-tab]').forEach(b => {
-                if (b.dataset.tab === tabId) {
-                    b.className = "nav-btn px-4 py-2 rounded-full transition-all capitalize bg-red-600 text-white shadow-md cursor-pointer";
-                } else {
-                    b.className = "nav-btn px-4 py-2 rounded-full transition-all capitalize hover:bg-red-100 hover:text-red-700 cursor-pointer";
-                }
+                b.className = b.dataset.tab === tabId ? 
+                    "nav-btn px-4 py-2 rounded-full transition-all capitalize bg-red-600 text-white shadow-md cursor-pointer" : 
+                    "nav-btn px-4 py-2 rounded-full transition-all capitalize hover:bg-red-100 hover:text-red-700 cursor-pointer";
             });
             if (tabId === 'mural') setTimeout(() => renderMural(), 50);
         };
@@ -931,6 +1023,137 @@
         };
 
         document.getElementById('admin-input-pass').addEventListener('keypress', (e) => { if (e.key === 'Enter') window.submitAdminLogin(); });
+
+        window.openAddGuestModal = (guestId = null) => {
+            document.getElementById('edit-guest-id').value = '';
+            document.getElementById('guest-main-name').value = '';
+            document.getElementById('companions-container').innerHTML = '';
+            document.getElementById('modal-guest-title').innerText = "Cadastrar Convidado e Acompanhantes";
+
+            if (guestId) {
+                const g = state.guests.find(x => x.id === guestId);
+                if (g) {
+                    document.getElementById('edit-guest-id').value = g.id;
+                    document.getElementById('guest-main-name').value = g.mainName;
+                    document.getElementById('modal-guest-title').innerText = "Editar Convidado";
+                    if (g.companions) {
+                        g.companions.forEach(c => window.addCompanionRow(c.name, c.age, c.relation));
+                    }
+                }
+            }
+            document.getElementById('modal-add-guest').style.display = 'flex';
+        };
+
+        window.closeAddGuestModal = () => document.getElementById('modal-add-guest').style.display = 'none';
+
+        window.addCompanionRow = (name = '', age = '', rel = 'Amigo') => {
+            const container = document.getElementById('companions-container');
+            const row = document.createElement('div');
+            row.className = "flex gap-2 items-center bg-stone-50 p-2.5 rounded-xl border border-stone-200 companion-row";
+            row.innerHTML = `
+                <input type="text" placeholder="Nome Acompanhante" value="${escapeHTML(name)}" class="comp-name w-2/5 px-3 py-2 border rounded-lg text-xs"/>
+                <input type="number" placeholder="Idade" value="${escapeHTML(age)}" class="comp-age w-1/5 px-3 py-2 border rounded-lg text-xs"/>
+                <select class="comp-relation w-2/5 px-2 py-2 border rounded-lg text-xs bg-white">
+                    <option value="Pai/Mãe" ${rel==='Pai/Mãe'?'selected':''}>Pai / Mãe (1º)</option>
+                    <option value="Filho(a)" ${rel==='Filho(a)'?'selected':''}>Filho(a) (1º)</option>
+                    <option value="Irmão(ã)" ${rel==='Irmão(ã)'?'selected':''}>Irmão(ã) (2º)</option>
+                    <option value="Avô/Avó" ${rel==='Avô/Avó'?'selected':''}>Avô / Avó (2º)</option>
+                    <option value="Neto(a)" ${rel==='Neto(a)'?'selected':''}>Neto(a) (2º)</option>
+                    <option value="Amigo(a)" ${rel==='Amigo(a)'?'selected':''}>Amigo(a)</option>
+                    <option value="Outro" ${rel==='Outro'?'selected':''}>Outro</option>
+                </select>
+                <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 px-1 text-xs font-bold cursor-pointer">✕</button>
+            `;
+            container.appendChild(row);
+        };
+
+        window.deleteGuest = async (id) => {
+            if (confirm("Deseja remover este convidado da lista oficial?")) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'guests', id));
+                    window.showToast("Convidado removido!");
+                } catch(e) { window.showToast("Erro ao remover.", true); }
+            }
+        };
+
+        // --- RSVP AUTO-PREENCHIMENTO E GESTÃO DE PRESENÇA ---
+        const rsvpSearchInput = document.getElementById('rsvp-search-input');
+        const rsvpSuggestions = document.getElementById('rsvp-suggestions');
+        const rsvpDetailsCard = document.getElementById('rsvp-details-card');
+
+        rsvpSearchInput.addEventListener('input', (e) => {
+            const query = e.target.value.trim().toLowerCase();
+            if (!query) {
+                rsvpSuggestions.classList.add('hidden');
+                rsvpDetailsCard.classList.add('hidden');
+                state.selectedRsvpGuest = null;
+                return;
+            }
+
+            const matches = state.guests.filter(g => g.mainName.toLowerCase().includes(query));
+            if (!matches.length) {
+                rsvpSuggestions.innerHTML = `<div class="p-3 text-xs text-stone-400">Nenhum convidado encontrado.</div>`;
+                rsvpSuggestions.classList.remove('hidden');
+                return;
+            }
+
+            rsvpSuggestions.innerHTML = matches.map(m => `
+                <div onclick="window.selectRsvpGuest('${m.id}')" class="p-3 text-xs text-stone-800 hover:bg-red-50 cursor-pointer border-b last:border-0 font-bold">
+                    ${escapeHTML(m.mainName)} <span class="font-normal text-stone-500">(${1 + (m.companions?m.companions.length:0)} pessoas)</span>
+                </div>
+            `).join('');
+            rsvpSuggestions.classList.remove('hidden');
+        });
+
+        window.selectRsvpGuest = (id) => {
+            const guest = state.guests.find(g => g.id === id);
+            if (!guest) return;
+
+            state.selectedRsvpGuest = guest;
+            rsvpSearchInput.value = guest.mainName;
+            rsvpSuggestions.classList.add('hidden');
+
+            document.getElementById('rsvp-selected-name').innerText = guest.mainName;
+            const compList = document.getElementById('rsvp-companions-list');
+            
+            if (!guest.companions || !guest.companions.length) {
+                compList.innerHTML = `<span class="text-stone-400 italic">Nenhum acompanhante vinculado.</span>`;
+            } else {
+                compList.innerHTML = guest.companions.map(c => `
+                    <div class="bg-white p-2 rounded-lg border border-stone-200 flex justify-between items-center">
+                        <span class="font-bold">${escapeHTML(c.name)}</span>
+                        <span class="text-stone-500">${c.age} anos • ${escapeHTML(c.relation)}</span>
+                    </div>
+                `).join('');
+            }
+
+            // Atualiza botões baseado no status atual
+            const confirmBtn = document.getElementById('btn-confirm-attendance');
+            const cancelBtn = document.getElementById('btn-cancel-attendance');
+            if (guest.status === 'declined') {
+                confirmBtn.className = "flex-1 py-3 bg-stone-300 text-stone-700 font-bold rounded-xl text-xs flex items-center justify-center gap-1 cursor-pointer";
+                cancelBtn.className = "flex-1 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1 cursor-pointer shadow";
+            } else {
+                confirmBtn.className = "flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1 cursor-pointer shadow";
+                cancelBtn.className = "flex-1 py-3 bg-stone-700 hover:bg-stone-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1 cursor-pointer shadow";
+            }
+
+            rsvpDetailsCard.classList.remove('hidden');
+        };
+
+        window.setAttendanceStatus = async (isConfirm) => {
+            if (!state.selectedRsvpGuest) return;
+            const newStatus = isConfirm ? 'confirmed' : 'declined';
+
+            try {
+                const ref = doc(db, 'artifacts', appId, 'public', 'data', 'guests', state.selectedRsvpGuest.id);
+                await updateDoc(ref, { status: newStatus });
+                window.showToast(isConfirm ? "Presença confirmada com sucesso!" : "Aviso de ausência enviado aos noivos.");
+                window.selectRsvpGuest(state.selectedRsvpGuest.id);
+            } catch(e) {
+                window.showToast("Erro ao atualizar status.", true);
+            }
+        };
 
         window.toggleMusicWidget = () => {
             const radioUrl = state.settings.radioUrl?.trim() || "";
@@ -1092,7 +1315,74 @@
 
         const renderAdmin = () => {
             document.getElementById('admin-contribs').innerHTML = state.contributions.map(c => `<tr><td class="py-3 font-bold">${escapeHTML(c.guestName)}</td><td class="text-emerald-600 font-bold">R$ ${parseFloat(c.amount).toFixed(2)}</td><td class="text-stone-500 text-xs truncate max-w-[100px]">${escapeHTML(c.giftTitle)}</td></tr>`).join('');
-            document.getElementById('admin-rsvps').innerHTML = state.rsvps.map(r => `<tr><td class="py-3 font-bold">${escapeHTML(r.name)}</td><td><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-bold">${r.count}</span></td><td class="text-stone-500 text-xs">${escapeHTML(r.email || '-')}</td></tr>`).join('');
+            
+            // Cálculo do Total de Convidados Gerados e Confirmados
+            let totalGenerated = 0;
+            let totalConfirmed = 0;
+
+            state.guests.forEach(g => {
+                const groupSize = 1 + (g.companions ? g.companions.length : 0);
+                totalGenerated += groupSize;
+                if (g.status === 'confirmed' || !g.status) {
+                    totalConfirmed += groupSize;
+                }
+            });
+
+            document.getElementById('stat-total-guests').innerText = totalGenerated;
+            document.getElementById('stat-confirmed-guests').innerText = totalConfirmed;
+
+            // Renderiza Lista Oficial de Convidados no Painel
+            const guestsTable = document.getElementById('admin-guests-list');
+            if (guestsTable) {
+                if (!state.guests.length) {
+                    guestsTable.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-stone-400 text-xs">Nenhum convidado cadastrado na lista oficial.</td></tr>`;
+                } else {
+                    guestsTable.innerHTML = state.guests.map(g => {
+                        const compStr = (g.companions || []).map(c => `<span class="inline-block bg-stone-100 px-2 py-0.5 rounded m-0.5 text-[11px]">${escapeHTML(c.name)} (${c.age}a, ${escapeHTML(c.relation)})</span>`).join('') || '<span class="text-stone-400 italic">Nenhum</span>';
+                        const isDeclined = g.status === 'declined';
+                        const statusBadge = isDeclined ? 
+                            `<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-[10px] font-bold line-through">Ausente</span>` : 
+                            `<span class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-[10px] font-bold">Confirmado</span>`;
+
+                        return `
+                            <tr class="${isDeclined ? 'opacity-60 bg-stone-50' : ''}">
+                                <td class="py-3 font-bold text-stone-800 ${isDeclined ? 'line-through' : ''}">${escapeHTML(g.mainName)}</td>
+                                <td class="py-3 text-xs">${compStr}</td>
+                                <td class="py-3">${statusBadge}</td>
+                                <td class="py-3 flex gap-2">
+                                    <button onclick="window.openAddGuestModal('${g.id}')" class="text-blue-600 hover:text-blue-800 text-xs font-bold cursor-pointer">Editar</button>
+                                    <button onclick="window.deleteGuest('${g.id}')" class="text-red-500 hover:text-red-700 text-xs font-bold cursor-pointer">Excluir</button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+            }
+        };
+
+        window.printPDFList = () => {
+            const tbody = document.getElementById('pdf-table-body');
+            document.getElementById('pdf-date-gen').innerText = `Emitido em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`;
+            
+            const confirmedGuests = state.guests.filter(g => g.status !== 'declined');
+            if (!confirmedGuests.length) {
+                window.showToast("Nenhum convidado confirmado para gerar o PDF.", true);
+                return;
+            }
+
+            tbody.innerHTML = confirmedGuests.map(g => {
+                const groupSize = 1 + (g.companions ? g.companions.length : 0);
+                const compStr = (g.companions || []).map(c => `${c.name} (${c.age}a, ${c.relation})`).join(', ') || 'Nenhum';
+                return `
+                    <tr class="border-b">
+                        <td class="p-2 border font-bold">${escapeHTML(g.mainName)}</td>
+                        <td class="p-2 border">${escapeHTML(compStr)}</td>
+                        <td class="p-2 border text-center font-bold">${groupSize}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            window.print();
         };
 
         // --- LOVE CUP 3D ---
@@ -1236,57 +1526,37 @@
             document.getElementById('mural-text').focus();
         };
 
-        // --- FIREBASE SYNC & PERSISTÊNCIA CORRIGIDA ---
+        // --- FIREBASE SYNC ---
         const startFirebase = async () => {
-            try { 
-                await signInAnonymously(auth); 
-            } catch(e) { 
-                console.error("Firebase Auth Error:", e); 
-            }
+            try { await signInAnonymously(auth); } catch(e) { console.error("Auth Error:", e); }
             
-            // Sincronização de configurações
             onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), snap => {
-                if (snap.exists()) { 
-                    state.settings = { ...state.settings, ...snap.data() }; 
-                    updateSiteContent(); 
-                } else {
-                    setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), state.settings).catch(()=>{});
-                }
-            }, (err) => {
-                console.warn("Snapshot settings error:", err);
+                if (snap.exists()) { state.settings = { ...state.settings, ...snap.data() }; updateSiteContent(); }
+                else setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), state.settings).catch(()=>{});
             });
-
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), snap => {
-                if (snap.empty) {
-                    DEFAULT_GIFTS.forEach(g => addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), g));
-                } else { 
-                    state.gifts = snap.docs.map(d => ({id: d.id, ...d.data()})); 
-                    renderGifts(); 
-                }
-            }, () => {});
-
+                if (snap.empty) DEFAULT_GIFTS.forEach(g => addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), g));
+                else { state.gifts = snap.docs.map(d => ({id: d.id, ...d.data()})); renderGifts(); }
+            });
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), snap => {
-                if (!snap.empty) { 
-                    state.messages = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)); 
-                    renderMural(); 
-                }
-            }, () => {});
-
+                if (!snap.empty) { state.messages = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)); renderMural(); }
+            });
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'contributions'), snap => {
-                state.contributions = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)); 
-                renderAdmin(); 
-            }, () => {});
-
+                state.contributions = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)); renderAdmin();
+            });
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'rsvps'), snap => {
-                state.rsvps = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)); 
-                renderAdmin(); 
-            }, () => {});
+                state.rsvps = snap.docs.map(d => ({id: d.id, ...d.data()})); renderAdmin();
+            });
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'guests'), snap => {
+                state.guests = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                renderAdmin();
+            });
         };
 
         document.getElementById('form-config').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-save-cfg');
-            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> A salvador...`;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Salvando...`;
             
             state.settings = {
                 ...state.settings,
@@ -1304,16 +1574,42 @@
             updateSiteContent();
             
             try {
-                const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config');
-                await setDoc(configRef, state.settings, { merge: true });
-                window.showToast("Alterações salvas e sincronizadas com sucesso!");
-            } catch(err) { 
-                console.error("Erro ao gravar no Firestore:", err);
-                window.showToast("Erro ao gravar dados. Verifique permissões do Firestore.", true); 
-            } finally { 
-                btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> Salvar Alterações`; 
-                lucide.createIcons(); 
-            }
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), state.settings, { merge: true });
+                window.showToast("Configurações salvas e sincronizadas!");
+            } catch(err) { window.showToast("Erro ao gravar dados.", true); }
+            finally { btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> Salvar Alterações`; lucide.createIcons(); }
+        });
+
+        // Cadastro ou Edição de Convidado Principal + Acompanhantes pelos Noivos
+        document.getElementById('form-add-guest').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const editId = document.getElementById('edit-guest-id').value;
+            const mainName = document.getElementById('guest-main-name').value.trim();
+            const companionRows = document.querySelectorAll('.companion-row');
+            const companions = [];
+
+            companionRows.forEach(row => {
+                const name = row.querySelector('.comp-name').value.trim();
+                const age = row.querySelector('.comp-age').value.trim();
+                const relation = row.querySelector('.comp-relation').value;
+                if (name) companions.push({ name, age: age || '0', relation });
+            });
+
+            const guestObj = { mainName, companions, updatedAt: new Date().toISOString() };
+            window.closeAddGuestModal();
+            window.showToast("Salvando convidado...");
+
+            try {
+                if (editId) {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'guests', editId), guestObj);
+                    window.showToast("Convidado atualizado com sucesso!");
+                } else {
+                    guestObj.createdAt = new Date().toISOString();
+                    guestObj.status = 'confirmed';
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'guests'), guestObj);
+                    window.showToast("Convidado salvo na lista oficial!");
+                }
+            } catch(e) { window.showToast("Erro ao salvar convidado.", true); }
         });
 
         document.getElementById('form-mural').addEventListener('submit', async (e) => {
@@ -1327,29 +1623,9 @@
                 timestamp: new Date().toISOString()
             };
             e.target.reset(); document.getElementById('mural-badge-wrapper').classList.add('hidden');
-            window.showToast("A fixar post-it...");
-            try { 
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), msgObj); 
-                window.showToast("Post-it fixado no mural!"); 
-            } catch(err) { 
-                window.showToast("Erro ao salvar mensagem.", true); 
-            }
-        });
-
-        document.getElementById('form-rsvp').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const rsvpObj = {
-                name: document.getElementById('rsvp-name').value, email: document.getElementById('rsvp-email').value,
-                count: parseInt(document.getElementById('rsvp-count').value), message: document.getElementById('rsvp-msg').value,
-                timestamp: new Date().toISOString()
-            };
-            e.target.reset(); window.showToast("A enviar...");
-            try { 
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'rsvps'), rsvpObj); 
-                window.showToast("Presença confirmada!"); 
-            } catch(err) { 
-                window.showToast("Erro ao confirmar.", true); 
-            }
+            window.showToast("Fixando post-it...");
+            try { await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), msgObj); window.showToast("Post-it fixado no mural!"); }
+            catch(err) { window.showToast("Erro ao salvar mensagem.", true); }
         });
 
         document.getElementById('form-add-gift').addEventListener('submit', async (e) => {
@@ -1359,13 +1635,9 @@
                 category: document.getElementById('ag-category').value, imageUrl: document.getElementById('ag-image').value,
                 description: document.getElementById('ag-desc').value, currentAmount: 0
             };
-            window.closeAddGiftModal(); e.target.reset(); window.showToast("A adicionar presente...");
-            try { 
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), giftObj); 
-                window.showToast("Presente salvo!"); 
-            } catch(err) { 
-                window.showToast("Erro ao salvar presente.", true); 
-            }
+            window.closeAddGiftModal(); e.target.reset(); window.showToast("Adicionando presente...");
+            try { await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), giftObj); window.showToast("Presente salvo!"); }
+            catch(err) { window.showToast("Erro ao salvar presente.", true); }
         });
 
         window.openPixModal = (id) => {
@@ -1414,7 +1686,7 @@
 
         window.confirmContribution = async () => {
             const amount = parseFloat(document.getElementById('pix-amount').value);
-            window.closePixModal(); window.showToast("A processar...");
+            window.closePixModal(); window.showToast("Processando...");
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'contributions'), { giftId: state.selectedGift.id, giftTitle: state.selectedGift.title, guestName: document.getElementById('pix-name').value, amount: amount, message: document.getElementById('pix-msg').value, timestamp: new Date().toISOString() });
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'gifts', state.selectedGift.id), { currentAmount: (state.selectedGift.currentAmount || 0) + amount });
