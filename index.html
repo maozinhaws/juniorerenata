@@ -319,6 +319,25 @@
         </div>
     </div>
 
+    <!-- Modal de Confirmação de Exclusão -->
+    <div id="modal-delete-confirm" class="fixed inset-0 z-[10000] bg-stone-900/85 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-stone-200 text-center space-y-4">
+            <div class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto">
+                <i data-lucide="trash-2" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-serif text-2xl font-bold text-stone-900">Confirmar Exclusão</h3>
+            <p id="delete-confirm-message" class="text-sm text-stone-600">Deseja realmente excluir este item?</p>
+            <div class="flex gap-2.5 pt-2">
+                <button type="button" onclick="window.closeDeleteModal()" class="w-1/2 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-bold cursor-pointer">
+                    Cancelar
+                </button>
+                <button type="button" onclick="window.confirmPendingDelete()" class="w-1/2 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow cursor-pointer">
+                    Excluir
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Widget de Música -->
     <div class="fixed bottom-5 left-5 z-40">
         <div id="spotify-popup" class="hidden mb-3 bg-stone-900/95 backdrop-blur-md p-3.5 rounded-2xl shadow-2xl border border-stone-700 w-80 sm:w-96 transition-all duration-300">
@@ -392,7 +411,7 @@
         </div>
     </aside>
 
-    <!-- CONTEÚDO PRINCIPAL (COM MARGEM FIXA ESTÁVEL) -->
+    <!-- CONTEÚDO PRINCIPAL -->
     <main id="main-content" class="flex-1 pt-6 px-4 md:px-10 max-w-5xl ml-[68px] transition-all duration-300">
         
         <!-- INÍCIO COM HERO 3D E FOTO DO CASAL -->
@@ -931,6 +950,7 @@
         let state = {
             gifts: [], messages: [], guests: [], timeline: [], gallery: [], contributions: [],
             selectedGift: null, selectedRsvpGuest: null, isMp3Playing: false, isSidebarCollapsed: true, hasUnsavedChanges: false, pendingNavigationTab: null, isAdminLoggedIn: false,
+            pendingDelete: null,
             settings: { 
                 names: "Júnior & Renata", date: "2026-11-14T17:00", location: "Espaço das Flores - Curitiba, PR", maps: "https://maps.google.com", 
                 pixKey: "12345678900", receiverName: "Júnior e Renata", cityName: "Curitiba", radioUrl: "", adminPass: "admin123",
@@ -938,23 +958,42 @@
             }
         };
 
+        // --- SISTEMA DE MODAL DE EXCLUSÃO ASSÍNCRONA ---
+        window.openDeleteModal = (message, action) => {
+            state.pendingDelete = action;
+            document.getElementById('delete-confirm-message').innerText = message;
+            document.getElementById('modal-delete-confirm').style.display = 'flex';
+            lucide.createIcons();
+        };
+
+        window.closeDeleteModal = () => {
+            state.pendingDelete = null;
+            document.getElementById('modal-delete-confirm').style.display = 'none';
+        };
+
+        window.confirmPendingDelete = async () => {
+            const action = state.pendingDelete;
+            window.closeDeleteModal();
+            if (typeof action === 'function') await action();
+        };
+
         // --- EXCLUSÕES SEGURAS NO FIRESTORE (EXPOSTAS NO ESCOPO GLOBAL WINDOW) ---
-        window.deleteGuest = async (id) => {
-            if (confirm("Deseja realmente remover este convidado?")) {
+        window.deleteGuest = (id) => {
+            window.openDeleteModal('Deseja realmente remover este convidado?', async () => {
                 try {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'guests', id));
                     state.guests = state.guests.filter(g => g.id !== id);
                     renderAdmin();
                     window.showToast("Convidado removido!");
                 } catch(e) { 
-                    console.error("Erro ao excluir convidado:", e);
+                    console.error("deleteGuest:", e);
                     window.showToast("Erro ao excluir convidado.", true); 
                 }
-            }
+            });
         };
 
-        window.deleteTimeline = async (id) => {
-            if (confirm("Deseja realmente remover este momento do quiz?")) {
+        window.deleteTimeline = (id) => {
+            window.openDeleteModal('Deseja realmente remover este momento do quiz?', async () => {
                 try {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'timeline', id));
                     state.timeline = state.timeline.filter(t => t.id !== id);
@@ -962,14 +1001,14 @@
                     renderAdmin();
                     window.showToast("Momento removido!");
                 } catch(e) { 
-                    console.error("Erro ao excluir momento:", e);
+                    console.error("deleteTimeline:", e);
                     window.showToast("Erro ao excluir momento.", true); 
                 }
-            }
+            });
         };
 
-        window.deleteGalleryPhoto = async (id) => {
-            if (confirm("Deseja realmente remover esta foto da galeria?")) {
+        window.deleteGalleryPhoto = (id) => {
+            window.openDeleteModal('Deseja realmente remover esta foto da galeria?', async () => {
                 try {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'gallery', id));
                     state.gallery = state.gallery.filter(g => g.id !== id);
@@ -977,10 +1016,10 @@
                     renderAdmin();
                     window.showToast("Foto removida!");
                 } catch(e) { 
-                    console.error("Erro ao excluir foto:", e);
+                    console.error("deleteGalleryPhoto:", e);
                     window.showToast("Erro ao excluir foto.", true); 
                 }
-            }
+            });
         };
 
         window.toggleMessageVisibility = async (id, currentHidden) => {
@@ -994,8 +1033,8 @@
             } catch(e) { window.showToast("Erro ao atualizar recado.", true); }
         };
 
-        window.deleteMessage = async (id) => {
-            if (confirm("Deseja realmente excluir este recado do mural?")) {
+        window.deleteMessage = (id) => {
+            window.openDeleteModal('Deseja realmente excluir este recado do mural?', async () => {
                 try {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'messages', id));
                     state.messages = state.messages.filter(m => m.id !== id);
@@ -1003,10 +1042,10 @@
                     renderAdmin();
                     window.showToast("Recado excluído!");
                 } catch(e) { 
-                    console.error("Erro ao excluir recado:", e);
+                    console.error("deleteMessage:", e);
                     window.showToast("Erro ao excluir recado.", true); 
                 }
-            }
+            });
         };
 
         window.approveContribution = async (id) => {
@@ -1020,8 +1059,8 @@
             } catch(e) { window.showToast("Erro ao aprovar contribuição.", true); }
         };
 
-        window.deleteContribution = async (id) => {
-            if (confirm("Deseja realmente remover este registro de contribuição Pix?")) {
+        window.deleteContribution = (id) => {
+            window.openDeleteModal('Deseja realmente remover este registro de contribuição Pix?', async () => {
                 try {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'contributions', id));
                     state.contributions = state.contributions.filter(c => c.id !== id);
@@ -1029,10 +1068,10 @@
                     renderAdmin();
                     window.showToast("Registro removido!");
                 } catch(e) { 
-                    console.error("Erro ao excluir contribuição:", e);
+                    console.error("deleteContribution:", e);
                     window.showToast("Erro ao excluir contribuição.", true); 
                 }
-            }
+            });
         };
 
         // --- MENU LATERAL RESPONSIVO ---
@@ -1784,6 +1823,8 @@
                     </td>
                 </tr>
             `).join('');
+            
+            lucide.createIcons();
         };
 
         window.saveAllPanelChanges = async () => {
@@ -1919,7 +1960,8 @@
 
         window.openPixModal = (id) => {
             state.selectedGift = state.gifts.find(g => g.id === id);
-            const approvedContribs = state.contributions.filter(c => c.giftId === g.id && c.status === 'approved');
+            if (!state.selectedGift) return;
+            const approvedContribs = state.contributions.filter(c => c.giftId === state.selectedGift.id && c.status === 'approved');
             const cur = approvedContribs.reduce((acc, c) => acc + (parseFloat(c.amount) || 0), 0);
             const rem = Math.max(0, state.selectedGift.totalAmount - cur);
             document.getElementById('pix-title').innerText = state.selectedGift.title;
