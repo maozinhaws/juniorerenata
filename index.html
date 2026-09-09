@@ -927,23 +927,26 @@
     <!-- LÓGICA E FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCYUx_0e4Xfsit8cGKR9Tx648lBsNkZkf8",
-            authDomain: "casamentojer-f582b.firebaseapp.com",
-            projectId: "casamentojer-f582b",
-            storageBucket: "casamentojer-f582b.firebasestorage.app",
-            messagingSenderId: "1045448989382",
-            appId: "1:1045448989382:web:c62c868d5104154be1d5c7",
-            measurementId: "G-PM73MG69PF"
-        };
+        const firebaseConfig = typeof __firebase_config !== 'undefined'
+            ? (typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config)
+            : {
+                apiKey: "AIzaSyCYUx_0e4Xfsit8cGKR9Tx648lBsNkZkf8",
+                authDomain: "casamentojer-f582b.firebaseapp.com",
+                projectId: "casamentojer-f582b",
+                storageBucket: "casamentojer-f582b.firebasestorage.app",
+                messagingSenderId: "1045448989382",
+                appId: "1:1045448989382:web:c62c868d5104154be1d5c7",
+                measurementId: "G-PM73MG69PF"
+            };
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'wedding-prod';
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = 'wedding-prod';
 
         const DEFAULT_GIFTS = [
             { title: "Cota para Lua de Mel", totalAmount: 3000, currentAmount: 0, category: "Viagem", description: "Ajuda para o nosso merecido descanso na praia!", imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80" },
@@ -1908,39 +1911,53 @@
         });
 
         const startFirebase = async () => {
-            try { await signInAnonymously(auth); } catch(e) {}
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (e) {
+                console.warn("Falha no login com token, usando anônimo:", e);
+                try { await signInAnonymously(auth); } catch (err) { console.error("Erro de autenticação:", err); }
+            }
+
             onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), snap => {
                 if (snap.exists()) { state.settings = { ...state.settings, ...snap.data() }; updateSiteContent(); }
                 else setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), state.settings).catch(()=>{});
-            });
+            }, err => console.error("Erro no listener de configurações:", err));
+
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), snap => {
                 if (snap.empty) DEFAULT_GIFTS.forEach(g => addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), g));
                 else { state.gifts = snap.docs.map(d => ({id: d.id, ...d.data()})); renderGifts(); }
-            });
+            }, err => console.error("Erro no listener de presentes:", err));
+
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'timeline'), snap => {
                 if (snap.empty) DEFAULT_TIMELINE.forEach(t => addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'timeline'), t));
                 else { state.timeline = snap.docs.map(d => ({id: d.id, ...d.data()})); renderTimeline(); if(state.isAdminLoggedIn) renderAdmin(); }
-            });
+            }, err => console.error("Erro no listener da linha do tempo:", err));
             
-            // LISTENER DEFINITIVO DA GALERIA (SEM RECICLAGEM / REPLANTIO AUTOMÁTICO DE FOTOS EXCLUÍDAS)
+            // LISTENER DEFINITIVO DA GALERIA
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'gallery'), snap => {
                 state.gallery = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 renderGallery();
                 if (state.isAdminLoggedIn) renderAdmin();
-            });
+            }, err => console.error("Erro no listener da galeria:", err));
 
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), snap => {
                 state.messages = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
                 renderMural(); if(state.isAdminLoggedIn) renderAdmin();
-            });
+            }, err => console.error("Erro no listener de mensagens:", err));
+
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'guests'), snap => {
                 state.guests = snap.docs.map(d => ({id: d.id, ...d.data()})); if(state.isAdminLoggedIn) renderAdmin();
-            });
+            }, err => console.error("Erro no listener de convidados:", err));
+
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'contributions'), snap => {
                 state.contributions = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
                 renderGifts();
                 if(state.isAdminLoggedIn) renderAdmin();
-            });
+            }, err => console.error("Erro no listener de contribuições:", err));
         };
 
         document.getElementById('form-add-timeline').addEventListener('submit', async (e) => {
