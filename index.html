@@ -299,7 +299,7 @@
 </head>
 <body class="bg-red-50 text-stone-800 pb-28 selection:bg-red-200 flex min-h-screen relative overflow-x-hidden">
 
-    <!-- Notificações Toast com Fade Animado -->
+    <!-- Notificações Toast -->
     <div id="toast" class="fixed top-5 right-5 z-[9999] bg-stone-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 border border-stone-700">
         <i id="toast-icon" data-lucide="sparkles" class="w-5 h-5 text-emerald-400 shrink-0"></i>
         <span id="toast-msg" class="text-sm font-semibold tracking-wide"></span>
@@ -382,7 +382,7 @@
                 </button>
                 <button data-tab="history" class="sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all hover:bg-red-100 hover:text-red-700 cursor-pointer whitespace-nowrap">
                     <i data-lucide="book-open" class="w-5 h-5 shrink-0"></i>
-                    <span class="sidebar-label transition-opacity duration-200 opacity-0">Nossa História (Quiz)</span>
+                    <span class="sidebar-label transition-opacity duration-200 opacity-0">Quiz dos Noivos</span>
                 </button>
                 <button data-tab="gallery" class="sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all hover:bg-red-100 hover:text-red-700 cursor-pointer whitespace-nowrap">
                     <i data-lucide="image" class="w-5 h-5 shrink-0"></i>
@@ -438,16 +438,12 @@
             </div>
         </section>
 
-        <!-- NOSSA HISTÓRIA (QUIZ) -->
+        <!-- TIMELINE & QUIZ DOS NOIVOS -->
         <section id="tab-history" class="tab-content py-10 max-w-4xl mx-auto space-y-10">
             <div class="text-center">
-                <h2 class="font-serif text-4xl text-red-900 font-bold mb-3">Nossa Trajetória em Quiz</h2>
-                <p class="text-stone-600">Teste o quanto você nos conhece respondendo aos momentos marcantes da nossa história!</p>
-                <div class="mt-4">
-                    <button onclick="window.generateQuizWithAI()" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow transition-all cursor-pointer inline-flex items-center gap-2">
-                        <i data-lucide="sparkles" class="w-4 h-4"></i> Gerar Perguntas com IA (Gemini)
-                    </button>
-                </div>
+                <span class="text-red-600 text-xs font-bold tracking-widest uppercase bg-red-100 px-3 py-1 rounded-full">Nossa Trajetória</span>
+                <h2 class="font-serif text-4xl text-red-900 font-bold mt-2 mb-3">Quiz dos Noivos & Momentos</h2>
+                <p class="text-stone-600">Responda aos quizzes de cada momento marcante da nossa história para descobrir curiosidades divertidas!</p>
             </div>
             <div id="quiz-container" class="space-y-8"></div>
         </section>
@@ -618,7 +614,7 @@
             <div class="bg-white p-6 md:p-8 rounded-3xl border border-stone-200 shadow-sm space-y-6">
                 <div class="flex justify-between items-center border-b pb-3">
                     <h3 class="font-serif text-lg font-bold text-stone-900 flex items-center gap-2">
-                        <i data-lucide="book-open" class="w-5 h-5 text-red-600"></i> Gestão do Quiz da História & Curiosidades
+                        <i data-lucide="book-open" class="w-5 h-5 text-red-600"></i> Gestão da Timeline & Quiz dos Noivos
                     </h3>
                     <button data-action="open-add-timeline" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg cursor-pointer flex items-center gap-1">
                         <i data-lucide="plus" class="w-4 h-4"></i> Adicionar Momento
@@ -747,14 +743,31 @@
     <div id="modal-add-timeline" class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-3xl p-6 border border-stone-200 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-3">
-                <h3 id="modal-timeline-title" class="font-serif text-xl font-bold text-stone-900">Adicionar Momento do Quiz</h3>
+                <h3 id="modal-timeline-title" class="font-serif text-xl font-bold text-stone-900">Adicionar Momento / Quiz</h3>
                 <button data-action="close-add-timeline" class="text-stone-400 hover:text-stone-700 cursor-pointer"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
             <form id="form-add-timeline" class="space-y-3 text-sm">
                 <input type="hidden" id="edit-timeline-id"/>
                 <div><label class="block text-xs font-bold text-stone-600 uppercase mb-1">Data / Tag (Ex: 2021)</label><input required type="text" id="tl-tag" class="w-full px-4 py-2.5 border rounded-xl bg-white"/></div>
-                <div><label class="block text-xs font-bold text-stone-600 uppercase mb-1">Título do Momento (Pergunta)</label><input required type="text" id="tl-title" class="w-full px-4 py-2.5 border rounded-xl bg-white"/></div>
-                <div><label class="block text-xs font-bold text-stone-600 uppercase mb-1">Texto da História</label><textarea required rows="2" id="tl-text" class="w-full px-4 py-2.5 border rounded-xl resize-none bg-white"></textarea></div>
+                <div><label class="block text-xs font-bold text-stone-600 uppercase mb-1">Pergunta do Quiz (Título)</label><input required type="text" id="tl-title" class="w-full px-4 py-2.5 border rounded-xl bg-white"/></div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div><label class="block text-[10px] font-bold text-stone-500 uppercase mb-1">Alternativa A</label><input required type="text" id="tl-opt-0" class="w-full px-3 py-2 border rounded-xl bg-white text-xs"/></div>
+                    <div><label class="block text-[10px] font-bold text-stone-500 uppercase mb-1">Alternativa B</label><input required type="text" id="tl-opt-1" class="w-full px-3 py-2 border rounded-xl bg-white text-xs"/></div>
+                    <div><label class="block text-[10px] font-bold text-stone-500 uppercase mb-1">Alternativa C</label><input required type="text" id="tl-opt-2" class="w-full px-3 py-2 border rounded-xl bg-white text-xs"/></div>
+                    <div><label class="block text-[10px] font-bold text-stone-500 uppercase mb-1">Alternativa D</label><input required type="text" id="tl-opt-3" class="w-full px-3 py-2 border rounded-xl bg-white text-xs"/></div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Qual a Alternativa Correta?</label>
+                    <select id="tl-correct" class="w-full px-4 py-2 border rounded-xl bg-white text-xs">
+                        <option value="0">Alternativa A</option>
+                        <option value="1">Alternativa B</option>
+                        <option value="2">Alternativa C</option>
+                        <option value="3">Alternativa D</option>
+                    </select>
+                </div>
+
+                <div><label class="block text-xs font-bold text-stone-600 uppercase mb-1">Texto da História Romântica</label><textarea required rows="2" id="tl-text" class="w-full px-4 py-2.5 border rounded-xl resize-none bg-white"></textarea></div>
                 <div><label class="block text-xs font-bold text-stone-600 uppercase mb-1">Curiosidade do Dia a Dia</label><textarea required rows="2" id="tl-curiosity" class="w-full px-4 py-2.5 border rounded-xl resize-none bg-white"></textarea></div>
                 
                 <div>
@@ -938,13 +951,9 @@
         ];
 
         const DEFAULT_TIMELINE = [
-            { id: 't1', tag: "A Troca de Turno", title: "Onde nos conhecemos na fábrica?", options: ["Na fila da janta", "Na portaria", "No estacionamento", "No escritório"], correct: 0, text: "Nos conhecemos na empresa na troca de turno. Ele chegava com a Saveiro chamando a atenção, mas eu nem ligava! Até que na fila da janta, sem querer, sentei na mesma mesa que ele.", curiosity: "Curiosidade do dia a dia: Ele sempre trazia bombons escondidos no porta-luvas da Saveiro para me agradar após o turno." },
-            { id: 't2', tag: "O Primeiro Encontro", title: "O que fomos beber antes do turno?", options: ["Café e Suco", "Budweiser & Heineken", "Água de Coco", "Refrigerante"], correct: 1, text: "Antes do turno ele me chamou para beber: me trouxe uma Bud, bebeu uma Heineken, tomamos um chopp e conversamos um monte sobre a vida.", curiosity: "Curiosidade do dia a dia: Ele esqueceu a carteira no balcão e eu tive que pagar a primeira rodada com minhas moedas da bolsa!" }
-        ];
-
-        const DEFAULT_GALLERY = [
-            { id: 'g1', title: "Noivado na Praia", imageUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80" },
-            { id: 'g2', title: "Nosso Primeiro Passeio", imageUrl: "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=600&q=80" }
+            { id: 't1', tag: "A Troca de Turno", title: "Onde nos conhecemos na fábrica?", options: ["Na fila da janta", "Na portaria da empresa", "No estacionamento", "No escritório"], correct: 0, text: "Nos conhecemos na empresa na troca de turno. Ele chegava com a Saveiro chamando a atenção, mas eu nem ligava! Até que na fila da janta, sem querer, sentei na mesma mesa que ele.", curiosity: "Curiosidade do dia a dia: Ele sempre trazia bombons escondidos no porta-luvas da Saveiro para me agradar após o turno.", imageUrl: "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=600&q=80" },
+            { id: 't2', tag: "O Primeiro Encontro", title: "O que fomos beber antes do turno?", options: ["Café e Suco", "Budweiser & Heineken", "Água de Coco", "Refrigerante"], correct: 1, text: "Antes do turno ele me chamou para beber: me trouxe uma Bud, bebeu uma Heineken, tomamos um chopp e conversamos um monte sobre a vida.", curiosity: "Curiosidade do dia a dia: Ele esqueceu a carteira no balcão e eu tive que pagar a primeira rodada com minhas moedas da bolsa!", imageUrl: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=600&q=80" },
+            { id: 't3', tag: "O Pedido de Namoro", title: "Onde aconteceu o nosso pedido de namoro?", options: ["Na serra", "Na praia", "No shopping", "Em um restaurante"], correct: 1, text: "Passados 3 meses de conversas e risadas, ele me pediu em namoro na praia. Foi um momento mágico e inesquecível à beira do mar.", curiosity: "Curiosidade do dia a dia: Ele guardou a aliança dentro de uma casquinha de siri por engano antes de entregar na areia!", imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80" }
         ];
 
         let state = {
@@ -977,48 +986,38 @@
             if (typeof action === 'function') await action();
         };
 
-        // --- EXCLUSÕES SEGURAS NO FIRESTORE (EXPOSTAS NO ESCOPO GLOBAL WINDOW) ---
         window.deleteGuest = (id) => {
-            window.openDeleteModal('Deseja realmente remover este convidado?', async () => {
+            window.openDeleteModal("Deseja realmente remover este convidado?", async () => {
                 try {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'guests', id));
                     state.guests = state.guests.filter(g => g.id !== id);
                     renderAdmin();
                     window.showToast("Convidado removido!");
-                } catch(e) { 
-                    console.error("deleteGuest:", e);
-                    window.showToast("Erro ao excluir convidado.", true); 
-                }
+                } catch(e) { window.showToast("Erro ao excluir convidado.", true); }
             });
         };
 
         window.deleteTimeline = (id) => {
-            window.openDeleteModal('Deseja realmente remover este momento do quiz?', async () => {
+            window.openDeleteModal("Deseja realmente remover este momento do quiz?", async () => {
                 try {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'timeline', id));
                     state.timeline = state.timeline.filter(t => t.id !== id);
                     renderTimeline();
                     renderAdmin();
                     window.showToast("Momento removido!");
-                } catch(e) { 
-                    console.error("deleteTimeline:", e);
-                    window.showToast("Erro ao excluir momento.", true); 
-                }
+                } catch(e) { window.showToast("Erro ao excluir momento.", true); }
             });
         };
 
         window.deleteGalleryPhoto = (id) => {
-            window.openDeleteModal('Deseja realmente remover esta foto da galeria?', async () => {
+            window.openDeleteModal("Deseja realmente remover esta foto da galeria?", async () => {
                 try {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'gallery', id));
                     state.gallery = state.gallery.filter(g => g.id !== id);
                     renderGallery();
                     renderAdmin();
                     window.showToast("Foto removida!");
-                } catch(e) { 
-                    console.error("deleteGalleryPhoto:", e);
-                    window.showToast("Erro ao excluir foto.", true); 
-                }
+                } catch(e) { window.showToast("Erro ao excluir foto.", true); }
             });
         };
 
@@ -1034,17 +1033,14 @@
         };
 
         window.deleteMessage = (id) => {
-            window.openDeleteModal('Deseja realmente excluir este recado do mural?', async () => {
+            window.openDeleteModal("Deseja realmente excluir este recado do mural?", async () => {
                 try {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'messages', id));
                     state.messages = state.messages.filter(m => m.id !== id);
                     renderMural();
                     renderAdmin();
                     window.showToast("Recado excluído!");
-                } catch(e) { 
-                    console.error("deleteMessage:", e);
-                    window.showToast("Erro ao excluir recado.", true); 
-                }
+                } catch(e) { window.showToast("Erro ao excluir recado.", true); }
             });
         };
 
@@ -1060,17 +1056,14 @@
         };
 
         window.deleteContribution = (id) => {
-            window.openDeleteModal('Deseja realmente remover este registro de contribuição Pix?', async () => {
+            window.openDeleteModal("Deseja realmente remover este registro de contribuição Pix?", async () => {
                 try {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'contributions', id));
                     state.contributions = state.contributions.filter(c => c.id !== id);
                     renderGifts();
                     renderAdmin();
                     window.showToast("Registro removido!");
-                } catch(e) { 
-                    console.error("deleteContribution:", e);
-                    window.showToast("Erro ao excluir contribuição.", true); 
-                }
+                } catch(e) { window.showToast("Erro ao excluir contribuição.", true); }
             });
         };
 
@@ -1382,22 +1375,34 @@
             document.getElementById('edit-timeline-id').value = '';
             document.getElementById('tl-tag').value = '';
             document.getElementById('tl-title').value = '';
+            document.getElementById('tl-opt-0').value = '';
+            document.getElementById('tl-opt-1').value = '';
+            document.getElementById('tl-opt-2').value = '';
+            document.getElementById('tl-opt-3').value = '';
+            document.getElementById('tl-correct').value = '0';
             document.getElementById('tl-text').value = '';
             document.getElementById('tl-curiosity').value = '';
             document.getElementById('tl-image').value = '';
             document.getElementById('timeline-file-label').innerText = 'Arraste uma foto ou selecione';
-            document.getElementById('modal-timeline-title').innerText = "Adicionar Momento do Quiz";
+            document.getElementById('modal-timeline-title').innerText = "Adicionar Momento / Quiz";
             if (timelineId) {
                 const item = state.timeline.find(x => x.id === timelineId);
                 if (item) {
                     document.getElementById('edit-timeline-id').value = item.id;
                     document.getElementById('tl-tag').value = item.tag;
                     document.getElementById('tl-title').value = item.title;
+                    if (item.options && item.options.length >= 4) {
+                        document.getElementById('tl-opt-0').value = item.options[0];
+                        document.getElementById('tl-opt-1').value = item.options[1];
+                        document.getElementById('tl-opt-2').value = item.options[2];
+                        document.getElementById('tl-opt-3').value = item.options[3];
+                    }
+                    document.getElementById('tl-correct').value = item.correct !== undefined ? item.correct : 0;
                     document.getElementById('tl-text').value = item.text;
                     document.getElementById('tl-curiosity').value = item.curiosity || '';
                     document.getElementById('tl-image').value = item.imageUrl || '';
                     if (item.imageUrl) document.getElementById('timeline-file-label').innerText = '✅ Foto já anexada';
-                    document.getElementById('modal-timeline-title').innerText = "Editar Momento do Quiz";
+                    document.getElementById('modal-timeline-title').innerText = "Editar Momento / Quiz";
                 }
             }
             document.getElementById('modal-add-timeline').style.display = 'flex';
@@ -1429,54 +1434,6 @@
                 <button type="button" onclick="this.parentElement.remove()" class="text-red-500 font-bold px-1 cursor-pointer">✕</button>
             `;
             container.appendChild(row);
-        };
-
-        window.generateQuizWithAI = async () => {
-            window.showToast("Gerando novas perguntas com IA...");
-            try {
-                const systemPrompt = "Você é um assistente criativo para um site de casamento. Com base na história de Júnior e Renata, gere um array JSON com 3 objetos de perguntas de quiz para convidados. Cada objeto deve ter: 'tag' (string curta), 'title' (pergunta divertida), 'options' (array de 4 strings de alternativas), 'correct' (índice 0-3 da resposta correta), 'text' (explicação romântica), 'curiosity' (curiosidade engraçada do dia a dia do casal).";
-                const userQuery = "Gere 3 perguntas de quiz sobre o namoro, a troca de turno na fábrica e o pedido de namoro na praia de Júnior e Renata.";
-                const apiKey = "";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
-                
-                const payload = {
-                    contents: [{ parts: [{ text: userQuery }] }],
-                    systemInstruction: { parts: [{ text: systemPrompt }] },
-                    generationConfig: {
-                        responseMimeType: "application/json",
-                        responseSchema: {
-                            type: "ARRAY",
-                            items: {
-                                type: "OBJECT",
-                                properties: {
-                                    tag: { type: "STRING" },
-                                    title: { type: "STRING" },
-                                    options: { type: "ARRAY", items: { type: "STRING" } },
-                                    correct: { type: "INTEGER" },
-                                    text: { type: "STRING" },
-                                    curiosity: { type: "STRING" }
-                                },
-                                propertyOrdering: ["tag", "title", "options", "correct", "text", "curiosity"]
-                            }
-                        }
-                    }
-                };
-
-                const res = await fetch(apiUrl, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
-                const json = await res.json();
-                const candidate = json.candidates?.[0];
-                if (candidate && candidate.content?.parts?.[0]?.text) {
-                    const generatedItems = JSON.parse(candidate.content.parts[0].text);
-                    for (let item of generatedItems) {
-                        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'timeline'), item);
-                    }
-                    window.showToast("Perguntas geradas e adicionadas com IA!");
-                } else {
-                    window.showToast("Erro ao gerar conteúdo.", true);
-                }
-            } catch(e) {
-                window.showToast("Falha na IA.", true);
-            }
         };
 
         const rsvpSearchInput = document.getElementById('rsvp-search-input');
@@ -1527,19 +1484,83 @@
         };
 
         window.printPDFList = () => {
-            const confirmedGuests = state.guests.filter(g => g.status !== 'declined');
-            if (!confirmedGuests.length) { window.showToast("Nenhum convidado confirmado para gerar o PDF.", true); return; }
-            const tbody = document.getElementById('pdf-table-body');
-            document.getElementById('pdf-date-gen').innerText = `Emitido em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`;
-            tbody.innerHTML = confirmedGuests.map(g => {
-                const groupSize = 1 + (g.companions ? g.companions.length : 0);
-                const compStr = (g.companions || []).map(c => `${c.name} (${c.age}a, ${c.relation})`).join(', ') || 'Nenhum';
-                return `<tr><td class="p-2 border font-bold">${escapeHTML(g.mainName)}</td><td class="p-2 border">${escapeHTML(compStr)}</td><td class="p-2 border text-center font-bold">${groupSize}</td></tr>`;
+            const guests = Array.isArray(state.guests) ? state.guests : [];
+            const confirmedGuests = guests.filter(g => g.status !== 'declined');
+
+            if (!confirmedGuests.length) {
+                window.showToast(
+                    guests.length
+                        ? "Não há convidados confirmados para gerar o PDF."
+                        : "A lista de convidados ainda está carregando. Tente novamente em alguns segundos.",
+                    true
+                );
+                return;
+            }
+
+            const rows = confirmedGuests.map(g => {
+                const groupSize = 1 + (Array.isArray(g.companions) ? g.companions.length : 0);
+                const compStr = (g.companions || [])
+                    .map(c => `${c.name || ''} (${c.age || 0}a, ${c.relation || 'Outro'})`)
+                    .join(', ') || 'Nenhum';
+
+                return `<tr>
+                    <td>${escapeHTML(g.mainName || '')}</td>
+                    <td>${escapeHTML(compStr)}</td>
+                    <td class="center">${groupSize}</td>
+                </tr>`;
             }).join('');
+
+            const generatedAt = `${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`;
             const win = window.open('', '_blank');
-            win.document.write(`<html><head><title>Lista de Convidados</title><style>body{font-family:sans-serif;padding:30px;}table{width:100%;border-collapse:collapse;margin-top:20px;}th,td{border:1px solid #ccc;padding:8px;text-align:left;font-size:12px;}th{background:#eee;}</style></head><body>` + document.getElementById('printable-pdf-area').innerHTML + `</body></html>`);
+
+            if (!win) {
+                window.showToast("O navegador bloqueou a janela do PDF. Permita pop-ups para este site.", true);
+                return;
+            }
+
+            win.document.open();
+            win.document.write(`<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Convidados</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 30px; color: #292524; }
+        h1 { margin: 0 0 8px; font-size: 24px; }
+        .date { color: #78716c; font-size: 12px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 12px; }
+        th { background: #eee; }
+        .center { text-align: center; font-weight: bold; }
+        @media print { body { padding: 0; } }
+    </style>
+</head>
+<body>
+    <h1>Lista Oficial de Convidados Confirmados</h1>
+    <div class="date">Emitido em: ${generatedAt}</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Convidado Principal</th>
+                <th>Acompanhantes</th>
+                <th>Total no Grupo</th>
+            </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+    </table>
+</body>
+</html>`);
             win.document.close();
-            win.print();
+
+            const printWhenReady = () => {
+                win.focus();
+                setTimeout(() => {
+                    win.print();
+                }, 250);
+            };
+
+            if (win.document.readyState === 'complete') printWhenReady();
+            else win.addEventListener('load', printWhenReady, { once: true });
         };
 
         window.toggleMusicWidget = () => {
@@ -1597,31 +1618,47 @@
             updateMusicPlayerUI();
         };
 
+        // --- RENDERIZAÇÃO DA TIMELINE EM FORMATO DE QUIZ ---
         const renderTimeline = () => {
             const container = document.getElementById('quiz-container');
             if (!container) return;
-            container.innerHTML = state.timeline.map((t) => {
+            if (!state.timeline.length) {
+                container.innerHTML = `<div class="bg-white p-8 rounded-3xl text-center text-stone-400">Nenhum momento cadastrado na timeline.</div>`;
+                return;
+            }
+            container.innerHTML = state.timeline.map((t, index) => {
                 const optionsHtml = (t.options || []).map((opt, oIdx) => `
-                    <button onclick="window.checkQuizAnswer('${t.id}', ${oIdx}, ${t.correct})" class="w-full text-left p-3 rounded-xl border border-stone-200 hover:bg-red-50 text-xs font-semibold transition-all cursor-pointer quiz-btn-${t.id}-${oIdx}">
-                        ${escapeHTML(opt)}
+                    <button onclick="window.checkQuizAnswer('${t.id}', ${oIdx}, ${t.correct})" class="w-full text-left p-3.5 rounded-2xl border border-stone-200 hover:border-red-400 hover:bg-red-50/50 text-sm font-semibold transition-all cursor-pointer quiz-btn-${t.id}-${oIdx} flex items-center justify-between bg-white shadow-xs">
+                        <span class="flex items-center gap-2.5"><span class="w-6 h-6 rounded-full bg-red-100 text-red-700 text-xs flex items-center justify-center font-bold shrink-0">${['A','B','C','D'][oIdx]}</span> ${escapeHTML(opt)}</span>
+                        <span class="quiz-icon-${t.id}-${oIdx} text-xs font-bold"></span>
                     </button>
                 `).join('');
 
-                const imgHtml = t.imageUrl ? `<div class="mb-4 overflow-hidden rounded-2xl shadow-xl border-4 border-white bg-white p-2"><img src="${escapeHTML(t.imageUrl)}" class="w-full h-56 object-cover rounded-xl"/></div>` : '';
+                const imgHtml = t.imageUrl ? `<div class="mb-6 overflow-hidden rounded-2xl shadow-md border border-stone-100 bg-stone-50 p-2"><img src="${escapeHTML(t.imageUrl)}" class="w-full h-64 object-cover rounded-xl"/></div>` : '';
 
                 return `
-                    <div class="bg-white p-6 md:p-8 rounded-3xl shadow-lg border border-red-100 space-y-4">
+                    <div class="bg-white p-6 md:p-10 rounded-3xl shadow-xl border border-red-100 space-y-6 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-red-600 text-white text-[11px] font-bold px-4 py-1 rounded-bl-2xl uppercase tracking-wider">Momento #${index + 1}</div>
                         ${imgHtml}
-                        <span class="text-xs font-semibold text-red-500 uppercase tracking-wider">${escapeHTML(t.tag)}</span>
-                        <h3 class="font-serif text-2xl font-bold text-stone-800">${escapeHTML(t.title)}</h3>
-                        <div class="space-y-2 pt-2">${optionsHtml}</div>
-                        <div id="quiz-result-${t.id}" class="hidden pt-4 border-t space-y-2 text-xs">
-                            <p class="text-stone-700 leading-relaxed"><b>História:</b> ${escapeHTML(t.text)}</p>
-                            <p class="bg-amber-50 border border-amber-200 p-3 rounded-xl text-amber-900">💡 <b>Curiosidade do dia a dia:</b> ${escapeHTML(t.curiosity || 'Nenhuma')}</p>
+                        <div class="space-y-2">
+                            <span class="text-xs font-bold text-red-600 uppercase tracking-widest bg-red-50 px-3 py-1 rounded-full inline-block">${escapeHTML(t.tag)}</span>
+                            <h3 class="font-serif text-2xl md:text-3xl font-bold text-stone-900">${escapeHTML(t.title)}</h3>
+                        </div>
+                        <div class="space-y-3 pt-2">${optionsHtml}</div>
+                        <div id="quiz-result-${t.id}" class="hidden pt-5 border-t border-stone-100 space-y-3 text-sm animate-fadeIn">
+                            <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl text-emerald-900 space-y-1">
+                                <span class="font-bold text-xs uppercase text-emerald-700 flex items-center gap-1.5"><i data-lucide="heart" class="w-4 h-4 text-emerald-600 fill-emerald-600"></i> A Nossa História:</span>
+                                <p class="text-stone-700 leading-relaxed">${escapeHTML(t.text)}</p>
+                            </div>
+                            <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl text-amber-900 space-y-1">
+                                <span class="font-bold text-xs uppercase text-amber-700 flex items-center gap-1.5"><i data-lucide="sparkles" class="w-4 h-4 text-amber-600"></i> Curiosidade do Dia a Dia:</span>
+                                <p class="text-stone-700 leading-relaxed">${escapeHTML(t.curiosity || 'Nenhuma curiosidade informada.')}</p>
+                            </div>
                         </div>
                     </div>
                 `;
             }).join('');
+            lucide.createIcons();
         };
 
         window.checkQuizAnswer = (id, chosenIdx, correctIdx) => {
@@ -1629,10 +1666,23 @@
             if (!t) return;
             t.options.forEach((_, idx) => {
                 const btn = document.querySelector(`.quiz-btn-${id}-${idx}`);
+                const iconSpan = document.querySelector(`.quiz-icon-${id}-${idx}`);
                 if (!btn) return;
-                btn.className = `w-full text-left p-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer quiz-btn-${id}-${idx} ${idx === correctIdx ? 'bg-emerald-100 border-emerald-500 text-emerald-900' : (idx === chosenIdx ? 'bg-red-100 border-red-500 text-red-900' : 'bg-stone-50 border-stone-200 text-stone-400')}`;
+                
+                if (idx === correctIdx) {
+                    btn.className = `w-full text-left p-3.5 rounded-2xl border text-sm font-semibold transition-all cursor-pointer quiz-btn-${id}-${idx} flex items-center justify-between bg-emerald-100 border-emerald-500 text-emerald-900 shadow-sm`;
+                    if (iconSpan) iconSpan.innerHTML = `<span class="text-emerald-700 font-bold bg-emerald-200 px-2 py-0.5 rounded-lg text-xs">Correta ✨</span>`;
+                } else if (idx === chosenIdx) {
+                    btn.className = `w-full text-left p-3.5 rounded-2xl border text-sm font-semibold transition-all cursor-pointer quiz-btn-${id}-${idx} flex items-center justify-between bg-red-100 border-red-500 text-red-900 shadow-sm`;
+                    if (iconSpan) iconSpan.innerHTML = `<span class="text-red-700 font-bold bg-red-200 px-2 py-0.5 rounded-lg text-xs">Sua Escolha</span>`;
+                } else {
+                    btn.className = `w-full text-left p-3.5 rounded-2xl border text-sm font-semibold transition-all cursor-pointer quiz-btn-${id}-${idx} flex items-center justify-between bg-stone-50 border-stone-200 text-stone-400 opacity-60`;
+                    if (iconSpan) iconSpan.innerHTML = ``;
+                }
             });
             document.getElementById(`quiz-result-${id}`).classList.remove('hidden');
+            lucide.createIcons();
+            window.showToast("Resposta registrada! Veja a história abaixo.");
         };
 
         let currentStoryIndex = 0;
@@ -1641,6 +1691,10 @@
         const renderGallery = () => {
             const grid = document.getElementById('gallery-grid');
             if (!grid) return;
+            if (!state.gallery.length) {
+                grid.innerHTML = `<div class="col-span-full bg-white p-8 rounded-3xl text-center text-stone-400">Nenhuma foto na galeria.</div>`;
+                return;
+            }
             grid.innerHTML = state.gallery.map((g, idx) => `
                 <div onclick="window.openGalleryStory(${idx})" class="bg-white rounded-2xl overflow-hidden border border-stone-200 shadow-sm group cursor-pointer">
                     <img src="${escapeHTML(g.imageUrl)}" class="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300"/>
@@ -1867,10 +1921,14 @@
                 if (snap.empty) DEFAULT_TIMELINE.forEach(t => addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'timeline'), t));
                 else { state.timeline = snap.docs.map(d => ({id: d.id, ...d.data()})); renderTimeline(); if(state.isAdminLoggedIn) renderAdmin(); }
             });
+            
+            // LISTENER DEFINITIVO DA GALERIA (SEM RECICLAGEM / REPLANTIO AUTOMÁTICO DE FOTOS EXCLUÍDAS)
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'gallery'), snap => {
-                if (snap.empty) DEFAULT_GALLERY.forEach(g => addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gallery'), g));
-                else { state.gallery = snap.docs.map(d => ({id: d.id, ...d.data()})); renderGallery(); if(state.isAdminLoggedIn) renderAdmin(); }
+                state.gallery = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderGallery();
+                if (state.isAdminLoggedIn) renderAdmin();
             });
+
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), snap => {
                 state.messages = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
                 renderMural(); if(state.isAdminLoggedIn) renderAdmin();
@@ -1891,16 +1949,21 @@
             const obj = { 
                 tag: document.getElementById('tl-tag').value.trim(), 
                 title: document.getElementById('tl-title').value.trim(), 
+                options: [
+                    document.getElementById('tl-opt-0').value.trim(),
+                    document.getElementById('tl-opt-1').value.trim(),
+                    document.getElementById('tl-opt-2').value.trim(),
+                    document.getElementById('tl-opt-3').value.trim()
+                ],
+                correct: parseInt(document.getElementById('tl-correct').value, 10),
                 text: document.getElementById('tl-text').value.trim(), 
                 curiosity: document.getElementById('tl-curiosity').value.trim(),
-                options: ["Alternativa A", "Alternativa B", "Alternativa C", "Alternativa D"],
-                correct: 0,
                 imageUrl: document.getElementById('tl-image').value.trim() 
             };
             window.closeAddTimelineModal();
             if (editId) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'timeline', editId), obj);
             else await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'timeline'), obj);
-            window.showToast("Momento salvo!");
+            window.showToast("Momento / Quiz salvo!");
         });
 
         document.getElementById('form-add-gallery').addEventListener('submit', async (e) => {
