@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
     <title>Júnior & Renata - Nosso Casamento</title>
     
     <!-- Tailwind CSS -->
@@ -942,7 +943,8 @@
                 measurementId: "G-PM73MG69PF"
             };
 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'wedding-prod';
+        // Identificador fixo para sincronizar GitHub Pages e Preview no mesmo banco de dados
+        const appId = 'casamento-junior-renata-v1';
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -1019,8 +1021,11 @@
                     state.gallery = state.gallery.filter(g => g.id !== id);
                     renderGallery();
                     renderAdmin();
-                    window.showToast("Foto removida!");
-                } catch(e) { window.showToast("Erro ao excluir foto.", true); }
+                    window.showToast("Foto removida com sucesso!");
+                } catch(e) { 
+                    console.error("Erro ao deletar no Firebase:", e);
+                    window.showToast("Erro ao excluir foto no Firebase: " + (e.message || "Sem permissão"), true); 
+                }
             });
         };
 
