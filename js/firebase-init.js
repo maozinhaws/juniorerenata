@@ -406,7 +406,8 @@ const updateSiteContent = () => {
     }
 };
 
-window.addEventListener('DOMContentLoaded', () => {
+// RSVP Autocomplete & Interaction Logic
+document.addEventListener('DOMContentLoaded', () => {
     renderGifts();
     renderGallery();
     renderMural();
@@ -415,7 +416,65 @@ window.addEventListener('DOMContentLoaded', () => {
     startFirebase();
     initQuiz();
     initAdmin();
+
+    const rsvpInput = document.getElementById('rsvp-search-input');
+    const rsvpSuggestions = document.getElementById('rsvp-suggestions');
+    const rsvpDetails = document.getElementById('rsvp-details-card');
+
+    if (rsvpInput) {
+        rsvpInput.addEventListener('input', (e) => {
+            const query = e.target.value.trim().toLowerCase();
+            if (query.length < 2) {
+                rsvpSuggestions.classList.add('hidden');
+                return;
+            }
+            const matches = state.guests.filter(g => g.mainName.toLowerCase().includes(query));
+            if (!matches.length) {
+                rsvpSuggestions.innerHTML = `<div class="p-3 text-xs text-stone-400">Nenhum convidado encontrado.</div>`;
+                rsvpSuggestions.classList.remove('hidden');
+                return;
+            }
+            rsvpSuggestions.innerHTML = matches.map(g => `
+                <div class="p-3 hover:bg-red-50 text-xs font-semibold cursor-pointer border-b last:border-0 text-stone-800" data-guest-id="${g.id}">
+                    ${escapeHTML(g.mainName)} <span class="text-[10px] text-stone-400 block font-normal">${(g.companions || []).length} acompanhante(s)</span>
+                </div>
+            `).join('');
+            rsvpSuggestions.classList.remove('hidden');
+        });
+
+        rsvpSuggestions.addEventListener('click', (e) => {
+            const item = e.target.closest('[data-guest-id]');
+            if (!item) return;
+            const guestId = item.dataset.guestId;
+            const found = state.guests.find(g => g.id === guestId);
+            if (found) {
+                state.selectedRsvpGuest = found;
+                rsvpInput.value = found.mainName;
+                rsvpSuggestions.classList.add('hidden');
+                document.getElementById('rsvp-selected-name').innerText = found.mainName;
+                document.getElementById('rsvp-companions-list').innerHTML = (found.companions && found.companions.length) ? 
+                    found.companions.map(c => `<div class="flex justify-between bg-white p-2 rounded-lg border border-stone-200"><span>${escapeHTML(c.name)}</span><span class="text-stone-400">${escapeHTML(c.relation)} (${c.age}a)</span></div>`).join('') :
+                    `<span class="text-stone-400">Nenhum acompanhante cadastrado.</span>`;
+                rsvpDetails.classList.remove('hidden');
+                lucide.createIcons();
+            }
+        });
+    }
 });
+
+window.setAttendanceStatus = async (status) => {
+    if (!state.selectedRsvpGuest) return;
+    try {
+        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'guests', state.selectedRsvpGuest.id);
+        await updateDoc(docRef, { status: status ? 'confirmed' : 'declined' });
+        window.showToast(status ? "Presença confirmada com sucesso!" : "Resposta registrada. Sentiremos sua falta!");
+        sendWhatsAppAlert(`📋 Atualização de RSVP!\nConvidado: ${state.selectedRsvpGuest.mainName}\nStatus: ${status ? 'CONFIRMADO ✅' : 'AUSENTE ❌'}`);
+        document.getElementById('rsvp-details-card').classList.add('hidden');
+        document.getElementById('rsvp-search-input').value = '';
+    } catch(err) {
+        window.showToast("Erro ao atualizar RSVP.", true);
+    }
+};
 
 setInterval(() => {
     const diff = new Date(state.settings.date).getTime() - new Date().getTime();
