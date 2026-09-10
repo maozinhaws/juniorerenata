@@ -1,5 +1,5 @@
 import { db, appId, escapeHTML, state } from './firebase-init.js';
-import { deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { collection, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 export function renderGallery() {
     const grid = document.getElementById('gallery-grid');
@@ -70,3 +70,94 @@ window.deleteGalleryPhoto = (id) => {
         }
     });
 };
+// Admin gallery controls. These functions are intentionally defined in the gallery module,
+// so the Wix-style editor and the delegated data-action buttons share the same implementation.
+window.openAddGalleryModal = () => {
+    if (!state.isAdminLoggedIn) {
+        return window.showToast("Faça login como administrador para adicionar posts.", true);
+    }
+    const modal = document.getElementById('modal-add-gallery');
+    const input = document.getElementById('gal-instagram');
+    if (!modal) return window.showToast("Modal da galeria não encontrado.", true);
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    modal.style.display = 'flex';
+    if (input) {
+        input.value = '';
+        requestAnimationFrame(() => input.focus());
+    }
+    if (window.lucide) lucide.createIcons();
+};
+
+window.closeAddGalleryModal = () => {
+    const modal = document.getElementById('modal-add-gallery');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    modal.style.display = 'none';
+};
+
+const normalizeInstagramUrl = (value) => {
+    try {
+        const url = new URL(value.trim());
+        const host = url.hostname.toLowerCase().replace(/^www\./, '');
+        if (host !== 'instagram.com') return null;
+        if (!/^\/(p|reel|tv)\/[A-Za-z0-9._-]+\/?$/.test(url.pathname)) return null;
+        return `https://www.instagram.com${url.pathname.replace(/\/$/, '')}/`;
+    } catch (_) {
+        return null;
+    }
+};
+
+// One delegated submit listener is used because the modal exists in the static HTML,
+// while the editor can be entered/exited without reloading the page.
+if (!window.__gallerySubmitBound) {
+    window.__gallerySubmitBound = true;
+    document.addEventListener('submit', async (e) => {
+        if (e.target?.id !== 'form-add-gallery') return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!state.isAdminLoggedIn) {
+            return window.showToast("Acesso negado. Faça login como administrador.", true);
+        }
+
+        const input = document.getElementById('gal-instagram');
+        const submit = e.target.querySelector('button[type="submit"]');
+        const instagramUrl = normalizeInstagramUrl(input?.value || '');
+        if (!instagramUrl) {
+            return window.showToast("Cole um link válido de um Post, Reels ou vídeo do Instagram.", true);
+        }
+
+        const duplicated = state.gallery.some(item => item.instagramUrl === instagramUrl);
+        if (duplicated) {
+            return window.showToast("Esse post já está cadastrado na galeria.", true);
+        }
+
+        const originalLabel = submit?.innerHTML;
+        try {
+            if (submit) {
+                submit.disabled = true;
+                submit.innerHTML = 'Adicionando...';
+            }
+
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gallery'), {
+                instagramUrl,
+                caption: 'Momento especial do casal 💍',
+                createdAt: new Date().toISOString()
+            });
+
+            window.closeAddGalleryModal();
+            e.target.reset();
+            window.showToast("Post do Instagram adicionado com sucesso!");
+        } catch (err) {
+            console.error('Erro ao adicionar post da galeria:', err);
+            window.showToast("Erro ao adicionar o post. Verifique sua conexão e as permissões do Firebase.", true);
+        } finally {
+            if (submit) {
+                submit.disabled = false;
+                submit.innerHTML = originalLabel || 'Adicionar Post';
+            }
+        }
+    });
+}

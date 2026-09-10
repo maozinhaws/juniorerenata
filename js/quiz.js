@@ -5,6 +5,57 @@ export function initQuiz() {
     const quizInput = document.getElementById('quiz-guest-name');
     const sugBox = document.getElementById('quiz-suggestions');
 
+    const getParticipants = () => {
+        const participants = [];
+        state.guests.forEach((guest) => {
+            if (guest.mainName) {
+                participants.push({
+                    participantKey: `${guest.id}:main`,
+                    guestId: guest.id,
+                    name: guest.mainName,
+                    type: 'main',
+                    guest
+                });
+            }
+            (guest.companions || []).forEach((companion, index) => {
+                if (!companion?.name) return;
+                participants.push({
+                    participantKey: `${guest.id}:companion:${index}`,
+                    guestId: guest.id,
+                    name: companion.name,
+                    type: 'companion',
+                    companionIndex: index,
+                    guest
+                });
+            });
+        });
+        return participants;
+    };
+
+    const findParticipantByKey = (key) => getParticipants().find(p => p.participantKey === key);
+
+    const hasPlayed = (participant) => {
+        if (!participant) return false;
+        const current = state.rankings.some(r => {
+            if (r.participantKey) return r.participantKey === participant.participantKey;
+            // Compatibility with rankings created by the previous version.
+            return participant.type === 'main' && r.guestId === participant.guestId;
+        });
+        return current || localStorage.getItem(`wedding_quiz_played_${participant.participantKey}`) === 'true';
+    };
+
+    const clearLocalPlayState = (ranking) => {
+        if (!ranking) return;
+        if (ranking.participantKey) {
+            localStorage.removeItem(`wedding_quiz_played_${ranking.participantKey}`);
+            return;
+        }
+        if (ranking.guestId) {
+            localStorage.removeItem(`wedding_quiz_played_${ranking.guestId}`);
+            localStorage.removeItem(`wedding_quiz_played_${ranking.guestId}:main`);
+        }
+    };
+
     if (quizInput && sugBox) {
         quizInput.addEventListener('input', (e) => {
             const query = e.target.value.trim().toLowerCase();
@@ -12,41 +63,56 @@ export function initQuiz() {
                 sugBox.classList.add('hidden');
                 return;
             }
-            const matches = state.guests.filter(g => g.mainName && g.mainName.toLowerCase().includes(query));
+
+            const matches = getParticipants().filter(p => p.name.toLowerCase().includes(query));
             if (!matches.length) {
-                sugBox.innerHTML = `<div class="p-3 text-xs text-stone-400 text-center">Convidado não encontrado na lista oficial.</div>`;
+                sugBox.innerHTML = `<div class="p-3 text-xs text-stone-400 text-center">Convidado ou acompanhante não encontrado na lista oficial.</div>`;
                 sugBox.classList.remove('hidden');
                 return;
             }
-            sugBox.innerHTML = matches.map(g => `
-                <div class="p-3 hover:bg-stone-100 rounded-xl text-xs font-semibold cursor-pointer text-stone-800 transition-colors" data-quiz-guest-name="${escapeHTML(g.mainName)}">
-                    ${escapeHTML(g.mainName)}
+
+            sugBox.innerHTML = matches.map(p => `
+                <div class="p-3 hover:bg-stone-100 rounded-xl text-xs font-semibold text-stone-800 transition-colors cursor-pointer" data-quiz-participant-key="${escapeHTML(p.participantKey)}">
+                    <span>${escapeHTML(p.name)}</span>
+                    <span class="block text-[10px] text-stone-400 font-normal">${p.type === 'main' ? 'Convidado principal' : 'Acompanhante'}</span>
                 </div>
             `).join('');
             sugBox.classList.remove('hidden');
         });
 
         sugBox.addEventListener('click', (e) => {
-            const item = e.target.closest('[data-quiz-guest-name]');
+            const item = e.target.closest('[data-quiz-participant-key]');
             if (!item) return;
-            quizInput.value = item.dataset.quizGuestName;
+            const participant = findParticipantByKey(item.dataset.quizParticipantKey);
+            if (!participant) return;
+            quizInput.value = participant.name;
+            quizInput.dataset.participantKey = participant.participantKey;
             sugBox.classList.add('hidden');
         });
     }
 
     window.startCoupleQuiz = () => {
-        const nameInput = document.getElementById('quiz-guest-name').value.trim().toLowerCase();
+        const nameInput = quizInput?.value.trim().toLowerCase();
+        const selectedKey = quizInput?.dataset.participantKey;
         if (!nameInput || nameInput.length < 2) return window.showToast("Selecione seu nome na lista suspensa!", true);
 
-        const found = state.guests.find(g => g.mainName && g.mainName.toLowerCase() === nameInput);
-        if (!found) return window.showToast("Você precisa selecionar um nome válido da lista oficial de convidados!", true);
+        let participant = selectedKey ? findParticipantByKey(selectedKey) : null;
+        if (!participant) {
+            participant = getParticipants().find(p => p.name.toLowerCase() === nameInput);
+        }
+        if (!participant) return window.showToast("Você precisa selecionar um nome válido da lista oficial de convidados ou acompanhantes!", true);
 
-        state.activeQuizGuest = found;
-        const alreadyPlayedKey = `wedding_quiz_played_${found.id}`;
-        if (localStorage.getItem(alreadyPlayedKey) === 'true') {
-            return window.showToast("Você já concluiu o desafio! Apenas 1 tentativa permitida.", true);
+        if (hasPlayed(participant)) {
+            return window.showToast("Você já concluiu o desafio! Apenas 1 tentativa permitida por pessoa.", true);
         }
 
+        state.activeQuizGuest = {
+            ...participant.guest,
+            mainName: participant.name,
+            participantKey: participant.participantKey,
+            participantType: participant.type,
+            companionIndex: participant.companionIndex ?? null
+        };
         state.currentQuizStep = 0;
         state.quizAnswersState = [];
         document.getElementById('quiz-entry-card').classList.add('hidden');
@@ -55,10 +121,15 @@ export function initQuiz() {
     };
 
     window.answerQuizStep = (step, chosenIdx, correctIdx) => {
+        // Ignore accidental double clicks after advancing the question.
+        if (step !== state.currentQuizStep) return;
         state.quizAnswersState.push({ step, chosenIdx, correctIdx, isCorrect: chosenIdx === correctIdx });
         state.currentQuizStep++;
         renderQuizStep();
     };
+
+    // Expose only the small helper needed by the delete flow.
+    window.clearQuizLocalPlayState = clearLocalPlayState;
 }
 
 const renderQuizStep = () => {
@@ -100,12 +171,15 @@ const finishQuiz = async () => {
     const correctCount = state.quizAnswersState.filter(a => a.isCorrect).length;
     const score = correctCount * 100;
 
-    localStorage.setItem(`wedding_quiz_played_${state.activeQuizGuest.id}`, 'true');
+    const participantKey = state.activeQuizGuest.participantKey || `${state.activeQuizGuest.id}:main`;
+    localStorage.setItem(`wedding_quiz_played_${participantKey}`, 'true');
 
     try {
         await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'rankings'), {
             guestId: state.activeQuizGuest.id,
             guestName: state.activeQuizGuest.mainName,
+            participantKey: participantKey,
+            participantType: state.activeQuizGuest.participantType || 'main',
             score: score,
             timestamp: new Date().toISOString()
         });
@@ -145,21 +219,37 @@ export function renderRanking() {
 }
 
 window.deleteRankingEntry = (id) => {
-    window.openDeleteModal("Deseja realmente excluir esta pontuação do ranking?", async () => {
+    window.openDeleteModal("Deseja realmente excluir esta pontuação do ranking? Ao excluir, essa pessoa poderá jogar novamente.", async () => {
         try {
+            const ranking = state.rankings.find(r => r.id === id);
             await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rankings', id));
-            window.showToast("Pontuação excluída com sucesso!");
-        } catch(e) { window.showToast("Erro ao excluir pontuação.", true); }
+
+            // Important: deleting the ranking also removes the local lock.
+            if (typeof window.clearQuizLocalPlayState === 'function') {
+                window.clearQuizLocalPlayState(ranking);
+            } else if (ranking?.participantKey) {
+                localStorage.removeItem(`wedding_quiz_played_${ranking.participantKey}`);
+            }
+
+            window.showToast("Pontuação excluída. Essa pessoa já pode jogar novamente!");
+        } catch(e) {
+            window.showToast("Erro ao excluir pontuação.", true);
+        }
     });
 };
 
 window.clearEntireRanking = () => {
-    window.openDeleteModal("Deseja realmente zerar todo o ranking do quiz?", async () => {
+    window.openDeleteModal("Deseja realmente zerar todo o ranking do quiz? Todas as pessoas ficarão livres para jogar novamente.", async () => {
         try {
             for (const r of state.rankings) {
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rankings', r.id));
+                if (typeof window.clearQuizLocalPlayState === 'function') {
+                    window.clearQuizLocalPlayState(r);
+                }
             }
-            window.showToast("Ranking zerado com sucesso!");
-        } catch(e) { window.showToast("Erro ao zerar ranking.", true); }
+            window.showToast("Ranking zerado. Todos podem jogar novamente!");
+        } catch(e) {
+            window.showToast("Erro ao zerar ranking.", true);
+        }
     });
 };
