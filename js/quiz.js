@@ -2,6 +2,47 @@ import { db, appId, sendWhatsAppAlert, escapeHTML, state } from './firebase-init
 import { collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 export function initQuiz() {
+    const quizInput = document.getElementById('quiz-guest-name');
+    
+    // Cria container flutuante de sugestões para o Quiz caso não exista no HTML
+    if (quizInput && !document.getElementById('quiz-suggestions')) {
+        const sug = document.createElement('div');
+        sug.id = 'quiz-suggestions';
+        sug.className = 'absolute left-0 right-0 top-full mt-1 bg-white border border-stone-200 rounded-xl shadow-xl max-h-48 overflow-y-auto z-30 hidden';
+        quizInput.parentElement.style.position = 'relative';
+        quizInput.parentElement.appendChild(sug);
+    }
+
+    if (quizInput) {
+        quizInput.addEventListener('input', (e) => {
+            const query = e.target.value.trim().toLowerCase();
+            const sugBox = document.getElementById('quiz-suggestions');
+            if (query.length < 2) {
+                sugBox.classList.add('hidden');
+                return;
+            }
+            const matches = state.guests.filter(g => g.mainName.toLowerCase().includes(query));
+            if (!matches.length) {
+                sugBox.innerHTML = `<div class="p-3 text-xs text-stone-400">Convidado não encontrado na lista.</div>`;
+                sugBox.classList.remove('hidden');
+                return;
+            }
+            sugBox.innerHTML = matches.map(g => `
+                <div class="p-3 hover:bg-red-50 text-xs font-semibold cursor-pointer border-b last:border-0 text-stone-800" data-quiz-guest-name="${escapeHTML(g.mainName)}">
+                    ${escapeHTML(g.mainName)}
+                </div>
+            `).join('');
+            sugBox.classList.remove('hidden');
+        });
+
+        document.getElementById('quiz-suggestions')?.addEventListener('click', (e) => {
+            const item = e.target.closest('[data-quiz-guest-name]');
+            if (!item) return;
+            quizInput.value = item.dataset.quizGuestName;
+            document.getElementById('quiz-suggestions').classList.add('hidden');
+        });
+    }
+
     window.startCoupleQuiz = () => {
         const nameInput = document.getElementById('quiz-guest-name').value.trim().toLowerCase();
         if (!nameInput) return window.showToast("Digite seu nome para iniciar!", true);
