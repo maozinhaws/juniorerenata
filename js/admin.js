@@ -91,7 +91,6 @@ export function initAdmin() {
         container.appendChild(row);
     };
 
-    // Global administrative deletion handlers
     window.deleteTimeline = (id) => {
         window.openDeleteModal("Deseja realmente excluir esta pergunta do quiz?", async () => {
             try {
@@ -141,6 +140,15 @@ export function initAdmin() {
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'contributions', id));
                 window.showToast("Contribuição excluída com sucesso!");
             } catch(e) { window.showToast("Erro ao excluir contribuição.", true); }
+        });
+    };
+
+    window.deleteRankingEntry = (id) => {
+        window.openDeleteModal("Deseja realmente excluir esta pontuação do ranking (teste do quiz)?", async () => {
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rankings', id));
+                window.showToast("Pontuação excluída com sucesso!");
+            } catch(e) { window.showToast("Erro ao excluir pontuação.", true); }
         });
     };
 
@@ -255,6 +263,25 @@ export function renderAdmin() {
             </td>
         </tr>
     `).join('');
+
+    // Renderiza a tabela de gerenciamento do Ranking (Quiz) no painel admin
+    const adminRankingList = document.getElementById('admin-ranking-list');
+    if (adminRankingList) {
+        if (!state.rankings.length) {
+            adminRankingList.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-stone-400 text-xs">Nenhum registro no ranking.</td></tr>`;
+        } else {
+            adminRankingList.innerHTML = state.rankings.map((r, i) => `
+                <tr>
+                    <td class="py-3 font-bold text-red-600">#${i + 1}</td>
+                    <td class="py-3 font-bold text-stone-900">${escapeHTML(r.guestName)}</td>
+                    <td class="py-3 text-emerald-600 font-bold">${r.score} pts</td>
+                    <td class="py-3">
+                        <button type="button" onclick="window.deleteRankingEntry('${r.id}')" class="text-red-500 font-bold text-xs cursor-pointer">Excluir Teste</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+    }
     
     lucide.createIcons();
 }
