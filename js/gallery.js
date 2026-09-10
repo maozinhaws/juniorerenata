@@ -12,14 +12,14 @@ export function renderGallery() {
 
     grid.innerHTML = state.gallery.map(g => {
         const url = escapeHTML(g.instagramUrl || '#');
-        // Extrai ou usa imagem padrão bonita se for link do instagram
+        // Usa a imagem cadastrada ou fallback elegante
         const imgUrl = escapeHTML(g.imageUrl || g.instagramUrl || 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80');
         const caption = escapeHTML(g.caption || 'Momento especial do casal 💍');
 
         return `
             <div class="bg-white rounded-3xl overflow-hidden border border-stone-200 shadow-sm flex flex-col justify-between group relative">
                 <div class="relative w-full h-80 bg-stone-100 overflow-hidden cursor-pointer" onclick="window.openLightbox('${imgUrl}')">
-                    <img src="${imgUrl}" alt="Post Galeria" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+                    <img src="${imgUrl}" alt="Post Galeria" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80'"/>
                     <div class="absolute inset-0 bg-stone-900/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <span class="bg-white/90 text-stone-900 px-4 py-2 rounded-full text-xs font-bold shadow-lg">🔍 Ampliar Foto</span>
                     </div>
