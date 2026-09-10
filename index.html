@@ -301,9 +301,9 @@
 <body class="bg-red-50 text-stone-800 pb-28 selection:bg-red-200 flex min-h-screen relative overflow-x-hidden">
 
     <!-- Notificações Toast -->
-    <div id="toast" class="fixed top-5 right-5 z-[9999] bg-stone-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 border border-stone-700">
+    <div id="toast" class="fixed top-5 right-5 z-[9999] bg-stone-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 border border-stone-700 max-w-sm">
         <i id="toast-icon" data-lucide="sparkles" class="w-5 h-5 text-emerald-400 shrink-0"></i>
-        <span id="toast-msg" class="text-sm font-semibold tracking-wide"></span>
+        <span id="toast-msg" class="text-xs font-semibold tracking-wide leading-snug"></span>
     </div>
 
     <!-- Modal de Alerta: Sair sem Salvar -->
@@ -426,9 +426,12 @@
                     <span class="text-red-600 text-xs md:text-sm font-semibold tracking-widest uppercase bg-white/80 px-4 py-1.5 rounded-full backdrop-blur shadow-sm">Vamos Nos Casar!</span>
                     <h1 id="hero-names" class="font-serif text-5xl md:text-7xl text-red-900 font-bold leading-tight mt-4 mb-4 drop-shadow-sm">Júnior & Renata</h1>
                     <p class="text-stone-600 text-base md:text-lg font-light max-w-2xl mx-auto">"Grandes histórias de amor começam com detalhes simples. Venha celebrar este capítulo conosco."</p>
-                    <div class="pt-6 flex flex-wrap justify-center items-center gap-4 text-stone-700 font-medium pointer-events-auto">
+                    <div class="pt-6 flex flex-wrap justify-center items-center gap-3 text-stone-700 font-medium pointer-events-auto">
                         <span class="flex items-center gap-1.5 bg-white/90 px-4 py-2 rounded-full shadow-sm text-sm"><i data-lucide="calendar" class="w-4 h-4 text-red-500"></i> <span id="hero-date">14/11/2026</span></span>
                         <a id="hero-maps-link" href="#" target="_blank" class="flex items-center gap-1.5 bg-white/90 px-4 py-2 rounded-full shadow-sm hover:text-red-600 text-sm transition-colors"><i data-lucide="map-pin" class="w-4 h-4 text-red-500"></i> <span id="hero-location">Curitiba, PR</span></a>
+                        <button onclick="window.openCalendarModal()" class="flex items-center gap-1.5 bg-stone-900 hover:bg-stone-800 text-white px-4 py-2 rounded-full shadow-md text-sm transition-all cursor-pointer">
+                            <i data-lucide="calendar-plus" class="w-4 h-4 text-amber-400"></i> <span>Salvar na Agenda</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -516,7 +519,7 @@
                 <div class="space-y-4 text-left relative">
                     <div class="relative">
                         <label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Pesquisar Seu Nome</label>
-                        <input type="text" id="rsvp-search-input" placeholder="Digite seu nome..." autocomplete="off" class="w-full px-4 py-3 rounded-xl border border-stone-200 text-sm focus:outline-none focus:border-red-500 bg-white"/>
+                        <input type="search" id="rsvp-search-input" inputmode="search" enterkeyhint="search" placeholder="Digite seu nome..." autocomplete="off" class="w-full px-4 py-3 rounded-xl border border-stone-200 text-sm focus:outline-none focus:border-red-500 bg-white"/>
                         <div id="rsvp-suggestions" class="absolute left-0 right-0 top-full mt-1 bg-white border border-stone-200 rounded-xl shadow-xl max-h-48 overflow-y-auto z-30 hidden"></div>
                     </div>
 
@@ -726,6 +729,30 @@
         </section>
     </main>
 
+    <!-- MODAL SALVAR NA AGENDA (iOS, Android, Outlook, Google Calendar) -->
+    <div id="modal-calendar" class="fixed inset-0 z-[9999] bg-stone-900/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 border border-stone-200 text-center space-y-5">
+            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto">
+                <i data-lucide="calendar-heart" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h3 class="font-serif text-2xl font-bold text-stone-900">Salvar na Agenda</h3>
+                <p class="text-xs text-stone-500 mt-1">Escolha seu aplicativo de calendário preferido para salvar a data do casamento com localização e mapa integrados.</p>
+            </div>
+            <div class="space-y-3 pt-1">
+                <button onclick="window.addToGoogleCalendar()" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center gap-2 cursor-pointer transition-all">
+                    <i data-lucide="chrome" class="w-4 h-4"></i> Google Agenda (Android / Web)
+                </button>
+                <button onclick="window.downloadIcsFile()" class="w-full py-3.5 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center gap-2 cursor-pointer transition-all">
+                    <i data-lucide="apple" class="w-4 h-4"></i> Apple Calendar / Arquivo .ICS (iOS / Mac)
+                </button>
+            </div>
+            <button onclick="window.closeCalendarModal()" class="w-full py-2.5 border border-stone-200 rounded-xl text-xs font-bold text-stone-500 hover:bg-stone-50 cursor-pointer">
+                Cancelar
+            </button>
+        </div>
+    </div>
+
     <!-- MODAL DE SENHA DO ADMIN -->
     <div id="modal-admin-login" class="fixed inset-0 z-50 bg-stone-900/80 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 border border-stone-200 text-center space-y-4">
@@ -868,7 +895,7 @@
                     <div class="bg-stone-50 p-3 rounded-xl border border-stone-200 text-xs flex justify-between">
                         <span class="text-stone-500">Falta Arrecadar:</span><span id="pix-remaining" class="font-bold text-red-600">R$ 0,00</span>
                     </div>
-                    <div><label class="text-xs font-bold uppercase text-stone-500">Valor da Cota (R$)</label><input type="number" id="pix-amount" class="w-full mt-1 px-4 py-3 border border-stone-200 rounded-xl font-bold text-lg text-stone-900 bg-white"/></div>
+                    <div><label class="text-xs font-bold uppercase text-stone-500">Valor da Cota (R$)</label><input type="number" id="pix-amount" inputmode="decimal" pattern="[0-9]*" class="w-full mt-1 px-4 py-3 border border-stone-200 rounded-xl font-bold text-lg text-stone-900 bg-white"/></div>
                     <div><label class="text-xs font-bold uppercase text-stone-500">Seu Nome</label><input type="text" id="pix-name" class="w-full mt-1 px-4 py-3 border border-stone-200 rounded-xl text-sm bg-white"/></div>
                     <div><label class="text-xs font-bold uppercase text-stone-500">Mensagem Carinhosa</label><textarea id="pix-msg" rows="2" class="w-full mt-1 px-4 py-3 border border-stone-200 rounded-xl text-sm bg-white"></textarea></div>
                     <button data-action="generate-pix" class="w-full mt-4 py-4 bg-red-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-md hover:bg-red-700 transition-all cursor-pointer">
@@ -944,21 +971,26 @@
             };
 
         // Identificador fixo para sincronizar GitHub Pages e Preview no mesmo banco de dados
-        const appId = 'casamento-junior-renata-v1';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'casamento-junior-renata-v1';
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
         const DEFAULT_GIFTS = [
-            { title: "Cota para Lua de Mel", totalAmount: 3000, currentAmount: 0, category: "Viagem", description: "Ajuda para o nosso merecido descanso na praia!", imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80" },
-            { title: "Fogão e Forno", totalAmount: 2200, currentAmount: 0, category: "Cozinha", description: "Para jantares e memórias especiais na casa nova.", imageUrl: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=80" }
+            { id: 'g1', title: "Cota para Lua de Mel", totalAmount: 3000, currentAmount: 0, category: "Viagem", description: "Ajuda para o nosso merecido descanso na praia!", imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80" },
+            { id: 'g2', title: "Fogão e Forno", totalAmount: 2200, currentAmount: 0, category: "Cozinha", description: "Para jantares e memórias especiais na casa nova.", imageUrl: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=80" }
         ];
 
         const DEFAULT_TIMELINE = [
             { id: 't1', tag: "A Troca de Turno", title: "Onde nos conhecemos na fábrica?", options: ["Na fila da janta", "Na portaria da empresa", "No estacionamento", "No escritório"], correct: 0, text: "Nos conhecemos na empresa na troca de turno. Ele chegava com a Saveiro chamando a atenção, mas eu nem ligava! Até que na fila da janta, sem querer, sentei na mesma mesa que ele.", curiosity: "Curiosidade do dia a dia: Ele sempre trazia bombons escondidos no porta-luvas da Saveiro para me agradar após o turno.", imageUrl: "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=600&q=80" },
             { id: 't2', tag: "O Primeiro Encontro", title: "O que fomos beber antes do turno?", options: ["Café e Suco", "Budweiser & Heineken", "Água de Coco", "Refrigerante"], correct: 1, text: "Antes do turno ele me chamou para beber: me trouxe uma Bud, bebeu uma Heineken, tomamos um chopp e conversamos um monte sobre a vida.", curiosity: "Curiosidade do dia a dia: Ele esqueceu a carteira no balcão e eu tive que pagar a primeira rodada com minhas moedas da bolsa!", imageUrl: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=600&q=80" },
             { id: 't3', tag: "O Pedido de Namoro", title: "Onde aconteceu o nosso pedido de namoro?", options: ["Na serra", "Na praia", "No shopping", "Em um restaurante"], correct: 1, text: "Passados 3 meses de conversas e risadas, ele me pediu em namoro na praia. Foi um momento mágico e inesquecível à beira do mar.", curiosity: "Curiosidade do dia a dia: Ele guardou a aliança dentro de uma casquinha de siri por engano antes de entregar na areia!", imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80" }
+        ];
+
+        const DEFAULT_GALLERY = [
+            { id: 'gal1', title: "Nosso Primeiro Passeio", imageUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80" },
+            { id: 'gal2', title: "Noivado na Praia", imageUrl: "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=600&q=80" }
         ];
 
         let state = {
@@ -970,6 +1002,75 @@
                 pixKey: "12345678900", receiverName: "Júnior e Renata", cityName: "Curitiba", radioUrl: "", adminPass: "admin123",
                 homepageImg: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"
             }
+        };
+
+        // --- SISTEMA DE SALVAR NA AGENDA (iOS & Android) ---
+        window.openCalendarModal = () => {
+            document.getElementById('modal-calendar').style.display = 'flex';
+            lucide.createIcons();
+        };
+
+        window.closeCalendarModal = () => {
+            document.getElementById('modal-calendar').style.display = 'none';
+        };
+
+        function getEventCalendarDetails() {
+            const dateStr = state.settings.date || "2026-11-14T17:00";
+            const startDate = new Date(dateStr);
+            const validStart = isNaN(startDate.getTime()) ? new Date("2026-11-14T17:00") : startDate;
+            const endDate = new Date(validStart.getTime() + 6 * 60 * 60 * 1000); // Duração padrão de 6h
+
+            const formatISO = (d) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+            
+            const names = state.settings.names || "Júnior & Renata";
+            const location = state.settings.location || "Curitiba, PR";
+            const mapsUrl = state.settings.maps || "https://maps.google.com";
+
+            return {
+                title: `Casamento de ${names}`,
+                startISO: formatISO(validStart),
+                endISO: formatISO(endDate),
+                location: location,
+                details: `Celebração do casamento de ${names}.\n\nLocal: ${location}\nGoogle Maps: ${mapsUrl}`
+            };
+        }
+
+        window.addToGoogleCalendar = () => {
+            const ev = getEventCalendarDetails();
+            const gCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(ev.title)}&dates=${ev.startISO}/${ev.endISO}&details=${encodeURIComponent(ev.details)}&location=${encodeURIComponent(ev.location)}`;
+            window.open(gCalUrl, '_blank');
+            window.closeCalendarModal();
+            window.showToast("Redirecionando para a Google Agenda...");
+        };
+
+        window.downloadIcsFile = () => {
+            const ev = getEventCalendarDetails();
+            const icsData = [
+                'BEGIN:VCALENDAR',
+                'VERSION:2.0',
+                'PRODID:-//Casamento Junior e Renata//PT',
+                'CALSCALE:GREGORIAN',
+                'METHOD:PUBLISH',
+                'BEGIN:VEVENT',
+                `SUMMARY:${ev.title}`,
+                `DESCRIPTION:${ev.details.replace(/\n/g, '\\n')}`,
+                `LOCATION:${ev.location}`,
+                `DTSTART:${ev.startISO}`,
+                `DTEND:${ev.endISO}`,
+                'STATUS:CONFIRMED',
+                'END:VEVENT',
+                'END:VCALENDAR'
+            ].join('\r\n');
+
+            const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.setAttribute('download', 'casamento-junior-renata.ics');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.closeCalendarModal();
+            window.showToast("Evento baixado! Abra o arquivo para adicionar à agenda.");
         };
 
         // --- SISTEMA DE MODAL DE EXCLUSÃO ASSÍNCRONA ---
@@ -1104,7 +1205,7 @@
             t.className = `fixed top-5 right-5 z-[9999] text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 border ${isError ? 'bg-red-950 border-red-700' : 'bg-stone-900 border-emerald-600'} show`;
             document.getElementById('toast-icon').setAttribute('data-lucide', isError ? 'alert-circle' : 'check-circle-2');
             lucide.createIcons();
-            setTimeout(() => { t.className = t.className.replace('show', ''); }, 3500);
+            setTimeout(() => { t.className = t.className.replace('show', ''); }, 4000);
         };
 
         const setupDragAndDrop = (dropzoneId, inputId, fileInputId, labelId) => {
@@ -1626,7 +1727,6 @@
             updateMusicPlayerUI();
         };
 
-        // --- RENDERIZAÇÃO DA TIMELINE EM FORMATO DE QUIZ ---
         const renderTimeline = () => {
             const container = document.getElementById('quiz-container');
             if (!container) return;
@@ -1915,6 +2015,21 @@
             window.markUnsavedChanges();
         });
 
+        // Handler centralizado para erros de permissão do Firebase Firestore
+        const handleFirestoreError = (listenerName, err) => {
+            console.error(`Erro no listener de ${listenerName}:`, err);
+            
+            // Fallback para dados locais caso as regras de segurança do Firebase bloqueiem a leitura
+            if (listenerName === 'gifts' && !state.gifts.length) { state.gifts = [...DEFAULT_GIFTS]; renderGifts(); }
+            if (listenerName === 'timeline' && !state.timeline.length) { state.timeline = [...DEFAULT_TIMELINE]; renderTimeline(); }
+            if (listenerName === 'gallery' && !state.gallery.length) { state.gallery = [...DEFAULT_GALLERY]; renderGallery(); }
+
+            if (!window._firebasePermErrorToastShown && (err.code === 'permission-denied' || err.message?.includes('permissions'))) {
+                window._firebasePermErrorToastShown = true;
+                window.showToast("Firebase: Configure as Regras de Segurança (Rules) no Console do Firebase para permitir leitura/escrita.", true);
+            }
+        };
+
         const startFirebase = async () => {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -1930,39 +2045,38 @@
             onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), snap => {
                 if (snap.exists()) { state.settings = { ...state.settings, ...snap.data() }; updateSiteContent(); }
                 else setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), state.settings).catch(()=>{});
-            }, err => console.error("Erro no listener de configurações:", err));
+            }, err => handleFirestoreError('configurações', err));
 
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), snap => {
                 if (snap.empty) DEFAULT_GIFTS.forEach(g => addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), g));
                 else { state.gifts = snap.docs.map(d => ({id: d.id, ...d.data()})); renderGifts(); }
-            }, err => console.error("Erro no listener de presentes:", err));
+            }, err => handleFirestoreError('presentes', err));
 
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'timeline'), snap => {
                 if (snap.empty) DEFAULT_TIMELINE.forEach(t => addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'timeline'), t));
                 else { state.timeline = snap.docs.map(d => ({id: d.id, ...d.data()})); renderTimeline(); if(state.isAdminLoggedIn) renderAdmin(); }
-            }, err => console.error("Erro no listener da linha do tempo:", err));
+            }, err => handleFirestoreError('linha do tempo', err));
             
-            // LISTENER DEFINITIVO DA GALERIA
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'gallery'), snap => {
                 state.gallery = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 renderGallery();
                 if (state.isAdminLoggedIn) renderAdmin();
-            }, err => console.error("Erro no listener da galeria:", err));
+            }, err => handleFirestoreError('galeria', err));
 
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), snap => {
                 state.messages = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
                 renderMural(); if(state.isAdminLoggedIn) renderAdmin();
-            }, err => console.error("Erro no listener de mensagens:", err));
+            }, err => handleFirestoreError('mensagens', err));
 
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'guests'), snap => {
                 state.guests = snap.docs.map(d => ({id: d.id, ...d.data()})); if(state.isAdminLoggedIn) renderAdmin();
-            }, err => console.error("Erro no listener de convidados:", err));
+            }, err => handleFirestoreError('convidados', err));
 
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'contributions'), snap => {
                 state.contributions = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
                 renderGifts();
                 if(state.isAdminLoggedIn) renderAdmin();
-            }, err => console.error("Erro no listener de contribuições:", err));
+            }, err => handleFirestoreError('contribuições', err));
         };
 
         document.getElementById('form-add-timeline').addEventListener('submit', async (e) => {
@@ -2116,6 +2230,7 @@
         window.addEventListener('load', () => {
             renderTimeline();
             renderGallery();
+            renderGifts();
             createScene();
             lucide.createIcons();
             startFirebase();
