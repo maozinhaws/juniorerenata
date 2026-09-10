@@ -6,11 +6,11 @@
     <meta name="referrer" content="no-referrer">
     <title>Júnior & Renata - Nosso Casamento</title>
     
-    <!-- Tailwind CSS (Otimizado) -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest" defer></script>
-    <!-- Three.js (Carregamento não obstrutivo) -->
+    <!-- Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
     <!-- Instagram Embed Script -->
     <script async src="//www.instagram.com/embed.js"></script>
@@ -35,10 +35,10 @@
         }
 
         .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s ease-out; }
+        .tab-content.active { display: block; animation: fadeIn 0.25s ease-out; }
         
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(6px); }
+            from { opacity: 0; transform: translateY(4px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -76,222 +76,15 @@
             transform: translateZ(0);
         }
 
-        .cork-board::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            z-index: -1;
-            opacity: .35;
-            pointer-events: none;
-            background:
-                radial-gradient(ellipse at 15% 20%, rgba(255,220,170,.16), transparent 16%),
-                radial-gradient(ellipse at 80% 25%, rgba(40,20,10,.15), transparent 20%),
-                radial-gradient(ellipse at 35% 80%, rgba(255,230,190,.12), transparent 18%);
-            mix-blend-mode: multiply;
-        }
-
-        .cork-board::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            z-index: 20;
-            box-shadow:
-                inset 0 0 55px rgba(38,20,10,.55),
-                inset 0 0 120px rgba(38,20,10,.22);
-        }
-
-        #mural-container {
-            position: relative;
-            width: 100%;
-            min-height: 650px;
-            display: block;
-            perspective: 1400px;
-            perspective-origin: 50% 50%;
-        }
-
-        .real-postit {
-            position: absolute;
-            width: 190px;
-            min-height: 175px;
-            padding: 25px 18px 18px;
-            border-radius: 1px 2px 3px 1px;
-            transform-style: preserve-3d;
-            cursor: default;
-            background:
-                linear-gradient(135deg, rgba(255,255,255,.34), transparent 30%),
-                linear-gradient(110deg, rgba(0,0,0,.035), transparent 55%);
-            box-shadow:
-                0 2px 3px rgba(0,0,0,.18),
-                2px 6px 8px rgba(0,0,0,.18),
-                7px 13px 18px rgba(0,0,0,.18),
-                0 22px 25px rgba(48,25,10,.16);
-            border: 1px solid rgba(80,45,15,.10);
-            animation: postit-arrive .65s cubic-bezier(.2,.8,.2,1) both;
-            transition:
-                transform .35s cubic-bezier(.2,.8,.2,1),
-                box-shadow .35s ease,
-                filter .35s ease;
-            overflow: visible;
-        }
-
-        .real-postit::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: -1px;
-            height: 7px;
-            background: inherit;
-            clip-path: polygon(
-                0 0, 8% 25%, 17% 5%, 28% 30%, 40% 8%, 52% 27%,
-                65% 5%, 78% 25%, 90% 8%, 100% 20%, 100% 100%, 0 100%
-            );
-            filter: brightness(.97);
-        }
-
-        .real-postit::after {
-            content: "";
-            position: absolute;
-            right: 0;
-            bottom: 0;
-            width: 27px;
-            height: 27px;
-            background: linear-gradient(135deg, rgba(0,0,0,.08), rgba(255,255,255,.32));
-            clip-path: polygon(100% 0, 100% 100%, 0 100%);
-            opacity: .65;
-        }
-
-        .real-postit:hover {
-            z-index: 50;
-            transform: translateZ(45px) scale(1.07) rotateZ(0deg) !important;
-            box-shadow:
-                0 3px 5px rgba(0,0,0,.18),
-                5px 12px 15px rgba(0,0,0,.20),
-                12px 25px 35px rgba(30,15,5,.25);
-            filter: brightness(1.025);
-        }
-
-        .postit-header {
-            position: relative;
-            z-index: 4;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 8px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid rgba(70,40,20,.13);
-        }
-
-        .postit-author {
-            font-family: var(--font-sans);
-            font-size: 12px;
-            font-weight: 700;
-            line-height: 1.15;
-        }
-
-        .postit-relation {
-            display: block;
-            margin-top: 2px;
-            font-family: var(--font-sans);
-            font-size: 9px;
-            opacity: .65;
-        }
-
-        .postit-message {
-            position: relative;
-            z-index: 4;
-            margin-top: 11px;
-            font-family: var(--font-handwriting);
-            font-size: 22px;
-            line-height: 1.05;
-            letter-spacing: .15px;
-            word-break: break-word;
-            text-shadow: 0 .3px 0 rgba(255,255,255,.25);
-            transform: translateZ(2px);
-        }
-
-        .real-pin {
-            position: absolute;
-            left: 50%;
-            top: -13px;
-            width: 25px;
-            height: 25px;
-            transform: translateX(-50%) translateZ(45px);
-            z-index: 30;
-            pointer-events: none;
-        }
-
-        .real-pin::before {
-            content: "";
-            position: absolute;
-            left: 2px;
-            top: 1px;
-            width: 21px;
-            height: 21px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 32% 27%, #fff 0%, #fff 5%, #e8e8e8 11%, #a8a8a8 35%, #555 66%, #222 100%);
-            box-shadow:
-                0 2px 2px rgba(0,0,0,.35),
-                2px 4px 5px rgba(0,0,0,.25),
-                inset -2px -2px 3px rgba(0,0,0,.35),
-                inset 2px 2px 3px rgba(255,255,255,.75);
-            border: 1px solid rgba(0,0,0,.28);
-        }
-
-        .real-pin::after {
-            content: "";
-            position: absolute;
-            left: 11px;
-            top: 17px;
-            width: 4px;
-            height: 19px;
-            background: linear-gradient(90deg, #444, #ddd 45%, #666);
-            clip-path: polygon(20% 0, 100% 0, 58% 100%, 0 100%);
-            filter: drop-shadow(1px 2px 1px rgba(0,0,0,.35));
-            transform-origin: top;
-        }
-
-        .pin-shadow {
-            position: absolute;
-            left: 50%;
-            top: 17px;
-            width: 24px;
-            height: 10px;
-            transform: translateX(-50%) rotateX(70deg);
-            background: rgba(0,0,0,.22);
-            filter: blur(4px);
-            border-radius: 50%;
-            z-index: 2;
-        }
-
-        @keyframes postit-arrive {
-            0% {
-                opacity: 0;
-                transform: translateY(-80px) translateZ(100px) rotateZ(12deg) scale(.75);
-            }
-            45% { opacity: 1; }
-            75% { transform: translateY(7px) translateZ(15px) rotateZ(-3deg) scale(1.02); }
-            100% { transform: translateY(0) translateZ(0) rotateZ(var(--postit-rotation)); }
-        }
-
-        @media (max-width: 640px) {
-            .cork-board { min-height: 900px; padding: 10px !important; }
-            #mural-container { min-height: 850px; }
-            .real-postit { width: 155px; min-height: 155px; padding: 22px 13px 14px; }
-            .postit-message { font-size: 19px; }
-            .postit-author { font-size: 10px; }
-        }
-
         .sidebar-expanded { width: 260px; }
         .sidebar-collapsed { width: 80px; }
-        .sidebar-transition { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar-transition { transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
 
         #toast {
             opacity: 0;
             transform: translateY(-10px);
             pointer-events: none;
-            transition: opacity 0.3s ease, transform 0.3s ease;
+            transition: opacity 0.25s ease, transform 0.25s ease;
         }
         #toast.show {
             opacity: 1;
@@ -327,7 +120,7 @@
         </div>
     </div>
 
-    <!-- Widget de Música do Spotify (Alinhado ao lado do menu lateral, nunca por baixo) -->
+    <!-- Widget de Música do Spotify -->
     <div id="music-dock" class="fixed bottom-5 left-[90px] md:left-[270px] z-40 transition-all duration-300">
         <div id="spotify-popup" class="hidden mb-3 bg-stone-900/95 backdrop-blur-md p-3.5 rounded-2xl shadow-2xl border border-stone-700 w-80 sm:w-96">
             <div class="flex items-center justify-between pb-2 mb-2 border-b border-stone-800">
@@ -339,7 +132,7 @@
                 </button>
             </div>
             <div id="spotify-embed-wrapper" class="w-full rounded-xl overflow-hidden min-h-[152px] bg-stone-950 flex items-center justify-center text-xs text-stone-400 text-center p-4">
-                Nenhuma playlist ou música configurada no painel.
+                Nenhuma playlist configurada.
             </div>
         </div>
 
@@ -400,10 +193,10 @@
         </div>
     </aside>
 
-    <!-- CONTEÚDO PRINCIPAL ADAPTATIVO (100% Fluido para desktops, tablets e celulares) -->
+    <!-- CONTEÚDO PRINCIPAL ADAPTATIVO -->
     <main id="main-content" class="flex-1 pt-6 px-4 md:px-12 max-w-[1700px] mx-auto ml-[90px] md:ml-[100px] transition-all duration-300">
         
-        <!-- INÍCIO COM HERO 3D E FOTO DO CASAL -->
+        <!-- INÍCIO COM HERO 3D -->
         <section id="tab-home" class="tab-content active space-y-12 pb-10">
             <div class="text-center pt-20 pb-24 bg-gradient-to-b from-red-100/70 to-red-50 relative overflow-hidden rounded-3xl min-h-[500px] flex flex-col justify-center items-center shadow-sm">
                 <canvas id="canvas-3d-bg"></canvas>
@@ -430,12 +223,12 @@
             </div>
         </section>
 
-        <!-- HISTÓRIA, ANIMAÇÃO E JOGO TIPO TRILHA (ESTILO STORIES / CARTAS) -->
+        <!-- HISTÓRIA & JOGO -->
         <section id="tab-history" class="tab-content py-10 max-w-5xl mx-auto space-y-10">
             <div class="text-center space-y-3">
                 <span class="text-red-600 text-xs font-bold tracking-widest uppercase bg-red-100 px-3 py-1 rounded-full">Nossa Trajetória</span>
                 <h2 class="font-serif text-4xl md:text-5xl text-red-900 font-bold">Você conhece nossa história?</h2>
-                <p class="text-stone-600 text-base max-w-2xl mx-auto animate-pulse">✨ Vem com a gente descobrir curiosidades e testar seus conhecimentos em nosso desafio interativo estilo cartas e trilha!</p>
+                <p class="text-stone-600 text-base max-w-2xl mx-auto animate-pulse">✨ Vem com a gente descobrir curiosidades e testar seus conhecimentos em nosso desafio interativo estilo cartas!</p>
             </div>
 
             <!-- CARD DE BOAS-VINDAS AO JOGO & RANKING -->
@@ -455,10 +248,10 @@
                 </div>
             </div>
 
-            <!-- CONTAINER DO JOGO INTERATIVO (CARROSSEL) -->
+            <!-- CONTAINER DO JOGO -->
             <div id="quiz-game-container" class="hidden glass-card p-6 md:p-10 rounded-3xl shadow-xl border border-red-200 max-w-3xl mx-auto space-y-6"></div>
 
-            <!-- RANKING GERAL PÚBLICO -->
+            <!-- RANKING GERAL -->
             <div class="bg-white p-6 md:p-8 rounded-3xl shadow-md border border-stone-200 max-w-3xl mx-auto space-y-4">
                 <h3 class="font-serif text-2xl font-bold text-stone-900 flex items-center gap-2.5">
                     <i data-lucide="trophy" class="w-6 h-6 text-amber-500"></i> Ranking dos Convidados Mais Íntimos
@@ -478,16 +271,16 @@
             </div>
         </section>
 
-        <!-- GALERIA DE FOTOS (INSTAGRAM EMBED) -->
+        <!-- GALERIA (INSTAGRAM EMBED NATIVO) -->
         <section id="tab-gallery" class="tab-content py-10 max-w-7xl mx-auto space-y-8">
             <div class="text-center max-w-2xl mx-auto">
                 <h2 class="font-serif text-4xl md:text-5xl text-red-900 font-bold mb-3">Galeria do Instagram</h2>
-                <p class="text-stone-600">Momentos especiais postados por nós. Adicione o link de um post no painel para exibi-lo aqui instantaneamente.</p>
+                <p class="text-stone-600">Momentos especiais postados por nós. Cole o link de qualquer post ou reels do Instagram para exibi-lo aqui.</p>
             </div>
             <div id="gallery-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6"></div>
         </section>
 
-        <!-- LISTA DE COTAS PIX -->
+        <!-- COTAS PIX -->
         <section id="tab-gifts" class="tab-content space-y-8 py-10 max-w-7xl mx-auto">
             <div class="text-center max-w-2xl mx-auto">
                 <h2 class="font-serif text-4xl md:text-5xl text-red-900 font-bold">Lista de Presentes</h2>
@@ -496,7 +289,7 @@
             <div id="gifts-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
         </section>
 
-        <!-- MURAL DE POST-ITS -->
+        <!-- MURAL -->
         <section id="tab-mural" class="tab-content py-10 max-w-7xl mx-auto">
             <div class="text-center mb-10">
                 <h2 class="font-serif text-4xl md:text-5xl text-red-900 font-bold mb-3">Mural de Lembranças & Recados</h2>
@@ -531,7 +324,7 @@
                 </button>
             </form>
             <div class="cork-board rounded-3xl p-4 md:p-8 border-8 border-[#78472a]">
-                <div id="mural-container"></div>
+                <div id="mural-container" style="position:relative; width:100%; min-height:650px;"></div>
             </div>
         </section>
 
@@ -571,12 +364,12 @@
             </div>
         </section>
 
-        <!-- PAINEL DE CONTROLE (ADMIN BLINDADO POR FIREBASE AUTH) -->
+        <!-- PAINEL DE CONTROLE (ADMIN BLINDADO POR RBAC FIRESTORE) -->
         <section id="tab-admin" class="tab-content mt-6 max-w-5xl mx-auto space-y-6 pb-20">
             <div class="sticky top-4 z-40 bg-stone-900 text-white p-6 rounded-3xl flex flex-col sm:flex-row justify-between items-start sm:items-center shadow-2xl gap-4 border border-stone-700">
                 <div>
                     <h2 class="font-serif text-xl font-bold flex items-center gap-2"><i data-lucide="settings" class="w-5 h-5 text-red-500"></i> Painel do Casal</h2>
-                    <span class="text-[11px] text-emerald-400 flex items-center gap-1 mt-0.5"><i data-lucide="shield-check" class="w-3 h-3"></i> Conectado com Segurança</span>
+                    <span id="admin-session-status" class="text-[11px] text-emerald-400 flex items-center gap-1 mt-0.5"><i data-lucide="shield-check" class="w-3 h-3"></i> Autenticado com Sucesso</span>
                 </div>
                 <div class="flex flex-wrap gap-2">
                     <button onclick="window.saveAllPanelChanges()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer shadow-lg">
@@ -587,6 +380,9 @@
                     </button>
                     <button data-action="open-add-gallery" class="px-3 py-2.5 bg-stone-700 hover:bg-stone-600 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer shadow">
                         <i data-lucide="instagram" class="w-4 h-4"></i> Post Instagram
+                    </button>
+                    <button onclick="window.adminLogout()" class="px-3 py-2.5 bg-red-950 hover:bg-red-900 text-white rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer">
+                        Sair
                     </button>
                 </div>
             </div>
@@ -609,7 +405,7 @@
                 </div>
             </div>
             
-            <!-- CONFIGURAÇÕES GERAIS E WHATSAPP DOS NOIVOS -->
+            <!-- CONFIGURAÇÕES GERAIS -->
             <div class="bg-white p-6 md:p-8 rounded-3xl border border-stone-200 shadow-sm space-y-6">
                 <h3 class="font-serif text-lg font-bold text-stone-900 border-b pb-2 flex items-center gap-2">
                     <i data-lucide="sliders" class="w-5 h-5 text-red-600"></i> Configurações Gerais & WhatsApp para Notificações
@@ -636,15 +432,6 @@
                     <div class="md:col-span-2 bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200 space-y-3">
                         <label class="block text-xs font-bold text-emerald-900 uppercase flex items-center gap-1.5"><i data-lucide="music" class="w-4 h-4 text-emerald-600"></i> Link da Playlist ou Música (Spotify)</label>
                         <input type="text" id="cfg-radio" placeholder="Cole o link do Spotify" class="w-full p-2.5 border border-emerald-300 rounded-xl text-xs bg-white focus:outline-none focus:border-emerald-500"/>
-                    </div>
-
-                    <!-- Segurança de Acesso Admin -->
-                    <div class="md:col-span-2 bg-stone-900 text-white p-5 rounded-2xl space-y-3">
-                        <h4 class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5"><i data-lucide="shield-alert" class="w-4 h-4"></i> Credenciais Oficiais do Casal</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                            <div><label class="block text-stone-400 mb-1">E-mail do Administrador</label><input type="email" id="cfg-admin-email" disabled class="w-full p-2.5 rounded-xl bg-stone-800 border border-stone-700 text-stone-300"/></div>
-                            <div class="flex flex-col justify-end"><button onclick="window.sendAdminPasswordReset()" class="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold rounded-xl transition-all cursor-pointer">Enviar E-mail para Alterar Senha</button></div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -673,7 +460,7 @@
                 </div>
             </div>
 
-            <!-- GALERIA (INSTAGRAM EMBED) -->
+            <!-- GALERIA (INSTAGRAM EMBED NATIVO) -->
             <div class="bg-white p-6 md:p-8 rounded-3xl border border-stone-200 shadow-sm space-y-6">
                 <div class="flex justify-between items-center border-b pb-3">
                     <h3 class="font-serif text-lg font-bold text-stone-900 flex items-center gap-2">
@@ -683,7 +470,7 @@
                         <i data-lucide="plus" class="w-4 h-4"></i> Adicionar Post
                     </button>
                 </div>
-                <div id="admin-gallery-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-4"></div>
+                <div id="admin-gallery-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
             </div>
 
             <!-- MURAL -->
@@ -728,30 +515,36 @@
         </div>
     </div>
 
-    <!-- MODAL DE LOGIN ADMIN BLINDADO (ÚNICO USUÁRIO) -->
+    <!-- MODAL DE LOGIN ADMIN -->
     <div id="modal-admin-login" class="fixed inset-0 z-50 bg-stone-900/80 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 border border-stone-200 text-center space-y-4">
             <div class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto"><i data-lucide="lock" class="w-6 h-6"></i></div>
-            <h3 id="admin-modal-title" class="font-serif text-xl font-bold text-stone-900">Painel Exclusivo do Casal</h3>
-            <p id="admin-modal-subtitle" class="text-xs text-stone-500">Digite e-mail e senha oficiais:</p>
-            <div class="space-y-2">
-                <input type="email" id="admin-input-email" placeholder="E-mail" class="w-full px-4 py-3 border border-stone-200 rounded-xl text-center text-sm focus:outline-none focus:border-red-500 bg-white"/>
-                <input type="password" id="admin-input-pass" placeholder="Senha" class="w-full px-4 py-3 border border-stone-200 rounded-xl text-center text-sm focus:outline-none focus:border-red-500 font-mono bg-white"/>
-            </div>
-            <div class="flex gap-2">
-                <button data-action="close-admin" class="w-1/2 py-2.5 border rounded-xl text-xs font-bold text-stone-500 hover:bg-stone-50 cursor-pointer">Cancelar</button>
-                <button data-action="submit-admin" class="w-1/2 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold cursor-pointer">Acessar</button>
-            </div>
+            <h3 class="font-serif text-xl font-bold text-stone-900">Painel Exclusivo do Casal</h3>
+            <p class="text-xs text-stone-500">Acesso restrito via autenticação segura do Firebase:</p>
+            <form id="form-admin-auth" onsubmit="window.submitAdminLogin(event)" class="space-y-3 text-left">
+                <div>
+                    <label class="block text-[10px] font-bold uppercase text-stone-500 mb-1">E-mail</label>
+                    <input required type="email" id="admin-input-email" placeholder="seu.email@exemplo.com" class="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm focus:outline-none focus:border-red-500 bg-white"/>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold uppercase text-stone-500 mb-1">Senha</label>
+                    <input required type="password" id="admin-input-pass" placeholder="••••••••" class="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm focus:outline-none focus:border-red-500 font-mono bg-white"/>
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" data-action="close-admin" class="w-1/2 py-2.5 border rounded-xl text-xs font-bold text-stone-500 hover:bg-stone-50 cursor-pointer">Cancelar</button>
+                    <button type="submit" class="w-1/2 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold cursor-pointer shadow">Entrar</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- MODAL ADICIONAR PERGUNTA DO QUIZ / TIMELINE -->
+    <!-- MODAL ADICIONAR PERGUNTA DO QUIZ -->
     <div id="modal-add-timeline" class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-3xl p-6 border border-stone-200 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center border-b pb-3"><h3 id="modal-timeline-title" class="font-serif text-xl font-bold text-stone-900">Adicionar Pergunta do Quiz</h3><button data-action="close-add-timeline" class="text-stone-400 hover:text-stone-700 cursor-pointer"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+            <div class="flex justify-between items-center border-b pb-3"><h3 id="modal-timeline-title" class="font-serif text-xl font-bold text-stone-900">Adicionar Pergunta</h3><button data-action="close-add-timeline" class="text-stone-400 hover:text-stone-700 cursor-pointer"><i data-lucide="x" class="w-5 h-5"></i></button></div>
             <form id="form-add-timeline" class="space-y-3 text-sm">
                 <input type="hidden" id="edit-timeline-id"/>
-                <div><label class="block text-xs font-bold text-stone-600 uppercase mb-1">Tema / Tag (Ex: O Primeiro Encontro)</label><input required type="text" id="tl-tag" class="w-full px-4 py-2.5 border rounded-xl bg-white"/></div>
+                <div><label class="block text-xs font-bold text-stone-600 uppercase mb-1">Tema / Tag</label><input required type="text" id="tl-tag" class="w-full px-4 py-2.5 border rounded-xl bg-white"/></div>
                 <div><label class="block text-xs font-bold text-stone-600 uppercase mb-1">Pergunta</label><input required type="text" id="tl-title" class="w-full px-4 py-2.5 border rounded-xl bg-white"/></div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <div><label class="block text-[10px] font-bold text-stone-500 uppercase mb-1">Alternativa A</label><input required type="text" id="tl-opt-0" class="w-full px-3 py-2 border rounded-xl bg-white text-xs"/></div>
@@ -760,7 +553,7 @@
                     <div><label class="block text-[10px] font-bold text-stone-500 uppercase mb-1">Alternativa D</label><input required type="text" id="tl-opt-3" class="w-full px-3 py-2 border rounded-xl bg-white text-xs"/></div>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Qual a Alternativa Correta?</label>
+                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Alternativa Correta</label>
                     <select id="tl-correct" class="w-full px-4 py-2 border rounded-xl bg-white text-xs">
                         <option value="0">Alternativa A</option><option value="1">Alternativa B</option><option value="2">Alternativa C</option><option value="3">Alternativa D</option>
                     </select>
@@ -771,16 +564,15 @@
         </div>
     </div>
 
-    <!-- MODAL ADICIONAR POST DO INSTAGRAM -->
+    <!-- MODAL ADICIONAR POST DO INSTAGRAM (APENAS LINK) -->
     <div id="modal-add-gallery" class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-3xl p-6 border border-stone-200 shadow-2xl space-y-4">
             <div class="flex justify-between items-center border-b pb-3"><h3 class="font-serif text-xl font-bold text-stone-900">Adicionar Post do Instagram</h3><button data-action="close-add-gallery" class="text-stone-400 hover:text-stone-700 cursor-pointer"><i data-lucide="x" class="w-5 h-5"></i></button></div>
             <form id="form-add-gallery" class="space-y-3 text-sm">
-                <input type="text" id="gal-title" placeholder="Legenda ou Descrição" class="w-full px-4 py-2.5 border rounded-xl bg-white"/>
                 <div>
-                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Link do Post do Instagram</label>
+                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Link do Post ou Reels do Instagram</label>
                     <input required type="url" id="gal-instagram" placeholder="https://www.instagram.com/p/..." class="w-full px-4 py-2.5 border rounded-xl bg-white text-xs"/>
-                    <p class="text-[11px] text-stone-400 mt-1">Copie o link público de qualquer postagem ou reels do Instagram do casal.</p>
+                    <p class="text-[11px] text-stone-400 mt-1">O embed nativo puxará automaticamente a foto, vídeo e legenda oficiais do Instagram.</p>
                 </div>
                 <div class="flex gap-2 pt-2 border-t"><button type="button" data-action="close-add-gallery" class="w-1/3 py-2.5 border rounded-xl font-bold text-stone-500 cursor-pointer">Cancelar</button><button type="submit" class="w-2/3 py-2.5 bg-red-600 text-white rounded-xl font-bold cursor-pointer">Adicionar Post</button></div>
             </form>
@@ -853,8 +645,8 @@
     <!-- LÓGICA E FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = typeof __firebase_config !== 'undefined'
             ? (typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config)
@@ -886,7 +678,7 @@
         ];
 
         const DEFAULT_GALLERY = [
-            { id: 'gal1', title: "Nosso Primeiro Passeio", instagramUrl: "https://www.instagram.com/p/DF..." }
+            { id: 'gal1', instagramUrl: "https://www.instagram.com/p/DF..." }
         ];
 
         const DEFAULT_GUESTS = [
@@ -906,14 +698,12 @@
             }
         };
 
-        // --- DISPARO WHATSAPP API ---
         function sendWhatsAppAlert(text) {
             const phone = state.settings.whatsappNumber?.trim() || "5541999999999";
             const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
             window.open(url, '_blank');
         }
 
-        // --- AGENDA ---
         window.openCalendarModal = () => { document.getElementById('modal-calendar').style.display = 'flex'; lucide.createIcons(); };
         window.closeCalendarModal = () => { document.getElementById('modal-calendar').style.display = 'none'; };
 
@@ -962,7 +752,6 @@
             window.showToast("Evento baixado com sucesso!");
         };
 
-        // --- EXCLUSÃO ASSÍNCRONA ---
         window.openDeleteModal = (msg, act) => {
             state.pendingDelete = act;
             document.getElementById('delete-confirm-message').innerText = msg;
@@ -1004,7 +793,6 @@
             });
         };
 
-        // --- MENU LATERAL & SPOTIFY DOCK ---
         window.toggleSidebar = () => {
             state.isSidebarCollapsed = !state.isSidebarCollapsed;
             const sidebar = document.getElementById('app-sidebar');
@@ -1040,24 +828,19 @@
             setTimeout(() => { t.className = t.className.replace('show', ''); }, 4000);
         };
 
-        const setupDragAndDrop = (dzId, inId, fileId, lblId) => {
-            const dz = document.getElementById(dzId), fi = document.getElementById(fileId), hi = document.getElementById(inId), lb = document.getElementById(lblId);
+        const setupDragAndDrop = (dzId, inId, fileId) => {
+            const dz = document.getElementById(dzId), fi = document.getElementById(fileId), hi = document.getElementById(inId);
             if (!dz) return;
             dz.addEventListener('click', () => fi.click());
             fi.addEventListener('change', (e) => {
                 if (e.target.files.length) {
                     const reader = new FileReader();
-                    reader.onload = ev => {
-                        hi.value = ev.target.result;
-                        if (lb) lb.innerText = `✅ Foto anexada`;
-                        window.showToast("Foto carregada!");
-                    };
+                    reader.onload = ev => { hi.value = ev.target.result; window.showToast("Foto carregada!"); };
                     reader.readAsDataURL(e.target.files[0]);
                 }
             });
         };
 
-        // --- 3D HERO ---
         let threeScene = null, threeCamera = null, threeRenderer = null, heartMeshGroup = [];
         const createScene = () => {
             const canvas = document.getElementById('canvas-3d-bg');
@@ -1094,7 +877,6 @@
 
         const escapeHTML = v => (v == null ? '' : String(v).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])));
 
-        // --- EVENTOS GLOBAIS ---
         document.addEventListener('click', (e) => {
             const btn = e.target.closest('[data-tab], [data-action]');
             if (!btn) return;
@@ -1104,7 +886,6 @@
                 if (act === 'toggle-music') window.toggleMusicWidget();
                 if (act === 'open-admin') window.openAdminModal();
                 if (act === 'close-admin') window.closeAdminModal();
-                if (act === 'submit-admin') window.submitAdminLogin();
                 if (act === 'close-pix') window.closePixModal();
                 if (act === 'generate-pix') window.generatePix();
                 if (act === 'copy-pix') window.copyPix();
@@ -1134,50 +915,51 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
-        // --- PAINEL ADMIN (FIREBASE AUTH BLINDADO PARA ÚNICO USUÁRIO) ---
+        // --- AUTENTICAÇÃO SEGURA VIA FIRESTORE RBAC (100% LIMPO SEM DADOS SENSÍVEIS NO CÓDIGO) ---
         window.openAdminModal = () => {
             if (auth.currentUser && state.isAdminLoggedIn) { window.switchTab('admin'); renderAdmin(); return; }
             document.getElementById('modal-admin-login').style.display = 'flex';
         };
         window.closeAdminModal = () => document.getElementById('modal-admin-login').style.display = 'none';
 
-        window.submitAdminLogin = async () => {
+        window.submitAdminLogin = async (e) => {
+            e.preventDefault();
             const email = document.getElementById('admin-input-email').value.trim();
             const pass = document.getElementById('admin-input-pass').value.trim();
             if (!email || !pass) return window.showToast("Preencha e-mail e senha!", true);
+
             try {
                 window.showToast("Autenticando...");
-                await signInWithEmailAndPassword(auth, email, pass);
+                const cred = await signInWithEmailAndPassword(auth, email, pass);
+                const uid = cred.user.uid;
+
+                // Validação estrita via RBAC (Consulta na coleção admins do Firestore)
+                const adminDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'admins', uid);
+                const adminSnap = await getDoc(adminDocRef);
+
+                if (!adminSnap.exists() || !adminSnap.data().active) {
+                    await signOut(auth);
+                    return window.showToast("Acesso Negado: Esta conta não possui privilégios de administrador cadastrados.", true);
+                }
+
                 state.isAdminLoggedIn = true;
                 window.closeAdminModal();
                 window.switchTab('admin');
                 renderAdmin();
-                window.showToast("Painel desbloqueado!");
+                window.showToast("Painel desbloqueado com sucesso!");
             } catch (err) {
-                if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found') {
-                    try {
-                        await createUserWithEmailAndPassword(auth, email, pass);
-                        state.isAdminLoggedIn = true;
-                        window.closeAdminModal();
-                        window.switchTab('admin');
-                        renderAdmin();
-                        window.showToast("Conta Mestre do Casal criada com sucesso!");
-                    } catch(e) { window.showToast("Erro ao criar conta: " + e.message, true); }
-                } else {
-                    window.showToast("Credenciais incorretas ou acesso negado.", true);
-                }
+                window.showToast("Credenciais incorretas ou acesso restrito.", true);
             }
         };
 
-        window.sendAdminPasswordReset = async () => {
-            if (!auth.currentUser) return window.showToast("Faça login primeiro.", true);
-            try {
-                await sendPasswordResetEmail(auth, auth.currentUser.email);
-                window.showToast("Link de alteração enviado para o e-mail do casal!");
-            } catch(e) { window.showToast("Erro ao enviar e-mail.", true); }
+        window.adminLogout = async () => {
+            await signOut(auth);
+            state.isAdminLoggedIn = false;
+            window.switchTab('home');
+            window.showToast("Sessão encerrada com segurança.");
         };
 
-        // --- QUIZ & JOGO (TRILHA/CARROSSEL COM BLOQUEIO DE 1 ÚNICA TENTATIVA) ---
+        // --- QUIZ & JOGO ---
         window.startCoupleQuiz = () => {
             const nameInput = document.getElementById('quiz-guest-name').value.trim().toLowerCase();
             if (!nameInput) return window.showToast("Digite seu nome para iniciar!", true);
@@ -1302,7 +1084,7 @@
             `).join('');
         };
 
-        // --- GALERIA INSTAGRAM EMBED ---
+        // --- GALERIA INSTAGRAM EMBED (APENAS LINK) ---
         const renderGallery = () => {
             const grid = document.getElementById('gallery-grid');
             if (!grid) return;
@@ -1357,7 +1139,7 @@
             if (!container) return;
             const visibleMsgs = state.messages.filter(m => !m.hidden);
             if (!visibleMsgs.length) {
-                container.innerHTML = `<div class="absolute inset-0 flex flex-col items-center justify-center text-center text-white/75 pointer-events-none py-20"><div class="text-6xl mb-4 opacity-75">📌</div><p class="font-serif text-2xl">O mural ainda está vazio</p></div>`;
+                container.innerHTML = `<div class="absolute inset-0 flex flex-col items-center justify-center text-center text-stone-300 pointer-events-none py-20"><div class="text-6xl mb-4 opacity-75">📌</div><p class="font-serif text-2xl">O mural ainda está vazio</p></div>`;
                 return;
             }
             const isMobile = window.innerWidth <= 640;
@@ -1369,10 +1151,10 @@
                 const rot = [-5, -3, 1.5, 3, -4, 4][i % 6];
                 const bg = { yellow: '#fff59d', pink: '#ffd0dc', green: '#d2f5c8', blue: '#cceeff' }[m.color || 'yellow'];
                 return `
-                    <article class="real-postit" style="left: ${x}px; top: ${y}px; --postit-rotation: ${rot}deg; background: ${bg};">
-                        <div class="pin-shadow"></div><div class="real-pin"></div>
-                        <div class="postit-header"><div><div class="postit-author">${escapeHTML(m.author)}</div><span class="postit-relation">${escapeHTML(m.relation)}</span></div></div>
-                        <p class="postit-message">${escapeHTML(m.text)}</p>
+                    <article class="real-postit" style="position: absolute; left: ${x}px; top: ${y}px; width: 190px; min-height: 175px; padding: 25px 18px 18px; transform: rotate(${rot}deg); background: ${bg}; box-shadow: 0 10px 15px rgba(0,0,0,0.15);">
+                        <div style="font-family: var(--font-sans); font-size: 12px; font-weight: 700;">${escapeHTML(m.author)}</div>
+                        <span style="font-family: var(--font-sans); font-size: 9px; opacity: .65; display:block; margin-bottom:10px;">${escapeHTML(m.relation)}</span>
+                        <p style="font-family: var(--font-handwriting); font-size: 20px; line-height: 1.1;">${escapeHTML(m.text)}</p>
                     </article>`;
             }).join('');
         };
@@ -1426,7 +1208,6 @@
             } catch(e) { window.showToast("Erro ao atualizar status.", true); }
         };
 
-        // --- PAINEL ADMIN RENDER ---
         const renderAdmin = () => {
             let totalGenerated = 0, totalConfirmed = 0;
             state.guests.forEach(g => {
@@ -1449,10 +1230,9 @@
             `).join('');
 
             document.getElementById('admin-gallery-grid').innerHTML = state.gallery.map(g => `
-                <div class="relative rounded-xl overflow-hidden border border-stone-200 group bg-stone-50 p-2 flex flex-col justify-between">
-                    <span class="text-[10px] text-stone-500 truncate font-bold">${escapeHTML(g.title || 'Post Instagram')}</span>
-                    <a href="${escapeHTML(g.instagramUrl)}" target="_blank" class="text-[11px] text-pink-600 underline truncate">Ver link</a>
-                    <button onclick="window.deleteGalleryPhoto('${g.id}')" class="mt-2 bg-red-600 text-white py-1 rounded text-xs cursor-pointer">Excluir</button>
+                <div class="bg-white rounded-2xl border border-stone-200 p-3 flex flex-col justify-between shadow-xs">
+                    <a href="${escapeHTML(g.instagramUrl)}" target="_blank" class="text-xs text-pink-600 underline truncate block font-medium mb-2">${escapeHTML(g.instagramUrl)}</a>
+                    <button onclick="window.deleteGalleryPhoto('${g.id}')" class="w-full py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors">Excluir Post</button>
                 </div>
             `).join('');
 
@@ -1560,7 +1340,6 @@
             document.getElementById('cfg-radio').value = state.settings.radioUrl || '';
             document.getElementById('cfg-whatsapp').value = state.settings.whatsappNumber || '';
             document.getElementById('cfg-city').value = state.settings.cityName || 'Curitiba';
-            if (auth.currentUser) document.getElementById('cfg-admin-email').value = auth.currentUser.email || '';
             updateMusicPlayerUI();
         };
 
@@ -1569,7 +1348,6 @@
             popup.classList.toggle('hidden');
         };
 
-        // --- MODAIS ADICIONAR ---
         window.openAddGuestModal = (id = null) => {
             document.getElementById('edit-guest-id').value = '';
             document.getElementById('guest-main-name').value = '';
@@ -1619,7 +1397,6 @@
         window.closeAddTimelineModal = () => document.getElementById('modal-add-timeline').style.display = 'none';
 
         window.openAddGalleryModal = () => {
-            document.getElementById('gal-title').value = '';
             document.getElementById('gal-instagram').value = '';
             document.getElementById('modal-add-gallery').style.display = 'flex';
         };
@@ -1640,7 +1417,6 @@
             container.appendChild(row);
         };
 
-        // --- FORMULÁRIOS SUBMIT ---
         document.getElementById('form-add-timeline').addEventListener('submit', async (e) => {
             e.preventDefault();
             const editId = document.getElementById('edit-timeline-id').value;
@@ -1659,10 +1435,7 @@
 
         document.getElementById('form-add-gallery').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const obj = { 
-                title: document.getElementById('gal-title').value.trim(), 
-                instagramUrl: document.getElementById('gal-instagram').value.trim() 
-            };
+            const obj = { instagramUrl: document.getElementById('gal-instagram').value.trim() };
             window.closeAddGalleryModal(); e.target.reset();
             await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gallery'), obj);
             window.showToast("Post adicionado com sucesso!");
@@ -1771,11 +1544,20 @@
             } catch(e){ window.showToast("Erro ao processar.", true); }
         };
 
-        // --- FIREBASE SYNC COM CARREGAMENTO RESILIENTE ---
         const startFirebase = async () => {
-            try {
-                await signInAnonymously(auth);
-            } catch (e) { console.error(e); }
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    const adminDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'admins', user.uid);
+                    const adminSnap = await getDoc(adminDocRef);
+                    if (adminSnap.exists() && adminSnap.data().active) {
+                        state.isAdminLoggedIn = true;
+                    } else {
+                        state.isAdminLoggedIn = false;
+                    }
+                } else {
+                    state.isAdminLoggedIn = false;
+                }
+            });
 
             onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), snap => {
                 if (snap.exists()) { state.settings = { ...state.settings, ...snap.data() }; updateSiteContent(); }
@@ -1834,7 +1616,7 @@
             createScene();
             lucide.createIcons();
             startFirebase();
-            setupDragAndDrop('dropzone-homepage', 'cfg-homepage-img', 'file-homepage', null);
+            setupDragAndDrop('dropzone-homepage', 'cfg-homepage-img', 'file-homepage');
         });
     </script>
 </body>
