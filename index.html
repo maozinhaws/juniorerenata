@@ -997,13 +997,19 @@
             { id: 'gal2', title: "Noivado na Praia", imageUrl: "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=600&q=80" }
         ];
 
+        // Dados iniciais padrão de convidados para garantir que a lista nunca comece completamente vazia se o Firestore demorar ou falhar
+        const DEFAULT_GUESTS = [
+            { id: 'g_demo_1', mainName: "Maria Clara", companions: [{ name: "João Pedro", age: "28", relation: "Amigo(a)" }], status: "confirmed" },
+            { id: 'g_demo_2', mainName: "Carlos Silva", companions: [], status: "confirmed" }
+        ];
+
         let state = {
             gifts: [], messages: [], guests: [], timeline: [], gallery: [], contributions: [],
             selectedGift: null, selectedRsvpGuest: null, isMp3Playing: false, isSidebarCollapsed: true, hasUnsavedChanges: false, pendingNavigationTab: null, isAdminLoggedIn: false,
             pendingDelete: null,
             settings: { 
                 names: "Júnior & Renata", date: "2026-11-14T17:00", location: "Espaço das Flores - Curitiba, PR", maps: "https://maps.google.com", 
-                pixKey: "12345678900", receiverName: "Júnior e Renata", cityName: "Curitiba", radioUrl: "",
+                pixKey: "12345678900", receiverName: "Júnior e Renata", cityName: "Curitiba", radioUrl: "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M",
                 homepageImg: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"
             }
         };
@@ -1470,7 +1476,6 @@
                 await signInWithEmailAndPassword(auth, email, pass);
                 successLogin();
             } catch (error) {
-                // Autocriação: se a conta não for encontrada (ou inválida e for o primeiro acesso), cria uma.
                 if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
                     try {
                         await createUserWithEmailAndPassword(auth, email, pass);
@@ -1625,12 +1630,7 @@
             const confirmedGuests = guests.filter(g => g.status !== 'declined');
 
             if (!confirmedGuests.length) {
-                window.showToast(
-                    guests.length
-                        ? "Não há convidados confirmados para gerar o PDF."
-                        : "A lista de convidados ainda está carregando. Tente novamente em alguns segundos.",
-                    true
-                );
+                window.showToast("Não há convidados confirmados para gerar o PDF.", true);
                 return;
             }
 
@@ -1691,9 +1691,7 @@
 
             const printWhenReady = () => {
                 win.focus();
-                setTimeout(() => {
-                    win.print();
-                }, 250);
+                setTimeout(() => { win.print(); }, 250);
             };
 
             if (win.document.readyState === 'complete') printWhenReady();
@@ -2068,11 +2066,10 @@
             window.markUnsavedChanges();
         });
 
-        // Handler centralizado para erros de permissão do Firebase Firestore
         const handleFirestoreError = (listenerName, err) => {
             console.error(`Erro no listener de ${listenerName}:`, err);
             
-            // Fallback para dados locais caso as regras de segurança do Firebase bloqueiem a leitura
+            if (listenerName === 'guests' && !state.guests.length) { state.guests = [...DEFAULT_GUESTS]; renderAdmin(); }
             if (listenerName === 'gifts' && !state.gifts.length) { state.gifts = [...DEFAULT_GIFTS]; renderGifts(); }
             if (listenerName === 'timeline' && !state.timeline.length) { state.timeline = [...DEFAULT_TIMELINE]; renderTimeline(); }
             if (listenerName === 'gallery' && !state.gallery.length) { state.gallery = [...DEFAULT_GALLERY]; renderGallery(); }
@@ -2096,34 +2093,57 @@
             }
 
             onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), snap => {
-                if (snap.exists()) { state.settings = { ...state.settings, ...snap.data() }; updateSiteContent(); }
-                else setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), state.settings).catch(()=>{});
+                if (snap.exists()) { 
+                    state.settings = { ...state.settings, ...snap.data() }; 
+                    updateSiteContent(); 
+                } else {
+                    setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), state.settings).catch(()=>{});
+                }
             }, err => handleFirestoreError('configurações', err));
 
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), snap => {
-                if (snap.empty) DEFAULT_GIFTS.forEach(g => addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), g));
-                else { state.gifts = snap.docs.map(d => ({id: d.id, ...d.data()})); renderGifts(); }
+                if (snap.empty) {
+                    DEFAULT_GIFTS.forEach(g => addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), g));
+                } else { 
+                    state.gifts = snap.docs.map(d => ({id: d.id, ...d.data()})); 
+                    renderGifts(); 
+                }
             }, err => handleFirestoreError('presentes', err));
 
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'timeline'), snap => {
-                if (snap.empty) DEFAULT_TIMELINE.forEach(t => addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'timeline'), t));
-                else { state.timeline = snap.docs.map(d => ({id: d.id, ...d.data()})); renderTimeline(); if(state.isAdminLoggedIn) renderAdmin(); }
+                if (snap.empty) {
+                    DEFAULT_TIMELINE.forEach(t => addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'timeline'), t));
+                } else { 
+                    state.timeline = snap.docs.map(d => ({id: d.id, ...d.data()})); 
+                    renderTimeline(); 
+                    if(state.isAdminLoggedIn) renderAdmin(); 
+                }
             }, err => handleFirestoreError('linha do tempo', err));
             
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'gallery'), snap => {
-                state.gallery = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                renderGallery();
-                if (state.isAdminLoggedIn) renderAdmin();
+                if (snap.empty) {
+                    DEFAULT_GALLERY.forEach(g => addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gallery'), g));
+                } else {
+                    state.gallery = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    renderGallery();
+                    if (state.isAdminLoggedIn) renderAdmin();
+                }
             }, err => handleFirestoreError('galeria', err));
 
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), snap => {
                 state.messages = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-                renderMural(); if(state.isAdminLoggedIn) renderAdmin();
+                renderMural(); 
+                if(state.isAdminLoggedIn) renderAdmin();
             }, err => handleFirestoreError('mensagens', err));
 
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'guests'), snap => {
-                state.guests = snap.docs.map(d => ({id: d.id, ...d.data()})); if(state.isAdminLoggedIn) renderAdmin();
-            }, err => handleFirestoreError('convidados', err));
+                if (snap.empty) {
+                    DEFAULT_GUESTS.forEach(g => addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'guests'), g));
+                } else {
+                    state.guests = snap.docs.map(d => ({id: d.id, ...d.data()})); 
+                    if(state.isAdminLoggedIn) renderAdmin();
+                }
+            }, err => handleFirestoreError('guests', err));
 
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'contributions'), snap => {
                 state.contributions = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
