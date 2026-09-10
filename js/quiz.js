@@ -7,7 +7,7 @@ export function initQuiz() {
     if (quizInput && !document.getElementById('quiz-suggestions')) {
         const sug = document.createElement('div');
         sug.id = 'quiz-suggestions';
-        sug.className = 'absolute left-0 right-0 top-full mt-1 bg-white border border-stone-200 rounded-xl shadow-xl max-h-48 overflow-y-auto z-30 hidden';
+        sug.className = 'absolute left-0 right-0 bottom-full mb-1 bg-white border border-stone-200 rounded-xl shadow-2xl max-h-48 overflow-y-auto z-50 hidden';
         quizInput.parentElement.style.position = 'relative';
         quizInput.parentElement.appendChild(sug);
     }
@@ -23,7 +23,7 @@ export function initQuiz() {
             }
             const matches = state.guests.filter(g => g.mainName && g.mainName.toLowerCase().includes(query));
             if (!matches.length) {
-                sugBox.innerHTML = `<div class="p-3 text-xs text-stone-400">Convidado não encontrado na lista.</div>`;
+                sugBox.innerHTML = `<div class="p-3 text-xs text-stone-400">Convidado não encontrado na lista oficial.</div>`;
                 sugBox.classList.remove('hidden');
                 return;
             }
@@ -48,10 +48,10 @@ export function initQuiz() {
 
     window.startCoupleQuiz = () => {
         const nameInput = document.getElementById('quiz-guest-name').value.trim().toLowerCase();
-        if (!nameInput) return window.showToast("Digite seu nome para iniciar!", true);
+        if (!nameInput || nameInput.length < 2) return window.showToast("Digite seu nome completo para iniciar!", true);
 
-        const found = state.guests.find(g => g.mainName && g.mainName.toLowerCase().includes(nameInput));
-        if (!found) return window.showToast("Nome não encontrado na lista oficial de convidados!", true);
+        const found = state.guests.find(g => g.mainName && g.mainName.toLowerCase() === nameInput);
+        if (!found) return window.showToast("Nome exato não encontrado na lista oficial de convidados! Selecione na lista suspensa.", true);
 
         state.activeQuizGuest = found;
         const alreadyPlayedKey = `wedding_quiz_played_${found.id}`;
@@ -121,7 +121,7 @@ const finishQuiz = async () => {
             score: score,
             timestamp: new Date().toISOString()
         });
-        sendWhatsAppAlert(`🎮 Novo placar no Quiz!\nConvidado: ${state.activeQuizGuest.mainName}\nPontuação: ${score} pontos.`);
+        sendWhatsAppAlert(`🎮 Placar Quiz: ${state.activeQuizGuest.mainName} fez ${score} pontos.`);
     } catch(e) { console.error(e); }
 
     const container = document.getElementById('quiz-game-container');
