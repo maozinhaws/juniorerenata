@@ -12,6 +12,7 @@ export function renderGallery() {
 
     grid.innerHTML = state.gallery.map(g => {
         const url = escapeHTML(g.instagramUrl || '#');
+        // Extrai ou usa imagem padrão bonita se for link do instagram
         const imgUrl = escapeHTML(g.imageUrl || g.instagramUrl || 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80');
         const caption = escapeHTML(g.caption || 'Momento especial do casal 💍');
 
