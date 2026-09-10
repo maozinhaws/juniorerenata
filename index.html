@@ -596,7 +596,8 @@
                     <div><label class="block text-xs font-bold text-stone-500 uppercase">Chave Pix</label><input type="text" id="cfg-pix" class="w-full mt-1 p-2.5 border rounded-xl bg-white"/></div>
                     <div><label class="block text-xs font-bold text-stone-500 uppercase">Titular da Conta Pix</label><input type="text" id="cfg-receiver" class="w-full mt-1 p-2.5 border rounded-xl bg-white"/></div>
                     <div><label class="block text-xs font-bold text-stone-500 uppercase">Cidade Pix</label><input type="text" id="cfg-city" class="w-full mt-1 p-2.5 border rounded-xl bg-white"/></div>
-                    <div><label class="block text-xs font-bold text-stone-500 uppercase">Nova Senha do Painel</label><input type="password" id="cfg-pass" placeholder="Manter atual" class="w-full mt-1 p-2.5 border rounded-xl bg-white"/></div>
+                    <div><label class="block text-xs font-bold text-stone-500 uppercase">E-mail de Acesso (Admin)</label><input type="email" id="cfg-admin-email" placeholder="admin@casamento.com" class="w-full mt-1 p-2.5 border rounded-xl bg-white"/></div>
+                    <div><label class="block text-xs font-bold text-stone-500 uppercase">Nova Senha (deixe em branco)</label><input type="password" id="cfg-pass" placeholder="Manter atual" class="w-full mt-1 p-2.5 border rounded-xl bg-white"/></div>
                     
                     <div class="md:col-span-2 bg-stone-50 p-4 rounded-2xl border border-stone-200 space-y-2">
                         <label class="block text-xs font-bold text-stone-700 uppercase flex items-center gap-1.5"><i data-lucide="image" class="w-4 h-4 text-red-600"></i> Foto de Perfil da Homepage (Casal)</label>
@@ -758,8 +759,11 @@
         <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 border border-stone-200 text-center space-y-4">
             <div class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto"><i data-lucide="lock" class="w-6 h-6"></i></div>
             <h3 class="font-serif text-xl font-bold text-stone-900">Acesso Restrito</h3>
-            <p class="text-xs text-stone-500">Digite a senha de administrador:</p>
-            <input type="password" id="admin-input-pass" placeholder="Senha do Painel" class="w-full px-4 py-3 border border-stone-200 rounded-xl text-center text-sm focus:outline-none focus:border-red-500 font-mono bg-white"/>
+            <p class="text-xs text-stone-500">Digite seu e-mail e senha de administrador:</p>
+            <div class="space-y-2">
+                <input type="email" id="admin-input-email" placeholder="E-mail" class="w-full px-4 py-3 border border-stone-200 rounded-xl text-center text-sm focus:outline-none focus:border-red-500 font-sans bg-white"/>
+                <input type="password" id="admin-input-pass" placeholder="Senha" class="w-full px-4 py-3 border border-stone-200 rounded-xl text-center text-sm focus:outline-none focus:border-red-500 font-mono bg-white"/>
+            </div>
             <div class="flex gap-2">
                 <button data-action="close-admin" class="w-1/2 py-2.5 border rounded-xl text-xs font-bold text-stone-500 hover:bg-stone-50 cursor-pointer">Cancelar</button>
                 <button data-action="submit-admin" class="w-1/2 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold cursor-pointer">Acessar</button>
@@ -955,7 +959,7 @@
     <!-- LÓGICA E FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, signInWithEmailAndPassword, createUserWithEmailAndPassword, updatePassword, updateEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = typeof __firebase_config !== 'undefined'
@@ -999,7 +1003,7 @@
             pendingDelete: null,
             settings: { 
                 names: "Júnior & Renata", date: "2026-11-14T17:00", location: "Espaço das Flores - Curitiba, PR", maps: "https://maps.google.com", 
-                pixKey: "12345678900", receiverName: "Júnior e Renata", cityName: "Curitiba", radioUrl: "", adminPass: "admin123",
+                pixKey: "12345678900", receiverName: "Júnior e Renata", cityName: "Curitiba", radioUrl: "",
                 homepageImg: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"
             }
         };
@@ -1442,19 +1446,43 @@
             }
             document.getElementById('admin-input-pass').value = '';
             document.getElementById('modal-admin-login').style.display = 'flex';
-            setTimeout(() => document.getElementById('admin-input-pass').focus(), 100);
+            setTimeout(() => document.getElementById('admin-input-email').focus(), 100);
         };
         window.closeAdminModal = () => document.getElementById('modal-admin-login').style.display = 'none';
 
-        window.submitAdminLogin = () => {
-            if (document.getElementById('admin-input-pass').value.trim() === (state.settings.adminPass || 'admin123')) {
+        window.submitAdminLogin = async () => {
+            const email = document.getElementById('admin-input-email').value.trim();
+            const pass = document.getElementById('admin-input-pass').value.trim();
+
+            if (!email || !pass) return window.showToast("Preencha e-mail e senha!", true);
+
+            const successLogin = () => {
                 window.closeAdminModal();
                 state.isAdminLoggedIn = true;
                 window.switchTab('admin');
                 renderAdmin();
+                document.getElementById('cfg-admin-email').value = auth.currentUser?.email || email;
                 window.showToast("Painel desbloqueado!");
-            } else {
-                window.showToast("Senha incorreta!", true);
+            };
+
+            try {
+                window.showToast("Autenticando...");
+                await signInWithEmailAndPassword(auth, email, pass);
+                successLogin();
+            } catch (error) {
+                // Autocriação: se a conta não for encontrada (ou inválida e for o primeiro acesso), cria uma.
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
+                    try {
+                        await createUserWithEmailAndPassword(auth, email, pass);
+                        window.showToast("Primeiro acesso! Conta criada com sucesso.");
+                        successLogin();
+                    } catch (createError) {
+                        if (createError.code === 'auth/email-already-in-use') window.showToast("Senha incorreta!", true);
+                        else window.showToast("Erro: " + createError.message, true);
+                    }
+                } else {
+                    window.showToast("Erro na autenticação!", true);
+                }
             }
         };
 
@@ -1724,6 +1752,11 @@
             document.getElementById('cfg-receiver').value = state.settings.receiverName;
             document.getElementById('cfg-radio').value = state.settings.radioUrl || '';
             document.getElementById('cfg-city').value = state.settings.cityName || 'Curitiba';
+            
+            if (auth && auth.currentUser && state.isAdminLoggedIn) {
+                document.getElementById('cfg-admin-email').value = auth.currentUser.email || '';
+            }
+
             updateMusicPlayerUI();
         };
 
@@ -1990,6 +2023,27 @@
         };
 
         window.saveAllPanelChanges = async () => {
+            const newEmail = document.getElementById('cfg-admin-email').value.trim();
+            const newPass = document.getElementById('cfg-pass').value.trim();
+            
+            if (auth.currentUser && state.isAdminLoggedIn) {
+                try {
+                    if (newEmail && newEmail !== auth.currentUser.email) {
+                        await updateEmail(auth.currentUser, newEmail);
+                    }
+                    if (newPass) {
+                        await updatePassword(auth.currentUser, newPass);
+                        document.getElementById('cfg-pass').value = ''; 
+                    }
+                } catch (error) {
+                    console.error("Erro Auth:", error);
+                    if (error.code === 'auth/requires-recent-login') {
+                        return window.showToast("Aviso: Faça login novamente para trocar credenciais.", true);
+                    }
+                    return window.showToast("Erro ao atualizar e-mail/senha.", true);
+                }
+            }
+
             state.settings = {
                 ...state.settings,
                 names: document.getElementById('cfg-names').value.trim(),
@@ -2000,8 +2054,7 @@
                 receiverName: document.getElementById('cfg-receiver').value.trim(),
                 cityName: document.getElementById('cfg-city').value.trim() || 'Curitiba',
                 radioUrl: document.getElementById('cfg-radio').value.trim(),
-                homepageImg: document.getElementById('cfg-homepage-img').value.trim() || state.settings.homepageImg,
-                adminPass: document.getElementById('cfg-pass').value.trim() || state.settings.adminPass
+                homepageImg: document.getElementById('cfg-homepage-img').value.trim() || state.settings.homepageImg
             };
             updateSiteContent();
             try {
