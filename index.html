@@ -20,12 +20,23 @@
 </head>
 <body class="bg-red-50 text-stone-800 pb-28 selection:bg-red-200 flex min-h-screen relative overflow-x-hidden">
 
-    <div id="toast" class="fixed top-5 right-5 z-[9999] bg-stone-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 border border-stone-700 max-w-sm">
+    <div id="wix-admin-bar" class="hidden fixed top-0 left-0 right-0 z-[99999] bg-stone-900 text-white px-4 py-2.5 shadow-2xl flex items-center justify-between border-b border-red-600">
+        <div class="flex items-center gap-3">
+            <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-xs font-bold tracking-wide">Modo Editor Ativo (Wix Style) — Você está editando o site diretamente nas páginas</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <button onclick="window.switchTab('admin')" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 rounded-lg text-xs font-bold transition-all cursor-pointer">Painel Completo</button>
+            <button onclick="window.adminLogout()" class="px-3 py-1.5 bg-red-950 hover:bg-red-900 rounded-lg text-xs font-bold transition-all cursor-pointer">Sair da Edição</button>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed top-16 right-5 z-[9999] bg-stone-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 border border-stone-700 max-w-sm">
         <i id="toast-icon" data-lucide="sparkles" class="w-5 h-5 text-emerald-400 shrink-0"></i>
         <span id="toast-msg" class="text-xs font-semibold tracking-wide leading-snug"></span>
     </div>
 
-    <div id="modal-delete-confirm" class="fixed inset-0 z-[10000] bg-stone-900/85 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div id="modal-delete-confirm" class="fixed inset-0 z-[100000] bg-stone-900/85 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-stone-200 text-center space-y-4">
             <div class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto">
                 <i data-lucide="trash-2" class="w-6 h-6"></i>
@@ -70,7 +81,7 @@
         </div>
     </div>
 
-    <aside id="app-sidebar" class="sidebar-collapsed sidebar-transition fixed top-0 left-0 h-full bg-white/95 backdrop-blur-md border-r border-red-100 shadow-xl z-50 flex flex-col justify-between p-3.5 overflow-x-hidden">
+    <aside id="app-sidebar" class="sidebar-collapsed sidebar-transition fixed top-0 left-0 h-full bg-white/95 backdrop-blur-md border-r border-red-100 shadow-xl z-50 flex flex-col justify-between p-3.5 overflow-x-hidden pt-16">
         <div class="space-y-6">
             <div class="flex items-center justify-end">
                 <button data-action="toggle-sidebar" class="text-stone-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 transition-colors cursor-pointer shrink-0" title="Expandir / Recolher Menu">
@@ -114,7 +125,7 @@
         </div>
     </aside>
 
-    <main id="main-content" class="flex-1 pt-6 px-4 md:px-12 max-w-[1700px] mx-auto ml-[90px] md:ml-[100px] transition-all duration-300">
+    <main id="main-content" class="flex-1 pt-16 px-4 md:px-12 max-w-[1700px] mx-auto ml-[90px] md:ml-[100px] transition-all duration-300">
         
         <!-- HOME SECTION -->
         <section id="tab-home" class="tab-content active space-y-12 pb-10">
@@ -144,12 +155,18 @@
 
         <!-- HISTORY & QUIZ SECTION -->
         <section id="tab-history" class="tab-content py-10 max-w-5xl mx-auto space-y-10">
-            <div class="text-center space-y-3">
+            <div class="text-center space-y-3 relative">
+                <div id="admin-quiz-toolbar" class="hidden mb-4 flex justify-center gap-2">
+                    <button onclick="window.openAddTimelineModal()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5 cursor-pointer">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Adicionar Pergunta ao Quiz
+                    </button>
+                </div>
                 <span class="text-red-600 text-xs font-bold tracking-widest uppercase bg-red-100 px-3 py-1 rounded-full">Nossa Trajetória</span>
                 <h2 class="font-serif text-4xl md:text-5xl text-red-900 font-bold">Você conhece nossa história?</h2>
                 <p class="text-stone-600 text-base max-w-2xl mx-auto animate-pulse">✨ Vem com a gente descobrir curiosidades e testar seus conhecimentos em nosso desafio interativo estilo cartas!</p>
             </div>
-            <div id="quiz-entry-card" class="glass-card p-8 md:p-12 rounded-3xl shadow-xl border border-red-200 text-center space-y-6 max-w-2xl mx-auto">
+            
+            <div id="quiz-entry-card" class="glass-card p-8 md:p-12 rounded-3xl shadow-xl border border-red-200 text-center space-y-6 max-w-2xl mx-auto relative">
                 <div class="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
                     <i data-lucide="gamepad-2" class="w-8 h-8"></i>
                 </div>
@@ -158,16 +175,20 @@
                     <p class="text-sm text-stone-600 mt-2">Digite seu nome completo abaixo para validar sua participação e começar a jogar. <br><b class="text-red-600">Atenção: Apenas 1 tentativa permitida por convidado!</b></p>
                 </div>
                 <div class="relative max-w-md mx-auto">
-                    <input type="search" id="quiz-guest-name" placeholder="Digite seu nome completo..." class="w-full px-5 py-3.5 border border-stone-300 rounded-2xl text-sm focus:outline-none focus:border-red-500 bg-white font-medium shadow-sm"/>
+                    <input type="search" id="quiz-guest-name" autocomplete="off" placeholder="Digite seu nome completo..." class="w-full px-5 py-3.5 border border-stone-300 rounded-2xl text-sm focus:outline-none focus:border-red-500 bg-white font-medium shadow-sm"/>
+                    <div id="quiz-suggestions" class="absolute left-0 right-0 top-full mt-2 bg-white border border-stone-200 rounded-2xl shadow-2xl max-h-56 overflow-y-auto z-50 hidden divide-y divide-stone-100 p-1.5"></div>
                     <button onclick="window.startCoupleQuiz()" class="w-full mt-3 py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl text-sm shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-all">
                         <i data-lucide="play" class="w-4 h-4"></i> Iniciar Desafio (Estilo Cartas)
                     </button>
                 </div>
             </div>
+            
             <div id="quiz-game-container" class="hidden glass-card p-6 md:p-10 rounded-3xl shadow-xl border border-red-200 max-w-3xl mx-auto space-y-6"></div>
-            <div class="bg-white p-6 md:p-8 rounded-3xl shadow-md border border-stone-200 max-w-3xl mx-auto space-y-4">
-                <h3 class="font-serif text-2xl font-bold text-stone-900 flex items-center gap-2.5">
-                    <i data-lucide="trophy" class="w-6 h-6 text-amber-500"></i> Ranking dos Convidados Mais Íntimos
+            
+            <div class="bg-white p-6 md:p-8 rounded-3xl shadow-md border border-stone-200 max-w-3xl mx-auto space-y-4 relative">
+                <h3 class="font-serif text-2xl font-bold text-stone-900 flex items-center justify-between">
+                    <span class="flex items-center gap-2.5"><i data-lucide="trophy" class="w-6 h-6 text-amber-500"></i> Ranking dos Convidados Mais Íntimos</span>
+                    <button id="admin-clear-ranking-btn" onclick="window.clearEntireRanking()" class="hidden px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold cursor-pointer">Zerar Ranking</button>
                 </h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm">
@@ -176,6 +197,7 @@
                                 <th class="py-2.5">Posição</th>
                                 <th class="py-2.5">Convidado</th>
                                 <th class="py-2.5 text-right">Pontuação</th>
+                                <th class="py-2.5 text-right admin-ranking-col hidden">Ação</th>
                             </tr>
                         </thead>
                         <tbody id="public-ranking-list" class="divide-y divide-stone-100 font-medium"></tbody>
@@ -186,7 +208,12 @@
 
         <!-- GALLERY SECTION -->
         <section id="tab-gallery" class="tab-content py-10 max-w-7xl mx-auto space-y-8">
-            <div class="text-center max-w-2xl mx-auto">
+            <div class="text-center max-w-2xl mx-auto relative">
+                <div id="admin-gallery-toolbar" class="hidden mb-4 flex justify-center">
+                    <button data-action="open-add-gallery" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5 cursor-pointer">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Adicionar Post do Instagram
+                    </button>
+                </div>
                 <h2 class="font-serif text-4xl md:text-5xl text-red-900 font-bold mb-3">Galeria do Instagram</h2>
                 <p class="text-stone-600">Momentos especiais postados pelos noivos sincronizados nativamente.</p>
             </div>
@@ -195,7 +222,12 @@
 
         <!-- GIFTS SECTION -->
         <section id="tab-gifts" class="tab-content space-y-8 py-10 max-w-7xl mx-auto">
-            <div class="text-center max-w-2xl mx-auto">
+            <div class="text-center max-w-2xl mx-auto relative">
+                <div id="admin-gift-toolbar" class="hidden mb-4 flex justify-center">
+                    <button data-action="open-add-gift" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5 cursor-pointer">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Adicionar Presente
+                    </button>
+                </div>
                 <h2 class="font-serif text-4xl md:text-5xl text-red-900 font-bold">Lista de Presentes</h2>
                 <p class="text-stone-600 mt-2">Contribua via Pix com o valor que desejar para os nossos presentes ou lua de mel.</p>
             </div>
@@ -244,6 +276,11 @@
         <!-- RSVP SECTION -->
         <section id="tab-rsvp" class="tab-content py-10">
             <div class="max-w-xl mx-auto glass-card p-8 md:p-10 rounded-3xl border border-red-200 shadow-sm text-center mt-10 relative">
+                <div id="admin-guest-toolbar" class="hidden mb-4 flex justify-center">
+                    <button data-action="open-add-guest" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5 cursor-pointer">
+                        <i data-lucide="user-plus" class="w-4 h-4"></i> Cadastrar Convidado
+                    </button>
+                </div>
                 <i data-lucide="user-check" class="w-12 h-12 text-red-600 mx-auto mb-4"></i>
                 <h2 class="text-3xl font-serif text-red-900 font-bold mb-2">Confirmar Presença</h2>
                 <p class="text-sm text-stone-600 mb-6">Digite seu nome para localizar seu convite e ver os acompanhantes.</p>
@@ -251,7 +288,7 @@
                     <div class="relative">
                         <label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Pesquisar Seu Nome</label>
                         <input type="search" id="rsvp-search-input" inputmode="search" enterkeyhint="search" placeholder="Digite seu nome..." autocomplete="off" class="w-full px-4 py-3 rounded-xl border border-stone-200 text-sm focus:outline-none focus:border-red-500 bg-white"/>
-                        <div id="rsvp-suggestions" class="absolute left-0 right-0 top-full mt-1 bg-white border border-stone-200 rounded-xl shadow-xl max-h-48 overflow-y-auto z-30 hidden"></div>
+                        <div id="rsvp-suggestions" class="absolute left-0 right-0 top-full mt-2 bg-white border border-stone-200 rounded-2xl shadow-2xl max-h-56 overflow-y-auto z-50 hidden divide-y divide-stone-100 p-1.5"></div>
                     </div>
                     <div id="rsvp-details-card" class="hidden bg-stone-50 border border-stone-200 p-5 rounded-2xl space-y-4">
                         <div>
@@ -277,20 +314,17 @@
 
         <!-- ADMIN PANEL SECTION -->
         <section id="tab-admin" class="tab-content mt-6 max-w-5xl mx-auto space-y-6 pb-20">
-            <div class="sticky top-4 z-40 bg-stone-900 text-white p-6 rounded-3xl flex flex-col sm:flex-row justify-between items-start sm:items-center shadow-2xl gap-4 border border-stone-700">
+            <div class="sticky top-16 z-40 bg-stone-900 text-white p-6 rounded-3xl flex flex-col sm:flex-row justify-between items-start sm:items-center shadow-2xl gap-4 border border-stone-700">
                 <div>
                     <h2 class="font-serif text-xl font-bold flex items-center gap-2"><i data-lucide="settings" class="w-5 h-5 text-red-500"></i> Painel do Casal</h2>
                     <span id="admin-session-status" class="text-[11px] text-emerald-400 flex items-center gap-1 mt-0.5"><i data-lucide="shield-check" class="w-3 h-3"></i> Autenticado com Sucesso</span>
                 </div>
                 <div class="flex flex-wrap gap-2">
                     <button onclick="window.saveAllPanelChanges()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer shadow-lg">
-                        <i data-lucide="save" class="w-4 h-4"></i> Salvar Alterações
+                        <i data-lucide="save" class="w-4 h-4"></i> Salvar Configurações
                     </button>
-                    <button data-action="open-add-gift" class="px-3 py-2.5 bg-red-600 hover:bg-red-500 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer shadow">
-                        <i data-lucide="plus" class="w-4 h-4"></i> Presente
-                    </button>
-                    <button data-action="open-add-gallery" class="px-3 py-2.5 bg-stone-700 hover:bg-stone-600 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer shadow">
-                        <i data-lucide="instagram" class="w-4 h-4"></i> Post Instagram
+                    <button onclick="window.switchTab('home')" class="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer">
+                        <i data-lucide="eye" class="w-4 h-4"></i> Visualizar Site (Modo Visitante)
                     </button>
                     <button onclick="window.adminLogout()" class="px-3 py-2.5 bg-red-950 hover:bg-red-900 text-white rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer">
                         Sair
@@ -328,68 +362,13 @@
                     <div><label class="block text-xs font-bold text-stone-500 uppercase">WhatsApp dos Noivos (Para Alertas)</label><input type="text" id="cfg-whatsapp" placeholder="5541999999999" class="w-full mt-1 p-2.5 border rounded-xl bg-white"/></div>
                     <div class="md:col-span-2 bg-stone-50 p-4 rounded-2xl border border-stone-200 space-y-2">
                         <label class="block text-xs font-bold text-stone-700 uppercase flex items-center gap-1.5"><i data-lucide="image" class="w-4 h-4 text-red-600"></i> Foto de Perfil da Homepage (Casal)</label>
-                        <div id="dropzone-homepage" class="border-2 border-dashed border-stone-300 rounded-xl p-4 text-center bg-white cursor-pointer hover:border-red-500 transition-colors">
-                            <input type="file" id="file-homepage" accept="image/*" class="hidden"/>
-                            <p class="text-xs text-stone-500">Arraste uma foto aqui ou <span class="text-red-600 font-bold">clique para selecionar</span></p>
-                        </div>
-                        <input type="hidden" id="cfg-homepage-img"/>
+                        <input type="url" id="cfg-homepage-img" placeholder="https://images.unsplash.com/..." class="w-full p-2.5 border rounded-xl text-xs bg-white"/>
                     </div>
                     <div class="md:col-span-2 bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200 space-y-3">
                         <label class="block text-xs font-bold text-emerald-900 uppercase flex items-center gap-1.5"><i data-lucide="music" class="w-4 h-4 text-emerald-600"></i> Link da Playlist ou Música (Spotify)</label>
                         <input type="text" id="cfg-radio" placeholder="Cole o link do Spotify" class="w-full p-2.5 border border-emerald-300 rounded-xl text-xs bg-white focus:outline-none focus:border-emerald-500"/>
                     </div>
                 </div>
-            </div>
-            <div class="bg-white p-6 md:p-8 rounded-3xl border border-stone-200 shadow-sm space-y-6">
-                <div class="flex justify-between items-center border-b pb-3">
-                    <h3 class="font-serif text-lg font-bold text-stone-900 flex items-center gap-2">
-                        <i data-lucide="book-open" class="w-5 h-5 text-red-600"></i> Gestão do Quiz & História
-                    </h3>
-                    <button data-action="open-add-timeline" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg cursor-pointer flex items-center gap-1">
-                        <i data-lucide="plus" class="w-4 h-4"></i> Adicionar Pergunta
-                    </button>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead>
-                            <tr class="border-b text-stone-400 uppercase text-xs">
-                                <th class="py-2">Tag / Tema</th>
-                                <th class="py-2">Pergunta & História</th>
-                                <th class="py-2">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="admin-timeline-list" class="divide-y divide-stone-100"></tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="bg-white p-6 md:p-8 rounded-3xl border border-stone-200 shadow-sm space-y-6">
-                <div class="flex justify-between items-center border-b pb-3">
-                    <h3 class="font-serif text-lg font-bold text-stone-900 flex items-center gap-2">
-                        <i data-lucide="instagram" class="w-5 h-5 text-red-600"></i> Gestão da Galeria (Instagram Embed)
-                    </h3>
-                    <button data-action="open-add-gallery" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg cursor-pointer flex items-center gap-1">
-                        <i data-lucide="plus" class="w-4 h-4"></i> Adicionar Post
-                    </button>
-                </div>
-                <div id="admin-gallery-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
-            </div>
-            <div class="bg-white p-6 md:p-8 rounded-3xl border border-stone-200 shadow-sm space-y-6">
-                <div class="border-b pb-3"><h3 class="font-serif text-lg font-bold text-stone-900 flex items-center gap-2"><i data-lucide="message-square-heart" class="w-5 h-5 text-red-600"></i> Moderação do Mural de Recados</h3></div>
-                <div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead><tr class="border-b text-stone-400 uppercase text-xs"><th class="py-2">Autor</th><th class="py-2">Mensagem</th><th class="py-2">Status</th><th class="py-2">Ações</th></tr></thead><tbody id="admin-messages-list" class="divide-y divide-stone-100"></tbody></table></div>
-            </div>
-            <div class="bg-white p-6 md:p-8 rounded-3xl border border-stone-200 shadow-sm space-y-6">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-3 gap-3">
-                    <h3 class="font-serif text-lg font-bold text-stone-900 flex items-center gap-2"><i data-lucide="users" class="w-5 h-5 text-red-600"></i> Lista Oficial de Convidados</h3>
-                    <div class="flex gap-2">
-                        <button onclick="window.printPDFList()" class="px-3 py-1.5 bg-stone-800 hover:bg-stone-900 text-white text-xs font-bold rounded-lg cursor-pointer flex items-center gap-1"><i data-lucide="printer" class="w-4 h-4"></i> PDF</button>
-                        <button data-action="open-add-guest" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg cursor-pointer flex items-center gap-1"><i data-lucide="user-plus" class="w-4 h-4"></i> Convidado</button>
-                    </div>
-                </div>
-                <div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead><tr class="border-b text-stone-400 uppercase text-xs"><th class="py-2">Convidado Principal</th><th class="py-2">Acompanhantes</th><th class="py-2">Status</th><th class="py-2">Ações</th></tr></thead><tbody id="admin-guests-list" class="divide-y divide-stone-100"></tbody></table></div>
-            </div>
-            <div class="bg-white p-6 md:p-8 rounded-3xl border border-stone-200 shadow-sm space-y-6">
-                <div class="border-b pb-3"><h3 class="font-serif text-lg font-bold text-stone-900 flex items-center gap-2"><i data-lucide="dollar-sign" class="w-5 h-5 text-emerald-600"></i> Contribuições Pix</h3></div>
-                <div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead><tr class="border-b text-stone-400 uppercase text-xs"><th class="py-2">Convidado</th><th class="py-2">Valor</th><th class="py-2">Presente</th><th class="py-2">Status</th><th class="py-2">Ações</th></tr></thead><tbody id="admin-contribs-list" class="divide-y divide-stone-100"></tbody></table></div>
             </div>
         </section>
     </main>
@@ -410,7 +389,7 @@
         </div>
     </div>
 
-    <div id="modal-admin-login" class="fixed inset-0 z-50 bg-stone-900/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div id="modal-admin-login" class="fixed inset-0 z-[100000] bg-stone-900/80 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 border border-stone-200 text-center space-y-4">
             <div class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto"><i data-lucide="lock" class="w-6 h-6"></i></div>
             <h3 class="font-serif text-xl font-bold text-stone-900">Painel Exclusivo do Casal</h3>
@@ -518,15 +497,6 @@
                 <div class="flex gap-2 pt-2"><button type="button" data-action="close-add-gift" class="w-1/3 py-3 border rounded-xl font-bold text-stone-500 cursor-pointer">Cancelar</button><button type="submit" class="w-2/3 py-3 bg-red-600 text-white rounded-xl font-bold cursor-pointer">Salvar</button></div>
             </form>
         </div>
-    </div>
-
-    <div id="printable-pdf-area" class="hidden p-8 font-sans">
-        <h1 class="text-2xl font-bold mb-2">Lista Oficial de Convidados Confirmados</h1>
-        <p class="text-xs text-stone-500 mb-6" id="pdf-date-gen"></p>
-        <table class="w-full text-left text-xs border-collapse border border-stone-300">
-            <thead><tr class="bg-stone-100 border-b"><th class="p-2 border">Convidado Principal</th><th class="p-2 border">Acompanhantes</th><th class="p-2 border">Total no Grupo</th></tr></thead>
-            <tbody id="pdf-table-body"></tbody>
-        </table>
     </div>
 
     <!-- Modular JS entry point -->

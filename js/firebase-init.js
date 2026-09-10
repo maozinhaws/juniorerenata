@@ -49,7 +49,6 @@ export let state = {
 };
 
 export function sendWhatsAppAlert(text) {
-    // Alerta silencioso em segundo plano sem desviar o usuário da página
     try {
         console.log("📲 Alerta silencioso para WhatsApp dos noivos:", text);
         if (state.settings.whatsappWebhook) {
@@ -144,7 +143,7 @@ window.toggleSidebar = () => {
 window.showToast = (msg, err = false) => {
     const t = document.getElementById('toast');
     document.getElementById('toast-msg').innerText = msg;
-    t.className = `fixed top-5 right-5 z-[9999] text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 border ${err ? 'bg-red-950 border-red-700' : 'bg-stone-900 border-emerald-600'} show`;
+    t.className = `fixed top-16 right-5 z-[9999] text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 border ${err ? 'bg-red-950 border-red-700' : 'bg-stone-900 border-emerald-600'} show`;
     document.getElementById('toast-icon').setAttribute('data-lucide', err ? 'alert-circle' : 'check-circle-2');
     lucide.createIcons();
     setTimeout(() => { t.className = t.className.replace('show', ''); }, 4000);
@@ -216,10 +215,9 @@ window.submitAdminLogin = async (e) => {
 
         state.isAdminLoggedIn = true;
         window.closeAdminModal();
-        window.switchTab('admin');
-        renderAdmin();
-        renderGallery();
-        window.showToast("Painel desbloqueado com sucesso!");
+        window.switchTab('home');
+        updateEditorUI();
+        window.showToast("Modo de Edição ativado (Wix Style)!");
     } catch (err) {
         window.showToast("Credenciais incorretas ou acesso restrito.", true);
     }
@@ -228,10 +226,41 @@ window.submitAdminLogin = async (e) => {
 window.adminLogout = async () => {
     await signOut(auth);
     state.isAdminLoggedIn = false;
+    updateEditorUI();
     window.switchTab('home');
-    renderGallery();
     window.showToast("Sessão encerrada com segurança.");
 };
+
+function updateEditorUI() {
+    const wixBar = document.getElementById('wix-admin-bar');
+    const adminQuizToolbar = document.getElementById('admin-quiz-toolbar');
+    const adminGalleryToolbar = document.getElementById('admin-gallery-toolbar');
+    const adminGiftToolbar = document.getElementById('admin-gift-toolbar');
+    const adminGuestToolbar = document.getElementById('admin-guest-toolbar');
+    const adminRankingCol = document.querySelectorAll('.admin-ranking-col');
+    const adminClearRankingBtn = document.getElementById('admin-clear-ranking-btn');
+
+    if (state.isAdminLoggedIn) {
+        if (wixBar) wixBar.classList.remove('hidden');
+        if (adminQuizToolbar) adminQuizToolbar.classList.remove('hidden');
+        if (adminGalleryToolbar) adminGalleryToolbar.classList.remove('hidden');
+        if (adminGiftToolbar) adminGiftToolbar.classList.remove('hidden');
+        if (adminGuestToolbar) adminGuestToolbar.classList.remove('hidden');
+        adminRankingCol.forEach(el => el.classList.remove('hidden'));
+        if (adminClearRankingBtn) adminClearRankingBtn.classList.remove('hidden');
+    } else {
+        if (wixBar) wixBar.classList.add('hidden');
+        if (adminQuizToolbar) adminQuizToolbar.classList.add('hidden');
+        if (adminGalleryToolbar) adminGalleryToolbar.classList.add('hidden');
+        if (adminGiftToolbar) adminGiftToolbar.classList.add('hidden');
+        if (adminGuestToolbar) adminGuestToolbar.classList.add('hidden');
+        adminRankingCol.forEach(el => el.classList.add('hidden'));
+        if (adminClearRankingBtn) adminClearRankingBtn.classList.add('hidden');
+    }
+    renderGallery();
+    renderGifts();
+    renderRanking();
+}
 
 const renderGifts = () => {
     const container = document.getElementById('gifts-container');
@@ -243,7 +272,14 @@ const renderGifts = () => {
         const rem = Math.max(0, tot - cur), pct = Math.min(100, (cur / tot) * 100);
         const isDone = rem <= 0;
         return `
-            <div class="bg-white rounded-3xl overflow-hidden border border-red-200 shadow-sm flex flex-col">
+            <div class="bg-white rounded-3xl overflow-hidden border border-red-200 shadow-sm flex flex-col relative group">
+                ${state.isAdminLoggedIn ? `
+                    <div class="absolute top-3 right-3 z-20 flex gap-1 bg-white/90 p-1 rounded-xl shadow backdrop-blur">
+                        <button type="button" onclick="window.deleteGift('${g.id}')" class="p-1.5 text-red-600 hover:bg-red-50 rounded-lg cursor-pointer" title="Excluir Presente">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                ` : ''}
                 <div class="h-48 w-full bg-stone-100 relative">
                     ${g.imageUrl ? `<img src="${escapeHTML(g.imageUrl)}" class="w-full h-full object-cover"/>` : ''}
                     <span class="absolute top-3 left-3 bg-white/90 px-3 py-1 rounded-full text-xs font-bold text-stone-700">${escapeHTML(g.category || 'Geral')}</span>
@@ -264,12 +300,22 @@ const renderGifts = () => {
             </div>
         `;
     }).join('');
+    if (window.lucide) lucide.createIcons();
+};
+
+window.deleteGift = (id) => {
+    window.openDeleteModal("Deseja realmente excluir este presente?", async () => {
+        try {
+            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'gifts', id));
+            window.showToast("Presente excluído com sucesso!");
+        } catch(e) { window.showToast("Erro ao excluir presente.", true); }
+    });
 };
 
 const renderMural = () => {
     const container = document.getElementById('mural-container');
     if (!container) return;
-    const visibleMsgs = state.messages.filter(m => !m.hidden);
+    const visibleMsgs = state.messages.filter(m => state.isAdminLoggedIn || !m.hidden);
     if (!visibleMsgs.length) {
         container.innerHTML = `<div class="absolute inset-0 flex flex-col items-center justify-center text-center text-stone-300 pointer-events-none py-20"><div class="text-6xl mb-4 opacity-75">📌</div><p class="font-serif text-2xl">O mural ainda está vazio</p></div>`;
         return;
@@ -283,12 +329,26 @@ const renderMural = () => {
         const rot = [-5, -3, 1.5, 3, -4, 4][i % 6];
         const bg = { yellow: '#fff59d', pink: '#ffd0dc', green: '#d2f5c8', blue: '#cceeff' }[m.color || 'yellow'];
         return `
-            <article class="real-postit" style="position: absolute; left: ${x}px; top: ${y}px; width: 190px; min-height: 175px; padding: 25px 18px 18px; transform: rotate(${rot}deg); background: ${bg}; box-shadow: 0 10px 15px rgba(0,0,0,0.15);">
+            <article class="real-postit group relative" style="position: absolute; left: ${x}px; top: ${y}px; width: 190px; min-height: 175px; padding: 25px 18px 18px; transform: rotate(${rot}deg); background: ${bg}; box-shadow: 0 10px 15px rgba(0,0,0,0.15);">
+                ${state.isAdminLoggedIn ? `
+                    <div class="absolute top-2 right-2 flex gap-1 z-20">
+                        <button type="button" onclick="window.deleteMessage('${m.id}')" class="p-1 bg-red-600 text-white rounded shadow text-[10px] cursor-pointer" title="Excluir Recado">✕</button>
+                    </div>
+                ` : ''}
                 <div style="font-family: var(--font-sans); font-size: 12px; font-weight: 700;">${escapeHTML(m.author)}</div>
                 <span style="font-family: var(--font-sans); font-size: 9px; opacity: .65; display:block; margin-bottom:10px;">${escapeHTML(m.relation)}</span>
                 <p style="font-family: var(--font-handwriting); font-size: 20px; line-height: 1.1;">${escapeHTML(m.text)}</p>
             </article>`;
     }).join('');
+};
+
+window.deleteMessage = (id) => {
+    window.openDeleteModal("Deseja realmente excluir este recado do mural?", async () => {
+        try {
+            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'messages', id));
+            window.showToast("Recado excluído com sucesso!");
+        } catch(e) { window.showToast("Erro ao excluir recado.", true); }
+    });
 };
 
 document.addEventListener('submit', async (e) => {
@@ -309,6 +369,22 @@ document.addEventListener('submit', async (e) => {
             sendWhatsAppAlert(`📌 Novo Recado no Mural de ${msgObj.author}`);
         } catch(err) { window.showToast("Erro ao fixar recado.", true); }
     }
+    if (e.target && e.target.id === 'form-add-gift') {
+        e.preventDefault();
+        const giftObj = {
+            title: document.getElementById('ag-title').value.trim(),
+            totalAmount: parseFloat(document.getElementById('ag-amount').value) || 100,
+            category: document.getElementById('ag-category').value.trim() || 'Geral',
+            imageUrl: document.getElementById('ag-image').value.trim() || 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80',
+            description: document.getElementById('ag-desc').value.trim()
+        };
+        document.getElementById('modal-add-gift').style.display = 'none';
+        e.target.reset();
+        try {
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), giftObj);
+            window.showToast("Presente adicionado com sucesso!");
+        } catch(err) { window.showToast("Erro ao adicionar presente.", true); }
+    }
 });
 
 const startFirebase = async () => {
@@ -319,8 +395,7 @@ const startFirebase = async () => {
         } else {
             state.isAdminLoggedIn = false;
         }
-        renderGallery();
-        if (state.isAdminLoggedIn) renderAdmin();
+        updateEditorUI();
     });
 
     onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), snap => {
@@ -328,7 +403,6 @@ const startFirebase = async () => {
             state.settings = { ...state.settings, ...snap.data() };
             updateSiteContent();
             
-            // Preenche os campos do painel admin com segurança
             const cfgNames = document.getElementById('cfg-names');
             const cfgDate = document.getElementById('cfg-date');
             const cfgLoc = document.getElementById('cfg-location');
@@ -356,32 +430,30 @@ const startFirebase = async () => {
     }, () => {});
 
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'timeline'), snap => {
-        if (!snap.empty) { state.timeline = snap.docs.map(d => ({id: d.id, ...d.data()})); if(state.isAdminLoggedIn) renderAdmin(); }
+        if (!snap.empty) { state.timeline = snap.docs.map(d => ({id: d.id, ...d.data()})); }
     }, () => {});
 
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'gallery'), snap => {
         state.gallery = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         renderGallery();
-        if (state.isAdminLoggedIn) renderAdmin();
     }, () => {});
 
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), snap => {
         state.messages = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-        renderMural(); if(state.isAdminLoggedIn) renderAdmin();
+        renderMural();
     }, () => {});
 
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'guests'), snap => {
         state.guests = snap.docs.map(d => ({id: d.id, ...d.data()}));
-        if(state.isAdminLoggedIn) renderAdmin();
     }, () => {});
 
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'contributions'), snap => {
         state.contributions = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-        renderGifts(); if(state.isAdminLoggedIn) renderAdmin();
+        renderGifts();
     }, () => {});
 
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'rankings'), snap => {
-        state.rankings = snap.docs.map(d => d.data()).sort((a,b) => b.score - a.score);
+        state.rankings = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.score - a.score);
         renderRanking();
     }, () => {});
 };

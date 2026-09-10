@@ -1,23 +1,13 @@
 import { db, appId, sendWhatsAppAlert, escapeHTML, state } from './firebase-init.js';
-import { collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { collection, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 export function initQuiz() {
     const quizInput = document.getElementById('quiz-guest-name');
-    
-    if (quizInput && !document.getElementById('quiz-suggestions')) {
-        const sug = document.createElement('div');
-        sug.id = 'quiz-suggestions';
-        // Estilo elegante idêntico ao modelo azul de referência
-        sug.className = 'absolute left-0 right-0 top-full mt-2 bg-white border border-stone-200 rounded-2xl shadow-2xl max-h-56 overflow-y-auto z-50 hidden divide-y divide-stone-100 p-1.5';
-        quizInput.parentElement.style.position = 'relative';
-        quizInput.parentElement.appendChild(sug);
-    }
+    const sugBox = document.getElementById('quiz-suggestions');
 
-    if (quizInput) {
+    if (quizInput && sugBox) {
         quizInput.addEventListener('input', (e) => {
             const query = e.target.value.trim().toLowerCase();
-            const sugBox = document.getElementById('quiz-suggestions');
-            if (!sugBox) return;
             if (query.length < 2) {
                 sugBox.classList.add('hidden');
                 return;
@@ -36,15 +26,12 @@ export function initQuiz() {
             sugBox.classList.remove('hidden');
         });
 
-        const sugBox = document.getElementById('quiz-suggestions');
-        if (sugBox) {
-            sugBox.addEventListener('click', (e) => {
-                const item = e.target.closest('[data-quiz-guest-name]');
-                if (!item) return;
-                quizInput.value = item.dataset.quizGuestName;
-                sugBox.classList.add('hidden');
-            });
-        }
+        sugBox.addEventListener('click', (e) => {
+            const item = e.target.closest('[data-quiz-guest-name]');
+            if (!item) return;
+            quizInput.value = item.dataset.quizGuestName;
+            sugBox.classList.add('hidden');
+        });
     }
 
     window.startCoupleQuiz = () => {
@@ -141,7 +128,7 @@ export function renderRanking() {
     const list = document.getElementById('public-ranking-list');
     if (!list) return;
     if (!state.rankings.length) {
-        list.innerHTML = `<tr><td colspan="3" class="py-4 text-center text-stone-400 text-xs">Nenhum convidado pontuou ainda. Seja o primeiro!</td></tr>`;
+        list.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-stone-400 text-xs">Nenhum convidado pontuou ainda. Seja o primeiro!</td></tr>`;
         return;
     }
     list.innerHTML = state.rankings.slice(0, 10).map((r, i) => `
@@ -149,6 +136,30 @@ export function renderRanking() {
             <td class="py-3 font-bold text-red-600">#${i + 1}</td>
             <td class="py-3 text-stone-900">${escapeHTML(r.guestName)}</td>
             <td class="py-3 text-right font-bold text-emerald-600">${r.score} pts</td>
+            <td class="py-3 text-right admin-ranking-col ${state.isAdminLoggedIn ? '' : 'hidden'}">
+                <button type="button" onclick="window.deleteRankingEntry('${r.id}')" class="text-red-600 hover:text-red-800 text-xs font-bold cursor-pointer">Excluir</button>
+            </td>
         </tr>
     `).join('');
+    if (window.lucide) lucide.createIcons();
 }
+
+window.deleteRankingEntry = (id) => {
+    window.openDeleteModal("Deseja realmente excluir esta pontuação do ranking?", async () => {
+        try {
+            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rankings', id));
+            window.showToast("Pontuação excluída com sucesso!");
+        } catch(e) { window.showToast("Erro ao excluir pontuação.", true); }
+    });
+};
+
+window.clearEntireRanking = () => {
+    window.openDeleteModal("Deseja realmente zerar todo o ranking do quiz?", async () => {
+        try {
+            for (const r of state.rankings) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rankings', r.id));
+            }
+            window.showToast("Ranking zerado com sucesso!");
+        } catch(e) { window.showToast("Erro ao zerar ranking.", true); }
+    });
+};
