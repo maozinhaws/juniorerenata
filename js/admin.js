@@ -91,6 +91,59 @@ export function initAdmin() {
         container.appendChild(row);
     };
 
+    // Global administrative deletion handlers
+    window.deleteTimeline = (id) => {
+        window.openDeleteModal("Deseja realmente excluir esta pergunta do quiz?", async () => {
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'timeline', id));
+                window.showToast("Pergunta excluída com sucesso!");
+            } catch(e) { window.showToast("Erro ao excluir pergunta.", true); }
+        });
+    };
+
+    window.deleteGalleryPhoto = (id) => {
+        window.openDeleteModal("Deseja realmente remover este post da galeria?", async () => {
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'gallery', id));
+                window.showToast("Post removido com sucesso!");
+            } catch(e) { window.showToast("Erro ao excluir post.", true); }
+        });
+    };
+
+    window.toggleMessageVisibility = async (id, hidden) => {
+        try {
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'messages', id), { hidden: !hidden });
+            window.showToast("Visibilidade do recado atualizada!");
+        } catch(e) { window.showToast("Erro ao atualizar recado.", true); }
+    };
+
+    window.deleteMessage = (id) => {
+        window.openDeleteModal("Deseja realmente excluir este recado do mural?", async () => {
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'messages', id));
+                window.showToast("Recado excluído com sucesso!");
+            } catch(e) { window.showToast("Erro ao excluir recado.", true); }
+        });
+    };
+
+    window.deleteGuest = (id) => {
+        window.openDeleteModal("Deseja realmente excluir este convidado da lista oficial?", async () => {
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'guests', id));
+                window.showToast("Convidado excluído com sucesso!");
+            } catch(e) { window.showToast("Erro ao excluir convidado.", true); }
+        });
+    };
+
+    window.deleteContribution = (id) => {
+        window.openDeleteModal("Deseja realmente excluir esta contribuição Pix?", async () => {
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'contributions', id));
+                window.showToast("Contribuição excluída com sucesso!");
+            } catch(e) { window.showToast("Erro ao excluir contribuição.", true); }
+        });
+    };
+
     document.getElementById('form-add-timeline').addEventListener('submit', async (e) => {
         e.preventDefault();
         const editId = document.getElementById('edit-timeline-id').value;
@@ -109,9 +162,9 @@ export function initAdmin() {
 
     document.getElementById('form-add-gallery').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const obj = { instagramUrl: document.getElementById('gal-instagram').value.trim() };
+        const instagramUrl = document.getElementById('gal-instagram').value.trim();
         window.closeAddGalleryModal(); e.target.reset();
-        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gallery'), obj);
+        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gallery'), { instagramUrl });
         window.showToast("Post adicionado com sucesso!");
     });
 
@@ -129,7 +182,7 @@ export function initAdmin() {
         window.closeAddGuestModal();
         const obj = { mainName, companions };
         if (editId) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'guests', editId), obj);
-        else { obj.status = 'confirmed'; await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'guests'), obj); }
+        else { obj.status = 'pending'; await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'guests'), obj); }
         window.showToast("Convidado salvo!");
     });
 }
@@ -139,7 +192,7 @@ export function renderAdmin() {
     state.guests.forEach(g => {
         const groupSize = 1 + (g.companions ? g.companions.length : 0);
         totalGenerated += groupSize;
-        if (g.status === 'confirmed' || !g.status) totalConfirmed += groupSize;
+        if (g.status === 'confirmed') totalConfirmed += groupSize;
     });
     document.getElementById('stat-total-guests').innerText = totalGenerated;
     document.getElementById('stat-confirmed-guests').innerText = totalConfirmed;
@@ -148,9 +201,9 @@ export function renderAdmin() {
         <tr>
             <td class="py-3 font-bold text-red-600">${escapeHTML(t.tag)}</td>
             <td class="py-3"><b class="text-stone-900">${escapeHTML(t.title)}</b><p class="text-xs text-stone-500 truncate max-w-xs">${escapeHTML(t.text)}</p></td>
-            <td class="py-3 flex gap-2">
-                <button onclick="window.openAddTimelineModal('${t.id}')" class="text-blue-600 font-bold text-xs cursor-pointer">Editar</button>
-                <button onclick="window.deleteTimeline('${t.id}')" class="text-red-500 font-bold text-xs cursor-pointer">Excluir</button>
+            <td class="py-3 flex gap-3">
+                <button type="button" onclick="window.openAddTimelineModal('${t.id}')" class="text-blue-600 font-bold text-xs cursor-pointer">Editar</button>
+                <button type="button" onclick="window.deleteTimeline('${t.id}')" class="text-red-500 font-bold text-xs cursor-pointer">Excluir</button>
             </td>
         </tr>
     `).join('');
@@ -158,7 +211,7 @@ export function renderAdmin() {
     document.getElementById('admin-gallery-grid').innerHTML = state.gallery.map(g => `
         <div class="bg-white rounded-2xl border border-stone-200 p-3 flex flex-col justify-between shadow-xs">
             <a href="${escapeHTML(g.instagramUrl)}" target="_blank" class="text-xs text-pink-600 underline truncate block font-medium mb-2">${escapeHTML(g.instagramUrl)}</a>
-            <button onclick="window.deleteGalleryPhoto('${g.id}')" class="w-full py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors">Excluir Post</button>
+            <button type="button" onclick="window.deleteGalleryPhoto('${g.id}')" class="w-full py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors">Excluir Post</button>
         </div>
     `).join('');
 
@@ -167,23 +220,25 @@ export function renderAdmin() {
             <td class="py-3 font-bold">${escapeHTML(m.author)}</td>
             <td class="py-3 text-xs truncate max-w-xs">${escapeHTML(m.text)}</td>
             <td class="py-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${m.hidden ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">${m.hidden ? 'Oculto' : 'Visível'}</span></td>
-            <td class="py-3 flex gap-2">
-                <button onclick="window.toggleMessageVisibility('${m.id}', ${!!m.hidden})" class="text-amber-600 font-bold text-xs cursor-pointer">${m.hidden ? 'Exibir' : 'Ocultar'}</button>
-                <button onclick="window.deleteMessage('${m.id}')" class="text-red-500 font-bold text-xs cursor-pointer">Excluir</button>
+            <td class="py-3 flex gap-3">
+                <button type="button" onclick="window.toggleMessageVisibility('${m.id}', ${!!m.hidden})" class="text-amber-600 font-bold text-xs cursor-pointer">${m.hidden ? 'Exibir' : 'Ocultar'}</button>
+                <button type="button" onclick="window.deleteMessage('${m.id}')" class="text-red-500 font-bold text-xs cursor-pointer">Excluir</button>
             </td>
         </tr>
     `).join('');
 
     document.getElementById('admin-guests-list').innerHTML = state.guests.map(g => {
         const compStr = (g.companions || []).map(c => `${escapeHTML(c.name)} (${c.age}a)`).join(', ') || 'Nenhum';
+        const stClass = g.status === 'confirmed' ? 'bg-emerald-100 text-emerald-700' : (g.status === 'declined' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-800');
+        const stText = g.status === 'confirmed' ? 'Confirmado' : (g.status === 'declined' ? 'Ausente' : 'Pendente');
         return `
             <tr>
                 <td class="py-3 font-bold">${escapeHTML(g.mainName)}</td>
                 <td class="py-3 text-xs">${compStr}</td>
-                <td class="py-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${g.status === 'declined' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}">${g.status === 'declined' ? 'Ausente' : 'Confirmado'}</span></td>
-                <td class="py-3 flex gap-2">
-                    <button onclick="window.openAddGuestModal('${g.id}')" class="text-blue-600 font-bold text-xs cursor-pointer">Editar</button>
-                    <button onclick="window.deleteGuest('${g.id}')" class="text-red-500 font-bold text-xs cursor-pointer">Excluir</button>
+                <td class="py-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${stClass}">${stText}</span></td>
+                <td class="py-3 flex gap-3">
+                    <button type="button" onclick="window.openAddGuestModal('${g.id}')" class="text-blue-600 font-bold text-xs cursor-pointer">Editar</button>
+                    <button type="button" onclick="window.deleteGuest('${g.id}')" class="text-red-500 font-bold text-xs cursor-pointer">Excluir</button>
                 </td>
             </tr>
         `;
@@ -195,8 +250,8 @@ export function renderAdmin() {
             <td class="py-3 font-bold text-emerald-600">R$ ${parseFloat(c.amount).toFixed(2)}</td>
             <td class="py-3 text-xs">${escapeHTML(c.giftTitle)}</td>
             <td class="py-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${c.status === 'approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${c.status === 'approved' ? 'Aprovado' : 'Pendente'}</span></td>
-            <td class="py-3 flex gap-2">
-                <button onclick="window.deleteContribution('${c.id}')" class="text-red-500 font-bold text-xs cursor-pointer">Excluir</button>
+            <td class="py-3 flex gap-3">
+                <button type="button" onclick="window.deleteContribution('${c.id}')" class="text-red-500 font-bold text-xs cursor-pointer">Excluir</button>
             </td>
         </tr>
     `).join('');
