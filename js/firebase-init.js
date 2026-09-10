@@ -186,7 +186,6 @@ window.switchTab = (tabId) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
-// Global Admin Authentication Handlers
 window.openAdminModal = () => {
     if (auth.currentUser && state.isAdminLoggedIn) { window.switchTab('admin'); renderAdmin(); return; }
     document.getElementById('modal-admin-login').style.display = 'flex';
@@ -230,9 +229,10 @@ window.adminLogout = async () => {
     window.showToast("Sessão encerrada com segurança.");
 };
 
-// Render Gifts & Mural locally
 const renderGifts = () => {
-    document.getElementById('gifts-container').innerHTML = state.gifts.map(g => {
+    const container = document.getElementById('gifts-container');
+    if (!container) return;
+    container.innerHTML = state.gifts.map(g => {
         const approvedContribs = state.contributions.filter(c => c.giftId === g.id && c.status === 'approved');
         const cur = approvedContribs.reduce((acc, c) => acc + (parseFloat(c.amount) || 0), 0);
         const tot = g.totalAmount || 1;
@@ -287,25 +287,26 @@ const renderMural = () => {
     }).join('');
 };
 
-document.getElementById('form-mural').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const msgObj = {
-        author: document.getElementById('mural-author').value.trim(),
-        relation: document.getElementById('mural-relation').value.trim() || 'Convidado(a)',
-        text: document.getElementById('mural-text').value.trim(),
-        color: document.querySelector('input[name="postit-color"]:checked')?.value || 'yellow',
-        hidden: false,
-        timestamp: new Date().toISOString()
-    };
-    e.target.reset();
-    try {
-        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), msgObj);
-        window.showToast("Post-it fixado no mural!");
-        sendWhatsAppAlert(`📌 Novo Recado no Mural!\nAutor: ${msgObj.author}\nMensagem: "${msgObj.text}"`);
-    } catch(err) { window.showToast("Erro ao fixar recado.", true); }
+document.addEventListener('submit', async (e) => {
+    if (e.target && e.target.id === 'form-mural') {
+        e.preventDefault();
+        const msgObj = {
+            author: document.getElementById('mural-author').value.trim(),
+            relation: document.getElementById('mural-relation').value.trim() || 'Convidado(a)',
+            text: document.getElementById('mural-text').value.trim(),
+            color: document.querySelector('input[name="postit-color"]:checked')?.value || 'yellow',
+            hidden: false,
+            timestamp: new Date().toISOString()
+        };
+        e.target.reset();
+        try {
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), msgObj);
+            window.showToast("Post-it fixado no mural!");
+            sendWhatsAppAlert(`📌 Novo Recado no Mural!\nAutor: ${msgObj.author}\nMensagem: "${msgObj.text}"`);
+        } catch(err) { window.showToast("Erro ao fixar recado.", true); }
+    }
 });
 
-// Three.js Background Animation
 let threeScene = null, threeCamera = null, threeRenderer = null, heartMeshGroup = [];
 const createScene = () => {
     const canvas = document.getElementById('canvas-3d-bg');
@@ -340,7 +341,6 @@ const createScene = () => {
     animate();
 };
 
-// Firestore Realtime Listeners & Init
 const startFirebase = async () => {
     onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -393,20 +393,25 @@ const startFirebase = async () => {
 };
 
 const updateSiteContent = () => {
-    document.getElementById('hero-names').innerText = state.settings.names;
-    document.getElementById('hero-location').innerText = state.settings.location;
-    document.getElementById('hero-maps-link').href = state.settings.maps || "#";
-    if (state.settings.homepageImg) document.getElementById('homepage-couple-img').src = state.settings.homepageImg;
+    const elNames = document.getElementById('hero-names');
+    const elLoc = document.getElementById('hero-location');
+    const elMaps = document.getElementById('hero-maps-link');
+    const elImg = document.getElementById('homepage-couple-img');
+    const elDate = document.getElementById('hero-date');
+
+    if (elNames) elNames.innerText = state.settings.names;
+    if (elLoc) elLoc.innerText = state.settings.location;
+    if (elMaps) elMaps.href = state.settings.maps || "#";
+    if (elImg && state.settings.homepageImg) elImg.src = state.settings.homepageImg;
     
-    if (state.settings.date) {
+    if (state.settings.date && elDate) {
         const dateObj = new Date(state.settings.date);
         if (!isNaN(dateObj.getTime())) {
-            document.getElementById('hero-date').innerText = dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            elDate.innerText = dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
         }
     }
 };
 
-// RSVP Autocomplete & Interaction Logic
 document.addEventListener('DOMContentLoaded', () => {
     renderGifts();
     renderGallery();
@@ -421,14 +426,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const rsvpSuggestions = document.getElementById('rsvp-suggestions');
     const rsvpDetails = document.getElementById('rsvp-details-card');
 
-    if (rsvpInput) {
+    if (rsvpInput && rsvpSuggestions) {
         rsvpInput.addEventListener('input', (e) => {
             const query = e.target.value.trim().toLowerCase();
             if (query.length < 2) {
                 rsvpSuggestions.classList.add('hidden');
                 return;
             }
-            const matches = state.guests.filter(g => g.mainName.toLowerCase().includes(query));
+            const matches = state.guests.filter(g => g.mainName && g.mainName.toLowerCase().includes(query));
             if (!matches.length) {
                 rsvpSuggestions.innerHTML = `<div class="p-3 text-xs text-stone-400">Nenhum convidado encontrado.</div>`;
                 rsvpSuggestions.classList.remove('hidden');
@@ -471,15 +476,18 @@ window.setAttendanceStatus = async (status) => {
         sendWhatsAppAlert(`📋 Atualização de RSVP!\nConvidado: ${state.selectedRsvpGuest.mainName}\nStatus: ${status ? 'CONFIRMADO ✅' : 'AUSENTE ❌'}`);
         document.getElementById('rsvp-details-card').classList.add('hidden');
         document.getElementById('rsvp-search-input').value = '';
+        state.selectedRsvpGuest = null;
     } catch(err) {
         window.showToast("Erro ao atualizar RSVP.", true);
     }
 };
 
 setInterval(() => {
+    if (!state.settings.date) return;
     const diff = new Date(state.settings.date).getTime() - new Date().getTime();
-    if (diff > 0) {
+    const countdownEl = document.getElementById('countdown');
+    if (diff > 0 && countdownEl) {
         const d = Math.floor(diff / (1000 * 60 * 60 * 24)), h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)), m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)), s = Math.floor((diff % (1000 * 60)) / 1000);
-        document.getElementById('countdown').innerHTML = `<div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(d).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Dias</span></div><div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(h).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Horas</span></div><div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(m).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Min</span></div><div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(s).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Seg</span></div>`;
+        countdownEl.innerHTML = `<div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(d).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Dias</span></div><div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(h).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Horas</span></div><div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(m).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Min</span></div><div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(s).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Seg</span></div>`;
     }
 }, 1000);
