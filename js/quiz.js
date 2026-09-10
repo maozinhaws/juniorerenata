@@ -4,7 +4,6 @@ import { collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/fi
 export function initQuiz() {
     const quizInput = document.getElementById('quiz-guest-name');
     
-    // Cria container flutuante de sugestões para o Quiz caso não exista no HTML
     if (quizInput && !document.getElementById('quiz-suggestions')) {
         const sug = document.createElement('div');
         sug.id = 'quiz-suggestions';
@@ -17,11 +16,12 @@ export function initQuiz() {
         quizInput.addEventListener('input', (e) => {
             const query = e.target.value.trim().toLowerCase();
             const sugBox = document.getElementById('quiz-suggestions');
+            if (!sugBox) return;
             if (query.length < 2) {
                 sugBox.classList.add('hidden');
                 return;
             }
-            const matches = state.guests.filter(g => g.mainName.toLowerCase().includes(query));
+            const matches = state.guests.filter(g => g.mainName && g.mainName.toLowerCase().includes(query));
             if (!matches.length) {
                 sugBox.innerHTML = `<div class="p-3 text-xs text-stone-400">Convidado não encontrado na lista.</div>`;
                 sugBox.classList.remove('hidden');
@@ -35,19 +35,22 @@ export function initQuiz() {
             sugBox.classList.remove('hidden');
         });
 
-        document.getElementById('quiz-suggestions')?.addEventListener('click', (e) => {
-            const item = e.target.closest('[data-quiz-guest-name]');
-            if (!item) return;
-            quizInput.value = item.dataset.quizGuestName;
-            document.getElementById('quiz-suggestions').classList.add('hidden');
-        });
+        const sugBox = document.getElementById('quiz-suggestions');
+        if (sugBox) {
+            sugBox.addEventListener('click', (e) => {
+                const item = e.target.closest('[data-quiz-guest-name]');
+                if (!item) return;
+                quizInput.value = item.dataset.quizGuestName;
+                sugBox.classList.add('hidden');
+            });
+        }
     }
 
     window.startCoupleQuiz = () => {
         const nameInput = document.getElementById('quiz-guest-name').value.trim().toLowerCase();
         if (!nameInput) return window.showToast("Digite seu nome para iniciar!", true);
 
-        const found = state.guests.find(g => g.mainName.toLowerCase().includes(nameInput));
+        const found = state.guests.find(g => g.mainName && g.mainName.toLowerCase().includes(nameInput));
         if (!found) return window.showToast("Nome não encontrado na lista oficial de convidados!", true);
 
         state.activeQuizGuest = found;
