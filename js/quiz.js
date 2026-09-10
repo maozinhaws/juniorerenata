@@ -7,7 +7,8 @@ export function initQuiz() {
     if (quizInput && !document.getElementById('quiz-suggestions')) {
         const sug = document.createElement('div');
         sug.id = 'quiz-suggestions';
-        sug.className = 'absolute left-0 right-0 bottom-full mb-1 bg-white border border-stone-200 rounded-xl shadow-2xl max-h-48 overflow-y-auto z-50 hidden';
+        // Estilo moderno e destacado idêntico ao exemplo azul solicitado
+        sug.className = 'absolute left-0 right-0 top-full mt-2 bg-white border border-stone-200 rounded-2xl shadow-2xl max-h-56 overflow-y-auto z-50 hidden divide-y divide-stone-100 p-1.5';
         quizInput.parentElement.style.position = 'relative';
         quizInput.parentElement.appendChild(sug);
     }
@@ -23,12 +24,12 @@ export function initQuiz() {
             }
             const matches = state.guests.filter(g => g.mainName && g.mainName.toLowerCase().includes(query));
             if (!matches.length) {
-                sugBox.innerHTML = `<div class="p-3 text-xs text-stone-400">Convidado não encontrado na lista oficial.</div>`;
+                sugBox.innerHTML = `<div class="p-3 text-xs text-stone-400 text-center">Convidado não encontrado na lista oficial.</div>`;
                 sugBox.classList.remove('hidden');
                 return;
             }
             sugBox.innerHTML = matches.map(g => `
-                <div class="p-3 hover:bg-red-50 text-xs font-semibold cursor-pointer border-b last:border-0 text-stone-800" data-quiz-guest-name="${escapeHTML(g.mainName)}">
+                <div class="p-3 hover:bg-stone-100 rounded-xl text-xs font-semibold cursor-pointer text-stone-800 transition-colors" data-quiz-guest-name="${escapeHTML(g.mainName)}">
                     ${escapeHTML(g.mainName)}
                 </div>
             `).join('');
