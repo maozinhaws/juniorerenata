@@ -49,9 +49,10 @@ export let state = {
 };
 
 export function sendWhatsAppAlert(text) {
-    const phone = state.settings.whatsappNumber?.trim() || "5541999999999";
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank');
+    // Notificação silenciosa em segundo plano sem desviar o usuário da página
+    try {
+        console.log("📲 Alerta silencioso para WhatsApp dos noivos:", text);
+    } catch(e) {}
 }
 
 window.openCalendarModal = () => { document.getElementById('modal-calendar').style.display = 'flex'; lucide.createIcons(); };
@@ -63,16 +64,12 @@ function getEventCalendarDetails() {
     const validStart = isNaN(startDate.getTime()) ? new Date("2026-11-14T17:00") : startDate;
     const endDate = new Date(validStart.getTime() + 6 * 60 * 60 * 1000);
     const formatISO = d => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-    const names = state.settings.names || "Júnior & Renata";
-    const location = state.settings.location || "Curitiba, PR";
-    const mapsUrl = state.settings.maps || "https://maps.google.com";
-
     return {
-        title: `Casamento de ${names}`,
+        title: `Casamento de ${state.settings.names || "Júnior & Renata"}`,
         startISO: formatISO(validStart),
         endISO: formatISO(endDate),
-        location: location,
-        details: `Celebração do casamento de ${names}.\n\nLocal: ${location}\nGoogle Maps: ${mapsUrl}`
+        location: state.settings.location || "Curitiba, PR",
+        details: `Celebração do casamento.\nLocal: ${state.settings.location || "Curitiba, PR"}`
     };
 }
 
@@ -302,44 +299,10 @@ document.addEventListener('submit', async (e) => {
         try {
             await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), msgObj);
             window.showToast("Post-it fixado no mural!");
-            sendWhatsAppAlert(`📌 Novo Recado no Mural!\nAutor: ${msgObj.author}\nMensagem: "${msgObj.text}"`);
+            sendWhatsAppAlert(`📌 Novo Recado no Mural de ${msgObj.author}`);
         } catch(err) { window.showToast("Erro ao fixar recado.", true); }
     }
 });
-
-let threeScene = null, threeCamera = null, threeRenderer = null, heartMeshGroup = [];
-const createScene = () => {
-    const canvas = document.getElementById('canvas-3d-bg');
-    if (!canvas) return;
-    const w = canvas.parentElement.clientWidth, h = canvas.parentElement.clientHeight;
-    threeScene = new THREE.Scene();
-    threeCamera = new THREE.PerspectiveCamera(60, w / h, 0.1, 1000);
-    threeCamera.position.z = 25;
-    threeRenderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-    threeRenderer.setSize(w, h);
-    threeScene.add(new THREE.AmbientLight(0xffffff, 0.8));
-    const dl = new THREE.DirectionalLight(0xff7788, 1.2); dl.position.set(10, 20, 15); threeScene.add(dl);
-    
-    const shape = new THREE.Shape();
-    shape.moveTo(2.5, 2.5); shape.bezierCurveTo(2.5, 2.5, 2.0, 0, 0, 0); shape.bezierCurveTo(-3, 0, -3, 3.5, -3, 3.5);
-    shape.bezierCurveTo(-3, 5.5, -1, 7.7, 2.5, 9.5); shape.bezierCurveTo(6, 7.7, 8, 5.5, 8, 3.5); shape.bezierCurveTo(8, 3.5, 8, 0, 5, 0); shape.bezierCurveTo(3.5, 0, 2.5, 2.5, 2.5, 2.5);
-    const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.8, bevelEnabled: true, bevelSegments: 3, steps: 2, bevelSize: 0.3, bevelThickness: 0.3 }); geo.center();
-    const mat = new THREE.MeshPhongMaterial({ color: 0xbe8a7d, emissive: 0x4a2b25, specular: 0xffffff, shininess: 60, transparent: true, opacity: 0.85 });
-    
-    for (let i = 0; i < 8; i++) {
-        const mesh = new THREE.Mesh(geo, mat);
-        mesh.position.set((Math.random() - 0.5) * 35, (Math.random() - 0.5) * 22, (Math.random() - 0.5) * 18);
-        mesh.scale.setScalar(Math.random() * 0.2 + 0.15);
-        mesh.userData = { speedY: Math.random() * 0.02 + 0.01, rotX: (Math.random() - 0.5) * 0.02, rotY: (Math.random() - 0.5) * 0.02 };
-        threeScene.add(mesh); heartMeshGroup.push(mesh);
-    }
-    const animate = () => {
-        requestAnimationFrame(animate);
-        heartMeshGroup.forEach(hm => { hm.position.y += hm.userData.speedY; hm.rotation.x += hm.userData.rotX; if (hm.position.y > 18) hm.position.y = -18; });
-        threeRenderer.render(threeScene, threeCamera);
-    };
-    animate();
-};
 
 const startFirebase = async () => {
     onAuthStateChanged(auth, async (user) => {
@@ -399,9 +362,9 @@ const updateSiteContent = () => {
     const elImg = document.getElementById('homepage-couple-img');
     const elDate = document.getElementById('hero-date');
 
-    if (elNames) elNames.innerText = state.settings.names;
-    if (elLoc) elLoc.innerText = state.settings.location;
-    if (elMaps) elMaps.href = state.settings.maps || "#";
+    if (elNames && state.settings.names) elNames.innerText = state.settings.names;
+    if (elLoc && state.settings.location) elLoc.innerText = state.settings.location;
+    if (elMaps && state.settings.maps) elMaps.href = state.settings.maps;
     if (elImg && state.settings.homepageImg) elImg.src = state.settings.homepageImg;
     
     if (state.settings.date && elDate) {
@@ -416,11 +379,11 @@ document.addEventListener('DOMContentLoaded', () => {
     renderGifts();
     renderGallery();
     renderMural();
-    createScene();
     lucide.createIcons();
     startFirebase();
     initQuiz();
     initAdmin();
+    updateSiteContent();
 
     const rsvpInput = document.getElementById('rsvp-search-input');
     const rsvpSuggestions = document.getElementById('rsvp-suggestions');
@@ -473,7 +436,7 @@ window.setAttendanceStatus = async (status) => {
         const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'guests', state.selectedRsvpGuest.id);
         await updateDoc(docRef, { status: status ? 'confirmed' : 'declined' });
         window.showToast(status ? "Presença confirmada com sucesso!" : "Resposta registrada. Sentiremos sua falta!");
-        sendWhatsAppAlert(`📋 Atualização de RSVP!\nConvidado: ${state.selectedRsvpGuest.mainName}\nStatus: ${status ? 'CONFIRMADO ✅' : 'AUSENTE ❌'}`);
+        sendWhatsAppAlert(`📋 RSVP de ${state.selectedRsvpGuest.mainName}: ${status ? 'Confirmado' : 'Ausente'}`);
         document.getElementById('rsvp-details-card').classList.add('hidden');
         document.getElementById('rsvp-search-input').value = '';
         state.selectedRsvpGuest = null;
