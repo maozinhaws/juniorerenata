@@ -7,7 +7,7 @@ export function initQuiz() {
     if (quizInput && !document.getElementById('quiz-suggestions')) {
         const sug = document.createElement('div');
         sug.id = 'quiz-suggestions';
-        // Estilo moderno e destacado idêntico ao exemplo azul solicitado
+        // Estilo elegante idêntico ao modelo azul de referência
         sug.className = 'absolute left-0 right-0 top-full mt-2 bg-white border border-stone-200 rounded-2xl shadow-2xl max-h-56 overflow-y-auto z-50 hidden divide-y divide-stone-100 p-1.5';
         quizInput.parentElement.style.position = 'relative';
         quizInput.parentElement.appendChild(sug);
@@ -49,10 +49,10 @@ export function initQuiz() {
 
     window.startCoupleQuiz = () => {
         const nameInput = document.getElementById('quiz-guest-name').value.trim().toLowerCase();
-        if (!nameInput || nameInput.length < 2) return window.showToast("Digite seu nome completo para iniciar!", true);
+        if (!nameInput || nameInput.length < 2) return window.showToast("Selecione seu nome na lista suspensa!", true);
 
         const found = state.guests.find(g => g.mainName && g.mainName.toLowerCase() === nameInput);
-        if (!found) return window.showToast("Nome exato não encontrado na lista oficial de convidados! Selecione na lista suspensa.", true);
+        if (!found) return window.showToast("Você precisa selecionar um nome válido da lista oficial de convidados!", true);
 
         state.activeQuizGuest = found;
         const alreadyPlayedKey = `wedding_quiz_played_${found.id}`;
@@ -99,7 +99,7 @@ const renderQuizStep = () => {
             </div>
             <div class="space-y-3 pt-2">
                 ${options.map((opt, idx) => `
-                    <button onclick="window.answerQuizStep(${step}, ${idx}, ${q.correct})" class="w-full text-left p-4 rounded-2xl border border-stone-200 hover:border-red-400 hover:bg-red-50 text-sm font-semibold transition-all bg-white shadow-xs cursor-pointer flex items-center justify-between">
+                    <button type="button" onclick="window.answerQuizStep(${step}, ${idx}, ${q.correct})" class="w-full text-left p-4 rounded-2xl border border-stone-200 hover:border-red-400 hover:bg-red-50 text-sm font-semibold transition-all bg-white shadow-xs cursor-pointer flex items-center justify-between">
                         <span class="flex items-center gap-3"><span class="w-7 h-7 rounded-full bg-red-100 text-red-700 text-xs flex items-center justify-center font-bold shrink-0">${['A','B','C','D'][idx]}</span> ${escapeHTML(opt)}</span>
                     </button>
                 `).join('')}
@@ -131,7 +131,7 @@ const finishQuiz = async () => {
             <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto"><i data-lucide="award" class="w-8 h-8"></i></div>
             <h3 class="font-serif text-3xl font-bold text-stone-900">Desafio Concluído!</h3>
             <p class="text-stone-600 text-sm">Você acertou <b class="text-emerald-600">${correctCount} de ${state.timeline.length}</b> perguntas e somou <b class="text-red-600">${score} pontos</b> no ranking!</p>
-            <button onclick="location.reload()" class="py-3 px-6 bg-stone-900 text-white font-bold rounded-xl text-xs cursor-pointer">Ver Ranking Geral</button>
+            <button type="button" onclick="location.reload()" class="py-3 px-6 bg-stone-900 text-white font-bold rounded-xl text-xs cursor-pointer">Ver Ranking Geral</button>
         </div>
     `;
     lucide.createIcons();
