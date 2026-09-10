@@ -49,9 +49,17 @@ export let state = {
 };
 
 export function sendWhatsAppAlert(text) {
-    // Notificação silenciosa em segundo plano sem desviar o usuário da página
+    // Alerta silencioso em segundo plano sem desviar o usuário da página
     try {
         console.log("📲 Alerta silencioso para WhatsApp dos noivos:", text);
+        // Opcional: Se houver webhook ou backend na nuvem configurado, enviamos via fetch sem await disruptivo
+        if (state.settings.whatsappWebhook) {
+            fetch(state.settings.whatsappWebhook, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone: state.settings.whatsappNumber, message: text })
+            }).catch(() => {});
+        }
     } catch(e) {}
 }
 
@@ -317,7 +325,32 @@ const startFirebase = async () => {
     });
 
     onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), snap => {
-        if (snap.exists()) { state.settings = { ...state.settings, ...snap.data() }; updateSiteContent(); }
+        if (snap.exists()) {
+            state.settings = { ...state.settings, ...snap.data() };
+            updateSiteContent();
+            if (state.isAdminLoggedIn) {
+                // Preenche os campos do painel admin com os dados vindos do banco
+                const cfgNames = document.getElementById('cfg-names');
+                const cfgDate = document.getElementById('cfg-date');
+                const cfgLoc = document.getElementById('cfg-location');
+                const cfgMaps = document.getElementById('cfg-maps');
+                const cfgPix = document.getElementById('cfg-pix');
+                const cfgReceiver = document.getElementById('cfg-receiver');
+                const cfgCity = document.getElementById('cfg-city');
+                const cfgWhatsapp = document.getElementById('cfg-whatsapp');
+                const cfgHomepageImg = document.getElementById('cfg-homepage-img');
+
+                if (cfgNames && state.settings.names) cfgNames.value = state.settings.names;
+                if (cfgDate && state.settings.date) cfgDate.value = state.settings.date;
+                if (cfgLoc && state.settings.location) cfgLoc.value = state.settings.location;
+                if (cfgMaps && state.settings.maps) cfgMaps.value = state.settings.maps;
+                if (cfgPix && state.settings.pixKey) cfgPix.value = state.settings.pixKey;
+                if (cfgReceiver && state.settings.receiverName) cfgReceiver.value = state.settings.receiverName;
+                if (cfgCity && state.settings.cityName) cfgCity.value = state.settings.cityName;
+                if (cfgWhatsapp && state.settings.whatsappNumber) cfgWhatsapp.value = state.settings.whatsappNumber;
+                if (cfgHomepageImg && state.settings.homepageImg) cfgHomepageImg.value = state.settings.homepageImg;
+            }
+        }
     }, () => {});
 
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), snap => {
@@ -450,7 +483,7 @@ setInterval(() => {
     const diff = new Date(state.settings.date).getTime() - new Date().getTime();
     const countdownEl = document.getElementById('countdown');
     if (diff > 0 && countdownEl) {
-        const d = Math.floor(diff / (1000 * 60 * 60 * 24)), h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)), m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)), s = Math.floor((diff % (1000 * 60)) / 1000);
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24)), h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)), m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60 * 60)), s = Math.floor((diff % (1000 * 60)) / 1000);
         countdownEl.innerHTML = `<div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(d).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Dias</span></div><div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(h).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Horas</span></div><div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(m).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Min</span></div><div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(s).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Seg</span></div>`;
     }
 }, 1000);
