@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { getStorage } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
 import { initQuiz, renderRanking } from './quiz.js';
 import { renderGallery } from './gallery.js';
@@ -24,7 +23,6 @@ const appId = typeof __app_id !== 'undefined' ? __app_id : 'casamento-junior-ren
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-export const storage = getStorage(app);
 export { appId };
 
 const DEFAULT_GIFTS = [
@@ -46,10 +44,7 @@ export let state = {
         names: "Júnior & Renata", date: "2026-11-14T17:00", location: "Espaço das Flores - Curitiba, PR", maps: "https://maps.google.com", 
         pixKey: "12345678900", receiverName: "Júnior e Renata", cityName: "Curitiba", radioUrl: "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M",
         whatsappNumber: "5541999999999",
-        homepageImg: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80",
-        groomImage: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1800&q=85",
-        brideImage: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1800&q=85",
-        theme: "light"
+        homepageImg: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"
     }
 };
 
@@ -417,9 +412,6 @@ const startFirebase = async () => {
             const cfgCity = document.getElementById('cfg-city');
             const cfgWhatsapp = document.getElementById('cfg-whatsapp');
             const cfgHomepageImg = document.getElementById('cfg-homepage-img');
-            const cfgGroomImg = document.getElementById('cfg-groom-img');
-            const cfgBrideImg = document.getElementById('cfg-bride-img');
-            const cfgTheme = document.getElementById('cfg-theme');
 
             if (cfgNames && state.settings.names) cfgNames.value = state.settings.names;
             if (cfgDate && state.settings.date) cfgDate.value = state.settings.date;
@@ -430,9 +422,6 @@ const startFirebase = async () => {
             if (cfgCity && state.settings.cityName) cfgCity.value = state.settings.cityName;
             if (cfgWhatsapp && state.settings.whatsappNumber) cfgWhatsapp.value = state.settings.whatsappNumber;
             if (cfgHomepageImg && state.settings.homepageImg) cfgHomepageImg.value = state.settings.homepageImg;
-            if (cfgGroomImg && state.settings.groomImage) cfgGroomImg.value = state.settings.groomImage;
-            if (cfgBrideImg && state.settings.brideImage) cfgBrideImg.value = state.settings.brideImage;
-            if (cfgTheme) cfgTheme.value = state.settings.theme || 'light';
         }
     }, () => {});
 
@@ -475,16 +464,11 @@ const updateSiteContent = () => {
     const elMaps = document.getElementById('hero-maps-link');
     const elImg = document.getElementById('homepage-couple-img');
     const elDate = document.getElementById('hero-date');
-    const welcomeBase = document.getElementById('welcome-base');
-    const welcomeReveal = document.getElementById('welcome-reveal');
 
     if (elNames && state.settings.names) elNames.innerText = state.settings.names;
     if (elLoc && state.settings.location) elLoc.innerText = state.settings.location;
     if (elMaps && state.settings.maps) elMaps.href = state.settings.maps;
     if (elImg && state.settings.homepageImg) elImg.src = state.settings.homepageImg;
-    if (welcomeBase && state.settings.groomImage) welcomeBase.style.backgroundImage = `url("${state.settings.groomImage}")`;
-    if (welcomeReveal && state.settings.brideImage) welcomeReveal.style.backgroundImage = `url("${state.settings.brideImage}")`;
-    document.body.dataset.theme = state.settings.theme || 'light';
     
     if (state.settings.date && elDate) {
         const dateObj = new Date(state.settings.date);
@@ -503,7 +487,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initQuiz();
     initAdmin();
     updateSiteContent();
-    initWeddingWelcome();
 
     const rsvpInput = document.getElementById('rsvp-search-input');
     const rsvpSuggestions = document.getElementById('rsvp-suggestions');
@@ -549,42 +532,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-
-function initWeddingWelcome() {
-    const welcome = document.getElementById('wedding-welcome');
-    const base = document.getElementById('welcome-base');
-    const reveal = document.getElementById('welcome-reveal');
-    if (!welcome || !base || !reveal) return;
-    const picker = document.getElementById('welcome-picker');
-    const label = document.getElementById('welcome-team-label');
-    let active = false;
-    const setMask = (x, y) => {
-        if (!active) return;
-        const rect = reveal.getBoundingClientRect();
-        const radius = Math.max(125, Math.min(330, window.innerWidth * .28));
-        const mask = `radial-gradient(circle ${radius}px at ${x - rect.left}px ${y - rect.top}px, #000 0%, #000 40%, rgba(0,0,0,.8) 61%, rgba(0,0,0,.25) 82%, transparent 100%)`;
-        reveal.style.webkitMaskImage = mask;
-        reveal.style.maskImage = mask;
-    };
-    const choose = (team) => {
-        active = true;
-        const groom = state.settings.groomImage || state.settings.homepageImg;
-        const bride = state.settings.brideImage || state.settings.homepageImg;
-        base.style.backgroundImage = `url("${team === 'bride' ? bride : groom}")`;
-        reveal.style.backgroundImage = `url("${team === 'bride' ? groom : bride}")`;
-        label.textContent = team === 'bride' ? 'Você escolheu o time da noiva' : 'Você escolheu o time do noivo';
-        welcome.classList.add('is-revealing');
-        setMask(window.innerWidth / 2, window.innerHeight / 2);
-    };
-    welcome.querySelectorAll('[data-wedding-team]').forEach(button => button.addEventListener('click', () => choose(button.dataset.weddingTeam)));
-    const move = event => { const point = event.touches ? event.touches[0] : event; if (point) setMask(point.clientX, point.clientY); };
-    welcome.addEventListener('pointermove', move, { passive:true });
-    welcome.addEventListener('touchstart', move, { passive:false });
-    welcome.addEventListener('touchmove', event => { event.preventDefault(); move(event); }, { passive:false });
-    document.getElementById('welcome-change')?.addEventListener('click', () => { active = false; welcome.classList.remove('is-revealing'); reveal.style.webkitMaskImage = 'radial-gradient(circle 0 at -100px -100px,#000,transparent)'; reveal.style.maskImage = 'radial-gradient(circle 0 at -100px -100px,#000,transparent)'; picker?.removeAttribute('aria-hidden'); });
-    document.getElementById('welcome-enter')?.addEventListener('click', () => { welcome.classList.add('is-leaving'); document.body.style.overflow = ''; });
-    document.getElementById('theme-toggle')?.addEventListener('click', () => { const next = document.body.dataset.theme === 'dark' ? 'light' : 'dark'; document.body.dataset.theme = next; state.settings.theme = next; });
-}
 
 window.setAttendanceStatus = async (status) => {
     if (!state.selectedRsvpGuest) return;

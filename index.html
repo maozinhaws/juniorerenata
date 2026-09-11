@@ -19,28 +19,6 @@
     <link rel="stylesheet" href="./css/style.css">
 </head>
 <body class="bg-red-50 text-stone-800 pb-28 selection:bg-red-200 flex min-h-screen relative overflow-x-hidden">
-    <section id="wedding-welcome" class="wedding-welcome" aria-labelledby="welcome-title">
-        <div id="welcome-base" class="welcome-photo welcome-photo-base" aria-hidden="true"></div>
-        <div id="welcome-reveal" class="welcome-photo welcome-photo-reveal" aria-hidden="true"></div>
-        <div class="welcome-vignette" aria-hidden="true"></div>
-        <div class="welcome-brand">Júnior <span>&</span> Renata</div>
-        <div id="welcome-picker" class="welcome-picker">
-            <p class="welcome-kicker">Antes de entrar</p>
-            <h1 id="welcome-title">Você é do<br>time de quem?</h1>
-            <p class="welcome-intro">Escolha um lado. A outra metade dessa história se revela no seu caminho.</p>
-            <div class="welcome-choices" role="group" aria-label="Escolha um time">
-                <button class="welcome-choice" type="button" data-wedding-team="groom"><span>Eu torço pelo</span><strong>Time Noivo</strong></button>
-                <button class="welcome-choice" type="button" data-wedding-team="bride"><span>Eu torço pela</span><strong>Time Noiva</strong></button>
-            </div>
-        </div>
-        <div id="welcome-reveal-copy" class="welcome-reveal-copy" aria-live="polite">
-            <p id="welcome-team-label" class="welcome-kicker">Você escolheu um lado</p>
-            <h2>Todo futuro bonito<br>começa em dois.</h2>
-            <p>Passe o cursor ou deslize o dedo para revelar quem caminha ao seu lado.</p>
-            <button id="welcome-enter" type="button">Entrar na nossa história <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
-        </div>
-        <button id="welcome-change" class="welcome-change" type="button">Trocar de time</button>
-    </section>
 
     <div id="wix-admin-bar" class="hidden fixed top-0 left-0 right-0 z-[99999] bg-stone-900 text-white px-4 py-2.5 shadow-2xl flex items-center justify-between border-b border-red-600">
         <div class="flex items-center gap-3">
@@ -102,7 +80,6 @@
             <audio id="audio-player" loop></audio>
         </div>
     </div>
-    <button id="theme-toggle" type="button" class="theme-toggle" aria-label="Alternar tema claro e escuro" title="Alternar tema"><i data-lucide="moon" class="w-4 h-4"></i></button>
 
     <aside id="app-sidebar" class="sidebar-collapsed sidebar-transition fixed top-0 left-0 h-full bg-white/95 backdrop-blur-md border-r border-red-100 shadow-xl z-50 flex flex-col justify-between p-3.5 overflow-x-hidden pt-16">
         <div class="space-y-6">
@@ -386,14 +363,6 @@
                     <div class="md:col-span-2 bg-stone-50 p-4 rounded-2xl border border-stone-200 space-y-2">
                         <label class="block text-xs font-bold text-stone-700 uppercase flex items-center gap-1.5"><i data-lucide="image" class="w-4 h-4 text-red-600"></i> Foto de Perfil da Homepage (Casal)</label>
                         <input type="url" id="cfg-homepage-img" placeholder="https://images.unsplash.com/..." class="w-full p-2.5 border rounded-xl text-xs bg-white"/>
-                    </div>
-                    <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 bg-rose-50/70 p-4 rounded-2xl border border-rose-200">
-                        <div class="space-y-2"><label class="block text-xs font-bold text-rose-900 uppercase">Foto do Noivo para a revelação</label><input type="url" id="cfg-groom-img" placeholder="Cole a URL da foto" class="w-full p-2.5 border rounded-xl text-xs bg-white"/><input type="file" id="cfg-groom-file" accept="image/*" class="w-full text-xs text-stone-600"/><p class="text-[11px] text-stone-500">Use URL ou envie uma imagem (até 10 MB).</p></div>
-                        <div class="space-y-2"><label class="block text-xs font-bold text-rose-900 uppercase">Foto da Noiva para a revelação</label><input type="url" id="cfg-bride-img" placeholder="Cole a URL da foto" class="w-full p-2.5 border rounded-xl text-xs bg-white"/><input type="file" id="cfg-bride-file" accept="image/*" class="w-full text-xs text-stone-600"/><p class="text-[11px] text-stone-500">Prefira fotos com enquadramento semelhante.</p></div>
-                    </div>
-                    <div class="md:col-span-2 bg-stone-50 p-4 rounded-2xl border border-stone-200 flex items-center justify-between gap-4">
-                        <div><label class="block text-xs font-bold text-stone-700 uppercase">Tema do site</label><p class="text-[11px] text-stone-500 mt-1">O visitante também pode alternar o tema pelo botão de lua.</p></div>
-                        <select id="cfg-theme" class="p-2.5 border rounded-xl text-xs bg-white"><option value="light">Claro</option><option value="dark">Escuro</option></select>
                     </div>
                     <div class="md:col-span-2 bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200 space-y-3">
                         <label class="block text-xs font-bold text-emerald-900 uppercase flex items-center gap-1.5"><i data-lucide="music" class="w-4 h-4 text-emerald-600"></i> Link da Playlist ou Música (Spotify)</label>
