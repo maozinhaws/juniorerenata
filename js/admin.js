@@ -1,8 +1,12 @@
 import { db, appId, state } from './firebase-init.js';
-import { setDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { setDoc, doc } from './data-store.js';
+import { validImageSource } from './image-input.js';
 
 export function initAdmin() {
     window.saveAllPanelChanges = async () => {
+        const photo = document.getElementById('cfg-homepage-img');
+        if (photo.dataset.imageBusy) return window.showToast('Aguarde a preparação da foto.', true);
+        if (photo.value && !validImageSource(photo.value) && photo.value !== './assets/wedding/hero-rings.png') return window.showToast('Escolha uma foto. Links de perfil do Instagram não são imagens.', true);
         const saveButton = document.querySelector('[onclick="window.saveAllPanelChanges()"]');
         const previousLabel = saveButton?.innerHTML;
         const nextSettings = {
@@ -16,7 +20,8 @@ export function initAdmin() {
             cityName: document.getElementById('cfg-city')?.value.trim() || 'Curitiba',
             radioUrl: document.getElementById('cfg-radio')?.value.trim() || state.settings.radioUrl,
             whatsappNumber: document.getElementById('cfg-whatsapp')?.value.trim() || state.settings.whatsappNumber,
-            homepageImg: document.getElementById('cfg-homepage-img')?.value.trim() || state.settings.homepageImg
+            homepageImg: document.getElementById('cfg-homepage-img')?.value.trim() || state.settings.homepageImg,
+            heroPosition: document.getElementById('cfg-hero-position').value
         };
         try {
             if (saveButton) {
@@ -42,6 +47,15 @@ export function initAdmin() {
 }
 
 export function renderAdmin() {
+    const select = document.getElementById('mural-invite-guest');
+    if (select) {
+        const selected = select.value;
+        select.replaceChildren(...state.guests.flatMap(guest => [
+            new Option(guest.mainName, guest.id + ':main'),
+            ...(guest.companions || []).map((person, index) => new Option(person.name + ' (acompanhante)', guest.id + ':' + index))
+        ]));
+        if ([...select.options].some(option => option.value === selected)) select.value = selected;
+    }
     let totalGenerated = 0, totalConfirmed = 0;
     state.guests.forEach(g => {
         const groupSize = 1 + (g.companions ? g.companions.length : 0);

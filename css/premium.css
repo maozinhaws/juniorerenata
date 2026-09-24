@@ -1,0 +1,133 @@
+:root { --wine:#713f47; --ink:#302c28; --paper:#f6f2e9; --leaf:#344d43; }
+body { background:var(--paper)!important; color:var(--ink); }
+::selection { background:#ddc1b5; }
+button,a,input,textarea,select { -webkit-tap-highlight-color:transparent; }
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible { outline:3px solid #aa7345; outline-offset:4px; }
+button:disabled { opacity:.55; cursor:wait; }
+[class*="text-red-9"] { color:var(--wine)!important; }
+[class*="bg-red-600"],[class*="bg-red-700"] { background:var(--wine)!important; }
+[class*="border-red-"] { border-color:#e3d8ca!important; }
+[class*="bg-red-100"],[class*="bg-red-50"] { background-color:#f1e8df; }
+#main-content { padding-top:58px; width:calc(100% - 100px); max-width:1600px; }
+#app-sidebar { background:#faf7f0!important; box-shadow:none; border-color:#ddd3c5; }
+.hero-stage { min-height:760px; isolation:isolate; border-radius:8px!important; text-align:left; align-items:flex-start; padding:90px 7% 110px; background:#423e35!important; }
+.hero-stage::before,.hero-stage::after,.hero-stage .wedding-float { display:none; }
+.hero-cover { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center 65%; z-index:-3; animation:coverArrival 1.4s ease-out both; }
+.hero-shade { position:absolute; inset:0; z-index:-2; background:linear-gradient(90deg,rgba(23,28,24,.82),rgba(23,28,24,.40) 55%,rgba(23,28,24,.12)); }
+.hero-stage > .relative { max-width:800px; padding:0; }
+.hero-eyebrow { color:#f6e7cc; font-size:11px; letter-spacing:.24em; font-weight:600; }
+#hero-names { color:#fffaf0!important; font-weight:400; font-size:clamp(3.6rem,7vw,7.5rem); line-height:.98; max-width:720px; margin:28px 0; text-shadow:none; }
+.hero-intro { font-size:clamp(16px,2vw,20px); max-width:460px; color:#eee5d7; line-height:1.8; font-weight:300; }
+.hero-rsvp { margin-top:30px; padding:16px 24px; background:#f4ebdc; color:#342c27; border-radius:3px; font-size:13px; font-weight:700; transition:transform .3s; }
+.hero-rsvp span { margin-left:22px; }
+.hero-rsvp:hover { transform:translateY(-4px); }
+.hero-stage .pt-6 { justify-content:flex-start; gap:10px; }
+.hero-stage .pt-6 > * { border-radius:4px; font-size:11px; box-shadow:none; }
+#tab-home > .glass-card { margin-top:-48px; border-radius:8px; box-shadow:0 12px 30px #4035200c; }
+#countdown > div { background:transparent; border:0; box-shadow:none; border-radius:0; border-right:1px solid #e4d9c8; }
+#countdown > div:last-child { border:0; }
+#countdown span:first-child { color:var(--leaf); font-weight:400; }
+.glass-card { background:#fffcf6; border-color:#e5dbcd; backdrop-filter:none; }
+#quiz-entry-card { background:#344d43; color:#fffaf0; border:0; overflow:visible; }
+#quiz-entry-card h3,#quiz-entry-card p,#quiz-entry-card b { color:#f4ead8!important; }
+#quiz-entry-card > div:first-child { display:none; }
+.intro-hand { display:flex; justify-content:center; height:150px; padding-top:12px; margin-bottom:25px; }
+.intro-hand span { display:block; width:88px; height:125px; padding:12px; background:#f8efdf; color:#713f47; border:1px solid #d6c7ad; border-radius:7px; font:30px var(--font-serif); margin-left:-15px; box-shadow:0 10px 20px #0002; transform:rotate(-13deg); }
+.intro-hand span:nth-child(2) { transform:translateY(-12px) rotate(-4deg); }
+.intro-hand span:nth-child(3) { transform:translateY(-12px) rotate(5deg); color:#344d43; }
+.intro-hand span:nth-child(4) { transform:rotate(14deg); color:#344d43; }
+#quiz-game-container { background:#344d43; border:0; }
+#quiz-game-container h4,#quiz-game-container .tracking-wider { color:#f9f0e0; }
+.wedding-hand { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; padding-top:15px; }
+.wedding-card { min-height:235px; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:35px 20px 20px; border:1px solid #ddcdb3; border-radius:10px; background:#fff9ed; color:#733a45; box-shadow:0 9px 0 #22372f,0 14px 24px #0002; transition:transform .25s,box-shadow .25s; animation:cardDeal .5s both; animation-delay:var(--deal); }
+.suit-2,.suit-3 { color:#344d43; }
+.wedding-card:hover { transform:translateY(-8px) rotate(-1deg); box-shadow:0 15px 0 #22372f,0 22px 30px #0003; }
+.card-corner { position:absolute; top:10px; left:12px; font:22px var(--font-serif); line-height:1; }
+.card-corner small { display:block; font-size:16px; }
+.card-suit { font:52px var(--font-serif); line-height:1.2; margin-bottom:14px; }
+.card-answer { font-size:14px; font-weight:700; line-height:1.5; color:#353028; }
+.card-caption { text-transform:uppercase; letter-spacing:.13em; font-size:9px; margin-top:20px; }
+.quiz-deal { animation:pageReveal .4s both; }
+.team-choice legend { text-align:center; font-size:12px; margin-bottom:12px; }
+.team-choice button { padding:13px 22px; margin:4px; border:1px solid #a8b6a0; border-radius:5px; color:#f4ecd8; }
+.team-choice button[aria-pressed="true"] { background:#f4ecd8; color:#344d43; box-shadow:0 0 0 3px #f4ecd833; }
+.truco-rules { font-size:12px; line-height:1.7; }
+.truco-score { display:flex; justify-content:center; align-items:center; gap:32px; color:#f8edda; text-align:center; }
+.truco-score span { font-size:11px; text-transform:uppercase; letter-spacing:.1em; }
+.truco-score b { display:block; font:48px var(--font-serif); }
+.round-progress { text-align:center; font-size:11px; color:#d0d9c8; margin:12px 0 24px; }
+.question-title { font:30px/1.2 var(--font-serif); text-align:center; }
+.wedding-card:disabled { opacity:1; cursor:default; }
+.chosen-card { outline:3px solid #d9aa67; outline-offset:3px; }
+.correct-card { background:#e4f0da; }
+.correct-label { color:#344d43; font-size:10px; margin-top:8px; }
+.truco-dispute { background:#f4ebda; padding:22px; margin-top:28px; border-radius:10px; text-align:center; animation:cardDeal .3s both; }
+#quiz-game-container .truco-dispute h4 { font:26px/1.3 var(--font-serif); color:#713f47; }
+.truco-dispute p { font-size:13px; margin:12px 0; line-height:1.6; }
+.cpu-avatar { font-size:36px; color:#713f47; }
+.truco-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+.truco-dispute button,.truco-finale button { background:#344d43; padding:12px 15px; color:white; border-radius:5px; font-size:12px; font-weight:700; }
+.truco-dispute .raise-button { background:#713f47; }
+.truco-dispute .fold-button { background:transparent; color:#62564b; border:1px solid #c8bba8; }
+.truco-finale { color:#f8eedc; text-align:center; padding:30px 8px; }
+.truco-finale > span { font-size:64px; }
+.truco-finale h3 { font:36px var(--font-serif); margin:20px 0; }
+.truco-finale p { margin:20px 0; }
+.cork-board { background:none; border:0!important; box-shadow:none; min-height:0; overflow:visible; }
+.memory-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:28px; padding:10px; }
+.memory-note { background:#fffcf4; padding:15px 15px 25px; border:1px solid #dfd2bf; box-shadow:0 12px 25px #30271c0d; transform:rotate(-1.5deg); }
+.memory-note:nth-child(even) { transform:rotate(1.5deg); }
+.memory-note img { width:100%; aspect-ratio:4/3; object-fit:cover; }
+.memory-note p { white-space:pre-wrap; overflow-wrap:anywhere; font:25px/1.35 var(--font-handwriting); margin:20px 4px; }
+.memory-note footer { font-size:11px; text-transform:uppercase; letter-spacing:.12em; }
+.memory-heart { display:block; font:70px var(--font-serif); color:var(--wine); text-align:center; }
+.empty-memory { grid-column:1/-1; text-align:center; padding:50px 10px; color:#797163; }
+#postit-color-picker,#form-mural > div.flex { display:none; }
+.photo-editor { border:1px dashed #bcad98; border-radius:10px; background:#f7f1e6; padding:15px; margin-top:10px; }
+.upload-choice { display:block; font-size:12px; font-weight:700; color:#344d43; }
+.upload-choice input { display:block; width:100%; margin-top:12px; font-size:12px; }
+.photo-editor p { font-size:11px; line-height:1.6; margin-top:8px; color:#6b6155; }
+.photo-editor img { max-height:180px; width:100%; object-fit:contain; margin-top:12px; }
+.photo-editor img[hidden] { display:none; }
+.photo-editor .photo-error { color:#713f47; }
+.invite-panel,.moderation-panel { padding:25px; background:#fffaf2; border:1px solid #ddd1bf; border-radius:12px; margin:20px 0; }
+.invite-panel h3,.moderation-panel h3 { font:28px var(--font-serif); margin-bottom:16px; }
+.invite-panel select { display:block; padding:12px; width:100%; margin:10px 0; border:1px solid #ddd1bf; }
+.invite-panel button,.moderation-note button { padding:10px 16px; background:var(--leaf); color:white; border-radius:5px; margin:8px 8px 8px 0; font-size:12px; }
+.invite-panel p { font-size:12px; margin:12px 0; overflow-wrap:anywhere; }
+.moderation-note { border-top:1px solid #ddd1bf; padding:20px 0; }
+.moderation-note img { max-width:240px; max-height:200px; }
+.moderation-note p { white-space:pre-wrap; overflow-wrap:anywhere; margin:10px 0; }
+.preview-banner { position:fixed; top:0; left:0; right:0; background:#e6ddca; color:#403b32; padding:6px 12px; font-size:10px; text-align:center; z-index:100001; }
+#wix-admin-bar { top:27px; }
+[id^="modal-"] { overflow-y:auto; }
+[id^="modal-"] > div { max-height:90vh; overflow-y:auto; }
+@keyframes coverArrival { from { transform:scale(1.05); opacity:.5; } to { transform:scale(1); opacity:1; } }
+@keyframes cardDeal { from { opacity:0; transform:translateY(24px) rotate(5deg); } to { opacity:1; transform:translateY(0) rotate(0); } }
+@media(max-width:700px) {
+ #main-content { margin-left:0!important; width:100%; padding:44px 14px 100px; }
+ #app-sidebar { top:auto; bottom:0; height:65px; width:100%!important; padding:8px; flex-direction:row; border-top:1px solid #ddd3c5; border-right:0; }
+ #app-sidebar > div:first-child { flex:1; }
+ #app-sidebar > div:first-child > div { display:none; }
+ #app-sidebar nav { display:flex; justify-content:space-around; margin:0; }
+ #app-sidebar nav button { width:auto; padding:10px; margin:0; }
+ #app-sidebar nav button span,#app-sidebar > div:last-child span { display:none; }
+ #app-sidebar > div:last-child { padding:0; border:0; }
+ #app-sidebar > div:last-child button { padding:10px; }
+ #music-dock { bottom:80px; left:16px!important; }
+ #music-dock > div:last-child { padding:7px; }
+ #music-dock > div:last-child > div { display:none; }
+ .hero-stage { min-height:720px; padding:75px 25px 80px; }
+ .hero-shade { background:linear-gradient(180deg,#17201977,#172019bb); }
+ #hero-names { font-size:64px; }
+ .hero-intro { font-size:16px; }
+ .hero-stage .pt-6 { flex-direction:column; align-items:flex-start; }
+ #tab-home > .glass-card { margin: -30px 12px 0; padding:24px 12px; }
+ .wedding-hand { gap:12px; }
+ .wedding-card { min-height:225px; padding:38px 10px 16px; }
+ #quiz-game-container { padding:20px 12px; }
+ .card-answer { font-size:12px; }
+ #wix-admin-bar { padding:7px; }
+ #wix-admin-bar > div:first-child { display:none; }
+}
+@media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }

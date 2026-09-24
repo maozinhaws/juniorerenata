@@ -17,6 +17,7 @@
     
     <!-- Custom Modular CSS -->
     <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/premium.css">
 </head>
 <body class="bg-red-50 text-stone-800 pb-28 selection:bg-red-200 flex min-h-screen relative overflow-x-hidden">
 
@@ -70,7 +71,7 @@
         </div>
 
         <div class="bg-white/95 backdrop-blur-md p-2.5 rounded-full shadow-xl border border-red-200 flex items-center gap-3">
-            <button id="music-btn" data-action="toggle-music" class="w-10 h-10 bg-emerald-500 hover:bg-emerald-600 text-stone-950 font-bold rounded-full flex items-center justify-center shadow-md transition-all cursor-pointer">
+            <button aria-label="Abrir música dos noivos" id="music-btn" data-action="toggle-music" class="w-10 h-10 bg-emerald-500 hover:bg-emerald-600 text-stone-950 font-bold rounded-full flex items-center justify-center shadow-md transition-all cursor-pointer">
                 <i id="music-icon" data-lucide="music-2" class="w-5 h-5"></i>
             </button>
             <div class="pr-3 flex flex-col cursor-pointer" data-action="toggle-music">
@@ -90,27 +91,27 @@
             </div>
 
             <nav class="space-y-1.5 font-medium text-sm text-stone-600">
-                <button data-tab="home" class="sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all bg-red-600 text-white shadow-sm cursor-pointer whitespace-nowrap">
+                <button aria-label="Início" data-tab="home" class="sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all bg-red-600 text-white shadow-sm cursor-pointer whitespace-nowrap">
                     <i data-lucide="home" class="w-5 h-5 shrink-0"></i>
                     <span class="sidebar-label transition-opacity duration-200 opacity-0">Início</span>
                 </button>
-                <button data-tab="history" class="sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all hover:bg-red-100 hover:text-red-700 cursor-pointer whitespace-nowrap">
+                <button aria-label="História e jogo" data-tab="history" class="sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all hover:bg-red-100 hover:text-red-700 cursor-pointer whitespace-nowrap">
                     <i data-lucide="book-open" class="w-5 h-5 shrink-0"></i>
                     <span class="sidebar-label transition-opacity duration-200 opacity-0">História & Jogo</span>
                 </button>
-                <button data-tab="gallery" class="sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all hover:bg-red-100 hover:text-red-700 cursor-pointer whitespace-nowrap">
+                <button aria-label="Galeria do Instagram" data-tab="gallery" class="sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all hover:bg-red-100 hover:text-red-700 cursor-pointer whitespace-nowrap">
                     <i data-lucide="image" class="w-5 h-5 shrink-0"></i>
                     <span class="sidebar-label transition-opacity duration-200 opacity-0">Galeria (Instagram)</span>
                 </button>
-                <button data-tab="gifts" class="sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all hover:bg-red-100 hover:text-red-700 cursor-pointer whitespace-nowrap">
+                <button aria-label="Presentes" data-tab="gifts" class="sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all hover:bg-red-100 hover:text-red-700 cursor-pointer whitespace-nowrap">
                     <i data-lucide="gift" class="w-5 h-5 shrink-0"></i>
                     <span class="sidebar-label transition-opacity duration-200 opacity-0">Cotas Pix</span>
                 </button>
-                <button data-tab="mural" class="sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all hover:bg-red-100 hover:text-red-700 cursor-pointer whitespace-nowrap">
+                <button aria-label="Mural" data-tab="mural" class="sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all hover:bg-red-100 hover:text-red-700 cursor-pointer whitespace-nowrap">
                     <i data-lucide="message-square-heart" class="w-5 h-5 shrink-0"></i>
                     <span class="sidebar-label transition-opacity duration-200 opacity-0">Mural</span>
                 </button>
-                <button data-tab="rsvp" class="sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all hover:bg-red-100 hover:text-red-700 cursor-pointer whitespace-nowrap">
+                <button aria-label="Confirmar presença" data-tab="rsvp" class="sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all hover:bg-red-100 hover:text-red-700 cursor-pointer whitespace-nowrap">
                     <i data-lucide="user-check" class="w-5 h-5 shrink-0"></i>
                     <span class="sidebar-label transition-opacity duration-200 opacity-0">Presenças (RSVP)</span>
                 </button>
@@ -118,7 +119,7 @@
         </div>
 
         <div class="pt-4 border-t border-red-100">
-            <button data-action="open-admin" class="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-stone-500 hover:text-red-700 hover:bg-red-50 transition-colors cursor-pointer whitespace-nowrap">
+            <button aria-label="Painel do Casal" data-action="open-admin" class="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-stone-500 hover:text-red-700 hover:bg-red-50 transition-colors cursor-pointer whitespace-nowrap">
                 <i data-lucide="settings" class="w-5 h-5 shrink-0"></i>
                 <span class="sidebar-label transition-opacity duration-200 opacity-0 font-medium text-sm">Painel do Casal</span>
             </button>
@@ -130,17 +131,16 @@
         <!-- HOME SECTION -->
         <section id="tab-home" class="tab-content active space-y-12 pb-10">
             <div class="hero-stage text-center pt-20 pb-24 bg-gradient-to-b from-red-100/70 to-red-50 relative overflow-hidden rounded-3xl min-h-[500px] flex flex-col justify-center items-center shadow-sm">
-                <canvas id="canvas-3d-bg"></canvas>
+                <img id="homepage-couple-img" src="./assets/wedding/hero-rings.png" alt="Alianças do casal" fetchpriority="high" class="hero-cover"/>
+                <div class="hero-shade" aria-hidden="true"></div>
                 <img src="./assets/wedding/bouquet.png" alt="" aria-hidden="true" class="wedding-float wedding-float--bouquet"/>
                 <img src="./assets/wedding/rings.png" alt="" aria-hidden="true" class="wedding-float wedding-float--rings"/>
                 <img src="./assets/wedding/champagne.png" alt="" aria-hidden="true" class="wedding-float wedding-float--champagne"/>
                 <div class="relative z-10 pointer-events-none px-4 max-w-5xl">
-                    <div id="homepage-photo-container" class="mb-4 inline-block">
-                        <img id="homepage-couple-img" src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80" alt="Casal" class="w-36 h-36 md:w-44 md:h-44 rounded-full object-cover border-4 border-white shadow-2xl mx-auto pointer-events-auto"/>
-                    </div>
-                    <span class="text-red-600 text-xs md:text-sm font-semibold tracking-widest uppercase bg-white/90 px-4 py-1.5 rounded-full backdrop-blur shadow-sm">Vamos Nos Casar!</span>
+                    <span class="hero-eyebrow">O NOSSO SIM. A NOSSA FESTA.</span>
                     <h1 id="hero-names" class="font-serif text-5xl md:text-7xl lg:text-8xl text-red-900 font-bold leading-tight mt-4 mb-4 drop-shadow-sm">Júnior & Renata</h1>
-                    <p class="text-stone-600 text-base md:text-xl font-light max-w-2xl mx-auto">"Grandes histórias de amor começam com detalhes simples. Venha celebrar este capítulo conosco."</p>
+                    <p class="hero-intro">Um encontro, muitas histórias e uma pista de dança esperando por você.</p>
+                    <button aria-label="Confirmar presença" data-tab="rsvp" class="hero-rsvp pointer-events-auto">Eu vou celebrar! <span aria-hidden="true">↗</span></button>
                     <div class="pt-6 flex flex-wrap justify-center items-center gap-3 text-stone-700 font-medium pointer-events-auto">
                         <span class="flex items-center gap-1.5 bg-white/95 px-4 py-2.5 rounded-full shadow-sm text-sm"><i data-lucide="calendar" class="w-4 h-4 text-red-500"></i> <span id="hero-date">14/11/2026</span></span>
                         <a id="hero-maps-link" href="#" target="_blank" class="flex items-center gap-1.5 bg-white/95 px-4 py-2.5 rounded-full shadow-sm hover:text-red-600 text-sm transition-colors"><i data-lucide="map-pin" class="w-4 h-4 text-red-500"></i> <span id="hero-location">Curitiba, PR</span></a>
@@ -166,7 +166,7 @@
                 </div>
                 <span class="text-red-600 text-xs font-bold tracking-widest uppercase bg-red-100 px-3 py-1 rounded-full">Nossa Trajetória</span>
                 <h2 class="font-serif text-4xl md:text-5xl text-red-900 font-bold">Você conhece nossa história?</h2>
-                <p class="text-stone-600 text-base max-w-2xl mx-auto animate-pulse">✨ Vem com a gente descobrir curiosidades e testar seus conhecimentos em nosso desafio interativo estilo cartas!</p>
+                <p class="text-stone-600 text-base max-w-2xl mx-auto">A sorte ajuda. Conhecer os noivos ajuda mais. Escolha suas cartas e entre na brincadeira.</p>
             </div>
             
             <div id="quiz-entry-card" class="glass-card p-8 md:p-12 rounded-3xl shadow-xl border border-red-200 text-center space-y-6 max-w-2xl mx-auto relative">
@@ -174,9 +174,12 @@
                     <i data-lucide="gamepad-2" class="w-8 h-8"></i>
                 </div>
                 <div>
-                    <h3 class="font-serif text-3xl font-bold text-stone-900">Desafio dos Noivos & Ranking</h3>
+                    <div class="intro-hand" aria-hidden="true"><span>A<br>♡</span><span>K<br>⚭</span><span>Q<br>✿</span><span>J<br>♫</span></div>
+                    <h3 class="font-serif text-3xl font-bold text-stone-900">Truco do amor</h3>
                     <p class="text-sm text-stone-600 mt-2">Digite seu nome completo ou o nome do acompanhante para validar sua participação e começar a jogar. <br><b class="text-red-600">Atenção: Apenas 1 tentativa permitida por pessoa!</b></p>
                 </div>
+                <fieldset class="team-choice"><legend>Primeiro, escolha seu time</legend><button type="button" data-quiz-team="noivo" aria-pressed="false" onclick="window.chooseQuizTeam('noivo')">Time Noivo</button><button type="button" data-quiz-team="noiva" aria-pressed="false" onclick="window.chooseQuizTeam('noiva')">Time Noiva</button></fieldset>
+                <p class="truco-rules">Escolha sua resposta, encare a CPU e aposte 1, 3, 6 ou 9 pontos. Ela pode blefar — e também pode correr!</p>
                 <div class="relative max-w-md mx-auto">
                     <input type="search" id="quiz-guest-name" autocomplete="off" placeholder="Digite seu nome ou nome do acompanhante..." class="w-full px-5 py-3.5 border border-stone-300 rounded-2xl text-sm focus:outline-none focus:border-red-500 bg-white font-medium shadow-sm"/>
                     <div id="quiz-suggestions" class="absolute left-0 right-0 top-full mt-2 bg-white border border-stone-200 rounded-2xl shadow-2xl max-h-56 overflow-y-auto z-50 hidden divide-y divide-stone-100 p-1.5"></div>
@@ -241,22 +244,24 @@
         <section id="tab-mural" class="tab-content py-10 max-w-7xl mx-auto motion-section">
             <div class="text-center mb-10">
                 <h2 class="font-serif text-4xl md:text-5xl text-red-900 font-bold mb-3">Mural de Lembranças & Recados</h2>
-                <p class="text-stone-600">Deixe um post-it carinhoso com seus votos para os noivos!</p>
+                <p class="text-stone-600">Vale carinho, vale história engraçada. Só não vale entregar todos os segredos.</p>
+                <p id="mural-service-status" role="status" class="text-sm mt-3"></p>
             </div>
             <form id="form-mural" class="glass-card p-6 md:p-8 rounded-3xl border border-red-200 mb-12 shadow-sm space-y-4 max-w-2xl mx-auto">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Seu Nome</label>
-                        <input required type="text" id="mural-author" placeholder="Ex: Maria Clara" class="w-full px-4 py-2.5 rounded-xl border border-stone-200 text-sm focus:outline-none focus:border-red-500 bg-white"/>
+                        <label for="mural-code" class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Código do seu convite</label>
+                        <input required type="text" id="mural-code" maxlength="80" autocomplete="off" placeholder="Seu código individual" class="w-full px-4 py-2.5 rounded-xl border border-stone-200 text-sm focus:outline-none focus:border-red-500 bg-white"/>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Parentesco / Amizade</label>
-                        <input type="text" id="mural-relation" placeholder="Ex: Amiga da Noiva / Padrinho" class="w-full px-4 py-2.5 rounded-xl border border-stone-200 text-sm focus:outline-none focus:border-red-500 bg-white"/>
+                        <p class="text-sm">Até dois recados e duas fotos por convidado. Uma foto opcional em cada recado. Os noivos aprovam antes de aparecer aqui.</p>
                     </div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Sua Mensagem Pessoal</label>
-                    <textarea required id="mural-text" rows="3" placeholder="Escreva aqui seus votos..." class="w-full px-4 py-2.5 rounded-xl border border-stone-200 text-sm resize-none focus:outline-none focus:border-red-500 bg-white"></textarea>
+                    <textarea required id="mural-text" maxlength="1000" rows="3" placeholder="Escreva aqui seus votos..." class="w-full px-4 py-2.5 rounded-xl border border-stone-200 text-sm resize-none focus:outline-none focus:border-red-500 bg-white"></textarea>
+                    <label for="mural-image">Uma foto para guardar esse carinho</label>
+                    <input id="mural-image" type="text" class="w-full p-3 border rounded-xl" placeholder="Escolha ou cole uma foto"/>
                 </div>
                 <div class="flex items-center justify-between pt-2">
                     <span class="text-xs text-stone-400">Escolha a cor:</span>
@@ -268,9 +273,10 @@
                     </div>
                 </div>
                 <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3.5 rounded-xl text-sm shadow flex items-center justify-center gap-2 transition-all cursor-pointer">
-                    <i data-lucide="pin" class="w-4 h-4"></i> Fixar Post-it no Mural
+                    <i data-lucide="send" class="w-4 h-4"></i> Enviar para aprovação
                 </button>
             </form>
+            <div id="mural-moderation" class="moderation-panel" hidden></div>
             <div class="cork-board rounded-3xl p-4 md:p-8 border-8 border-[#78472a]">
                 <div id="mural-container" style="position:relative; width:100%; min-height:650px;"></div>
             </div>
@@ -364,14 +370,26 @@
                     <div><label class="block text-xs font-bold text-stone-500 uppercase">Cidade Pix</label><input type="text" id="cfg-city" class="w-full mt-1 p-2.5 border rounded-xl bg-white"/></div>
                     <div><label class="block text-xs font-bold text-stone-500 uppercase">WhatsApp dos Noivos (Para Alertas)</label><input type="text" id="cfg-whatsapp" placeholder="5541999999999" class="w-full mt-1 p-2.5 border rounded-xl bg-white"/></div>
                     <div class="md:col-span-2 bg-stone-50 p-4 rounded-2xl border border-stone-200 space-y-2">
-                        <label class="block text-xs font-bold text-stone-700 uppercase flex items-center gap-1.5"><i data-lucide="image" class="w-4 h-4 text-red-600"></i> Foto de Perfil da Homepage (Casal)</label>
+                        <label for="cfg-homepage-img" class="block text-xs font-bold text-stone-700 uppercase flex items-center gap-1.5"><i data-lucide="image" class="w-4 h-4 text-red-600"></i> Foto de capa do casal</label>
                         <input type="url" id="cfg-homepage-img" placeholder="https://images.unsplash.com/..." class="w-full p-2.5 border rounded-xl text-xs bg-white"/>
+                        <label for="cfg-hero-position">Enquadramento vertical da capa</label>
+                        <input id="cfg-hero-position" type="range" min="0" max="100" value="65" class="w-full"/>
+                        <p class="text-xs">Escolha ou cole a foto e ajuste o enquadramento. Links de perfil do Instagram não funcionam como arquivo de imagem.</p>
                     </div>
                     <div class="md:col-span-2 bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200 space-y-3">
                         <label class="block text-xs font-bold text-emerald-900 uppercase flex items-center gap-1.5"><i data-lucide="music" class="w-4 h-4 text-emerald-600"></i> Link da Playlist ou Música (Spotify)</label>
                         <input type="text" id="cfg-radio" placeholder="Cole o link do Spotify" class="w-full p-2.5 border border-emerald-300 rounded-xl text-xs bg-white focus:outline-none focus:border-emerald-500"/>
                     </div>
                 </div>
+            </div>
+            <div class="invite-panel">
+                <h3>Códigos para o mural</h3>
+                <label for="mural-invite-guest">Selecione o convidado</label>
+                <select id="mural-invite-guest"></select>
+                <button type="button" onclick="window.createMuralInvite()">Gerar código individual</button>
+                <p id="mural-invite-result" role="status"></p>
+                <p>Ao gerar outro código, o anterior deixa de funcionar. O limite de recados permanece.</p>
+                <button type="button" aria-label="Mural" data-tab="mural">Ver recados aguardando aprovação</button>
             </div>
         </section>
     </main>
@@ -495,7 +513,7 @@
                 <input required type="text" id="ag-title" placeholder="Título do Presente" class="w-full px-4 py-3 border rounded-xl bg-white"/>
                 <input required type="number" id="ag-amount" placeholder="Valor Total (R$)" class="w-full px-4 py-3 border rounded-xl bg-white"/>
                 <input type="text" id="ag-category" placeholder="Categoria (ex: Cozinha, Lua de Mel)" class="w-full px-4 py-3 border rounded-xl bg-white"/>
-                <div><label class="block text-xs font-bold text-stone-600 uppercase mb-1">Foto de Referência (URL)</label><input type="url" id="ag-image" placeholder="https://images.unsplash.com/..." class="w-full px-4 py-3 border rounded-xl bg-white text-xs"/></div>
+                <div><label for="ag-image" class="block text-xs font-bold text-stone-600 uppercase mb-1">Foto do presente</label><input type="text" id="ag-image" placeholder="Escolha, cole uma foto ou um link direto" class="w-full px-4 py-3 border rounded-xl bg-white text-xs"/></div>
                 <textarea id="ag-desc" placeholder="Breve descrição" class="w-full px-4 py-3 border rounded-xl bg-white"></textarea>
                 <div class="flex gap-2 pt-2"><button type="button" data-action="close-add-gift" class="w-1/3 py-3 border rounded-xl font-bold text-stone-500 cursor-pointer">Cancelar</button><button type="submit" class="w-2/3 py-3 bg-red-600 text-white rounded-xl font-bold cursor-pointer">Salvar</button></div>
             </form>
@@ -506,4 +524,3 @@
     <script type="module" src="./js/firebase-init.js"></script>
 </body>
 </html>
-

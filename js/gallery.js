@@ -1,5 +1,5 @@
 import { db, appId, escapeHTML, state } from './firebase-init.js';
-import { collection, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { collection, addDoc, deleteDoc, doc } from './data-store.js';
 
 export function renderGallery() {
     const grid = document.getElementById('gallery-grid');
@@ -158,4 +158,3 @@ if (!window.__gallerySubmitBound) {
         }
     });
 }
-
