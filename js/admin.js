@@ -3,7 +3,9 @@ import { setDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-
 
 export function initAdmin() {
     window.saveAllPanelChanges = async () => {
-        state.settings = {
+        const saveButton = document.querySelector('[onclick="window.saveAllPanelChanges()"]');
+        const previousLabel = saveButton?.innerHTML;
+        const nextSettings = {
             ...state.settings,
             names: document.getElementById('cfg-names')?.value.trim() || state.settings.names,
             date: document.getElementById('cfg-date')?.value || state.settings.date,
@@ -17,11 +19,24 @@ export function initAdmin() {
             homepageImg: document.getElementById('cfg-homepage-img')?.value.trim() || state.settings.homepageImg
         };
         try {
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), state.settings, { merge: true });
+            if (saveButton) {
+                saveButton.disabled = true;
+                saveButton.innerHTML = 'Salvando...';
+            }
+
+            // Apply immediately; onSnapshot will reconcile the cached value with
+            // the server response without making the editor wait for a round trip.
+            state.settings = nextSettings;
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), nextSettings, { merge: true });
             window.showToast("Configurações salvas com sucesso!");
         } catch (err) {
             console.error(err);
             window.showToast("Erro ao salvar alterações.", true);
+        } finally {
+            if (saveButton) {
+                saveButton.disabled = false;
+                saveButton.innerHTML = previousLabel || 'Salvar Configurações';
+            }
         }
     };
 }
@@ -39,3 +54,4 @@ export function renderAdmin() {
     if (statConf) statConf.innerText = totalConfirmed;
     if (window.lucide) lucide.createIcons();
 }
+
