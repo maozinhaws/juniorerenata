@@ -13,7 +13,7 @@
     <!-- Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
     <!-- Instagram Embed Script -->
-    <script async src="//www.instagram.com/embed.js"></script>
+    <script async src="https://www.instagram.com/embed.js"></script>
     
     <!-- Custom Modular CSS -->
     <link rel="stylesheet" href="./css/style.css">
@@ -129,8 +129,11 @@
         
         <!-- HOME SECTION -->
         <section id="tab-home" class="tab-content active space-y-12 pb-10">
-            <div class="text-center pt-20 pb-24 bg-gradient-to-b from-red-100/70 to-red-50 relative overflow-hidden rounded-3xl min-h-[500px] flex flex-col justify-center items-center shadow-sm">
+            <div class="hero-stage text-center pt-20 pb-24 bg-gradient-to-b from-red-100/70 to-red-50 relative overflow-hidden rounded-3xl min-h-[500px] flex flex-col justify-center items-center shadow-sm">
                 <canvas id="canvas-3d-bg"></canvas>
+                <img src="./assets/wedding/bouquet.png" alt="" aria-hidden="true" class="wedding-float wedding-float--bouquet"/>
+                <img src="./assets/wedding/rings.png" alt="" aria-hidden="true" class="wedding-float wedding-float--rings"/>
+                <img src="./assets/wedding/champagne.png" alt="" aria-hidden="true" class="wedding-float wedding-float--champagne"/>
                 <div class="relative z-10 pointer-events-none px-4 max-w-5xl">
                     <div id="homepage-photo-container" class="mb-4 inline-block">
                         <img id="homepage-couple-img" src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80" alt="Casal" class="w-36 h-36 md:w-44 md:h-44 rounded-full object-cover border-4 border-white shadow-2xl mx-auto pointer-events-auto"/>
@@ -154,7 +157,7 @@
         </section>
 
         <!-- HISTORY & QUIZ SECTION -->
-        <section id="tab-history" class="tab-content py-10 max-w-5xl mx-auto space-y-10">
+        <section id="tab-history" class="tab-content py-10 max-w-5xl mx-auto space-y-10 motion-section">
             <div class="text-center space-y-3 relative">
                 <div id="admin-quiz-toolbar" class="hidden mb-4 flex justify-center gap-2">
                     <button onclick="window.openAddTimelineModal()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5 cursor-pointer">
@@ -207,7 +210,7 @@
         </section>
 
         <!-- GALLERY SECTION -->
-        <section id="tab-gallery" class="tab-content py-10 max-w-7xl mx-auto space-y-8">
+        <section id="tab-gallery" class="tab-content py-10 max-w-7xl mx-auto space-y-8 motion-section">
             <div class="text-center max-w-2xl mx-auto relative">
                 <div id="admin-gallery-toolbar" class="hidden mb-4 flex justify-center">
                     <button data-action="open-add-gallery" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5 cursor-pointer">
@@ -215,13 +218,13 @@
                     </button>
                 </div>
                 <h2 class="font-serif text-4xl md:text-5xl text-red-900 font-bold mb-3">Galeria do Instagram</h2>
-                <p class="text-stone-600">Momentos especiais postados pelos noivos sincronizados nativamente.</p>
+                <p class="text-stone-600">Cole o link de um post ou Reel. A foto, o vídeo e a legenda são carregados automaticamente pelo Instagram.</p>
             </div>
             <div id="gallery-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6"></div>
         </section>
 
         <!-- GIFTS SECTION -->
-        <section id="tab-gifts" class="tab-content space-y-8 py-10 max-w-7xl mx-auto">
+        <section id="tab-gifts" class="tab-content space-y-8 py-10 max-w-7xl mx-auto motion-section">
             <div class="text-center max-w-2xl mx-auto relative">
                 <div id="admin-gift-toolbar" class="hidden mb-4 flex justify-center">
                     <button data-action="open-add-gift" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5 cursor-pointer">
@@ -235,7 +238,7 @@
         </section>
 
         <!-- MURAL SECTION -->
-        <section id="tab-mural" class="tab-content py-10 max-w-7xl mx-auto">
+        <section id="tab-mural" class="tab-content py-10 max-w-7xl mx-auto motion-section">
             <div class="text-center mb-10">
                 <h2 class="font-serif text-4xl md:text-5xl text-red-900 font-bold mb-3">Mural de Lembranças & Recados</h2>
                 <p class="text-stone-600">Deixe um post-it carinhoso com seus votos para os noivos!</p>
@@ -274,7 +277,7 @@
         </section>
 
         <!-- RSVP SECTION -->
-        <section id="tab-rsvp" class="tab-content py-10">
+        <section id="tab-rsvp" class="tab-content py-10 motion-section">
             <div class="max-w-xl mx-auto glass-card p-8 md:p-10 rounded-3xl border border-red-200 shadow-sm text-center mt-10 relative">
                 <div id="admin-guest-toolbar" class="hidden mb-4 flex justify-center">
                     <button data-action="open-add-guest" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5 cursor-pointer">
@@ -503,3 +506,4 @@
     <script type="module" src="./js/firebase-init.js"></script>
 </body>
 </html>
+

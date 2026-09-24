@@ -190,6 +190,7 @@ window.switchTab = (tabId) => {
             "sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all hover:bg-red-100 hover:text-red-700 cursor-pointer whitespace-nowrap";
     });
     if (tabId === 'mural') setTimeout(() => renderMural(), 50);
+    if (tabId === 'gallery') setTimeout(() => window.instgrm?.Embeds?.process(), 80);
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
@@ -571,4 +572,5 @@ setInterval(() => {
         countdownEl.innerHTML = `<div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(d).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Dias</span></div><div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(h).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Horas</span></div><div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(m).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Min</span></div><div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(s).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Seg</span></div>`;
     }
 }, 1000);
+
 
