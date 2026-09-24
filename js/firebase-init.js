@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 import { initQuiz, renderRanking } from './quiz.js';
 import { renderGallery } from './gallery.js';
@@ -22,7 +22,11 @@ const appId = typeof __app_id !== 'undefined' ? __app_id : 'casamento-junior-ren
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+// Keep the last synchronized data in the browser so the page can paint immediately
+// on repeat visits. Firestore still delivers live server updates through onSnapshot.
+export const db = initializeFirestore(app, {
+    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+});
 export { appId };
 
 const DEFAULT_GIFTS = [
@@ -398,6 +402,11 @@ const startFirebase = async () => {
         updateEditorUI();
     });
 
+    const reportSyncError = (area, error) => {
+        console.error(`Erro ao sincronizar ${area}:`, error);
+        window.showToast(`Não foi possível atualizar ${area}. Verifique sua conexão.`, true);
+    };
+
     onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), snap => {
         if (snap.exists()) {
             state.settings = { ...state.settings, ...snap.data() };
@@ -412,6 +421,7 @@ const startFirebase = async () => {
             const cfgCity = document.getElementById('cfg-city');
             const cfgWhatsapp = document.getElementById('cfg-whatsapp');
             const cfgHomepageImg = document.getElementById('cfg-homepage-img');
+            const cfgRadio = document.getElementById('cfg-radio');
 
             if (cfgNames && state.settings.names) cfgNames.value = state.settings.names;
             if (cfgDate && state.settings.date) cfgDate.value = state.settings.date;
@@ -422,40 +432,44 @@ const startFirebase = async () => {
             if (cfgCity && state.settings.cityName) cfgCity.value = state.settings.cityName;
             if (cfgWhatsapp && state.settings.whatsappNumber) cfgWhatsapp.value = state.settings.whatsappNumber;
             if (cfgHomepageImg && state.settings.homepageImg) cfgHomepageImg.value = state.settings.homepageImg;
+            if (cfgRadio && state.settings.radioUrl) cfgRadio.value = state.settings.radioUrl;
         }
-    }, () => {});
+    }, error => reportSyncError('as configurações', error));
 
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), snap => {
-        if (!snap.empty) { state.gifts = snap.docs.map(d => ({id: d.id, ...d.data()})); renderGifts(); }
-    }, () => {});
+        state.gifts = snap.docs.map(d => ({id: d.id, ...d.data()}));
+        renderGifts();
+    }, error => reportSyncError('os presentes', error));
 
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'timeline'), snap => {
-        if (!snap.empty) { state.timeline = snap.docs.map(d => ({id: d.id, ...d.data()})); }
-    }, () => {});
+        state.timeline = snap.docs.map(d => ({id: d.id, ...d.data()}));
+        if (state.isAdminLoggedIn) renderAdmin();
+    }, error => reportSyncError('o quiz', error));
 
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'gallery'), snap => {
         state.gallery = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         renderGallery();
-    }, () => {});
+    }, error => reportSyncError('a galeria', error));
 
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), snap => {
         state.messages = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
         renderMural();
-    }, () => {});
+    }, error => reportSyncError('o mural', error));
 
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'guests'), snap => {
         state.guests = snap.docs.map(d => ({id: d.id, ...d.data()}));
-    }, () => {});
+        if (state.isAdminLoggedIn) renderAdmin();
+    }, error => reportSyncError('os convidados', error));
 
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'contributions'), snap => {
         state.contributions = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
         renderGifts();
-    }, () => {});
+    }, error => reportSyncError('as contribuições', error));
 
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'rankings'), snap => {
         state.rankings = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.score - a.score);
         renderRanking();
-    }, () => {});
+    }, error => reportSyncError('o ranking', error));
 };
 
 const updateSiteContent = () => {
@@ -557,3 +571,4 @@ setInterval(() => {
         countdownEl.innerHTML = `<div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(d).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Dias</span></div><div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(h).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Horas</span></div><div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(m).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Min</span></div><div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(s).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Seg</span></div>`;
     }
 }, 1000);
+
