@@ -442,3 +442,143 @@ body.menu-expanded #main-content { padding-top:58px!important; }
   .image-crop-stage { padding:0 12px; min-height:210px; }
   .image-crop-actions { padding:12px 14px 14px; }
 }
+
+
+/* Accessible form system: wine fields on a warm paper surface. */
+:root {
+  --color-wine-50:#fff7fb;
+  --color-wine-100:#fce8f0;
+  --color-wine-200:#f5c8d8;
+  --color-wine-300:#e99ab5;
+  --color-wine-400:#d85c80;
+  --color-wine-500:#b72c55;
+  --color-wine-600:#9b163d;
+  --color-wine-700:#7f122a;
+  --color-wine-800:#5d1028;
+  --color-wine-900:#3c0c20;
+  --field-bg:var(--color-wine-50);
+  --field-text:#9b163d;
+  --field-placeholder:#6b3a4d;
+  --field-border:#d89caf;
+  --field-focus:#b72c55;
+  --surface-dark:#2a1028;
+  --surface-dark-text:#ffe8f1;
+  --surface-dark-muted:#f3d8e4;
+}
+
+/* Inputs are intentionally the most prominent controls on the dark wedding canvas. */
+#main-content input:not([type="hidden"]):not([type="range"]):not([type="radio"]),
+#main-content textarea,
+#main-content select,
+[id^="modal-"] input:not([type="hidden"]):not([type="range"]):not([type="radio"]),
+[id^="modal-"] textarea,
+[id^="modal-"] select {
+  background-color:var(--field-bg)!important;
+  color:var(--field-text)!important;
+  -webkit-text-fill-color:var(--field-text)!important;
+  border:1px solid var(--field-border)!important;
+  caret-color:var(--field-text)!important;
+  color-scheme:light;
+}
+#main-content input::placeholder,
+#main-content textarea::placeholder,
+[id^="modal-"] input::placeholder,
+[id^="modal-"] textarea::placeholder {
+  color:var(--field-placeholder)!important;
+  -webkit-text-fill-color:var(--field-placeholder)!important;
+  opacity:1!important;
+}
+#main-content input:focus,
+#main-content textarea:focus,
+#main-content select:focus,
+[id^="modal-"] input:focus,
+[id^="modal-"] textarea:focus,
+[id^="modal-"] select:focus {
+  border-color:var(--field-focus)!important;
+  box-shadow:0 0 0 3px #d85c8040!important;
+  outline:0!important;
+}
+#main-content select,
+[id^="modal-"] select { color:var(--field-text)!important; }
+#main-content select option,
+[id^="modal-"] select option { background:#fff7fb!important; color:#7f122a!important; }
+#main-content input[type="file"],
+[id^="modal-"] input[type="file"] {
+  color:var(--field-text)!important;
+  -webkit-text-fill-color:var(--field-text)!important;
+  background:#fce8f0!important;
+}
+#main-content input[type="file"]::file-selector-button,
+[id^="modal-"] input[type="file"]::file-selector-button {
+  margin-right:10px; padding:8px 12px; border:1px solid var(--color-wine-600);
+  border-radius:6px; background:var(--color-wine-600); color:#fff7fb; font:600 12px var(--font-sans); cursor:pointer;
+}
+#main-content input[type="file"]::file-selector-button:hover,
+[id^="modal-"] input[type="file"]::file-selector-button:hover { background:var(--color-wine-700); }
+
+/* Dark cards need light labels and helper copy; do not let Tailwind stone classes erase them. */
+#main-content form > label,
+#main-content form label,
+#main-content .background-editor > label,
+#main-content .upload-choice,
+#main-content form legend {
+  color:var(--surface-dark-text)!important;
+}
+#main-content form > p,
+#main-content form .text-sm,
+#main-content form .text-xs,
+#main-content .photo-editor p,
+#main-content .background-editor > p,
+#main-content .background-editor #bg-status,
+#main-content .background-editor label {
+  color:var(--surface-dark-muted)!important;
+}
+#main-content .photo-editor,
+#main-content .upload-choice,
+#main-content .background-editor { color:var(--surface-dark-text)!important; }
+
+/* White modal surfaces keep the same hierarchy without light text disappearing. */
+[id^="modal-"] label,
+#wix-admin-bar label { color:#5d1028!important; }
+[id^="modal-"] p,
+[id^="modal-"] .text-xs,
+[id^="modal-"] .text-sm,
+#wix-admin-bar p { color:#6b3a4d!important; }
+
+/* Autocomplete and dropdown rows must remain readable in every state. */
+#main-content .guest-suggestions,
+#main-content #quiz-suggestions { background:#fff7fb!important; border-color:#d89caf!important; }
+#main-content .guest-suggestions button,
+#main-content #quiz-suggestions button,
+#main-content #quiz-suggestions [data-quiz-participant-key] { color:#7f122a!important; background:#fff7fb!important; }
+#main-content .guest-suggestions button:hover,
+#main-content #quiz-suggestions button:hover,
+#main-content #quiz-suggestions [data-quiz-participant-key]:hover { background:#fce8f0!important; }
+#main-content .guest-suggestions small { color:#6b3a4d!important; }
+#main-content .text-stone-400,
+#main-content .text-stone-500,
+#main-content .text-stone-600 { color:#f3d8e4!important; }
+
+/* The label over the message field and upload helper are separate from the typed text. */
+#tab-mural #mural-text { min-height:118px; }
+#tab-mural #mural-text + label { display:block; margin-top:12px; color:var(--surface-dark-text)!important; }
+#tab-mural .photo-editor { background:#fce8f0!important; border-color:#d89caf!important; }
+#tab-mural .photo-editor p { color:#6b3a4d!important; }
+
+@media(max-width:700px) {
+  #main-content input:not([type="hidden"]):not([type="range"]):not([type="radio"]),
+  #main-content textarea,
+  #main-content select { font-size:16px; }
+  #main-content form label { letter-spacing:.08em; }
+}
+
+/* The mural textarea also carries a legacy bg-white utility; this stronger selector keeps it on the paper surface. */
+#main-content #tab-mural textarea,
+#main-content #tab-mural input:not([type="hidden"]):not([type="range"]):not([type="radio"]),
+#main-content #tab-mural select {
+  background-color:#fff7fb!important;
+  color:#9b163d!important;
+  -webkit-text-fill-color:#9b163d!important;
+}
+#main-content #tab-mural textarea::placeholder,
+#main-content #tab-mural input::placeholder { color:#6b3a4d!important; -webkit-text-fill-color:#6b3a4d!important; }
