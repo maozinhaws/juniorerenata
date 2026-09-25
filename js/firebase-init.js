@@ -191,6 +191,9 @@ document.addEventListener('click', (e) => {
 });
 
 window.switchTab = (tabId) => {
+    const browserThemes = { home: '#350817', history: '#241128', gallery: '#301529', gifts: '#2b1726', mural: '#4b244f', rsvp: '#241128', admin: '#19121f' };
+    const themeColor = document.querySelector('meta[name="theme-color"]');
+    if (themeColor) themeColor.setAttribute('content', browserThemes[tabId] || browserThemes.home);
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.getElementById('tab-' + tabId)?.classList.add('active');
     document.querySelectorAll('.sidebar-nav-btn').forEach(b => {
