@@ -1,8 +1,15 @@
 import { db, appId, state } from './firebase-init.js';
-import { setDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { setDoc, doc } from './data-store.js';
+import { validImageSource } from './image-input.js';
+import { spotifyEmbed } from './spotify.js';
 
 export function initAdmin() {
     window.saveAllPanelChanges = async () => {
+        const spotify = document.getElementById('cfg-radio').value.trim();
+        if (spotify && !spotifyEmbed(spotify)) return window.showToast('Cole o link completo de uma música, álbum ou playlist em open.spotify.com.', true);
+        const photo = document.getElementById('cfg-homepage-img');
+        if (photo.dataset.imageBusy) return window.showToast('Aguarde a preparação da foto.', true);
+        if (photo.value && !validImageSource(photo.value) && photo.value !== './assets/wedding/hero-rings.png') return window.showToast('Escolha uma foto. Links de perfil do Instagram não são imagens.', true);
         const saveButton = document.querySelector('[onclick="window.saveAllPanelChanges()"]');
         const previousLabel = saveButton?.innerHTML;
         const nextSettings = {
@@ -14,9 +21,10 @@ export function initAdmin() {
             pixKey: document.getElementById('cfg-pix')?.value.trim() || state.settings.pixKey,
             receiverName: document.getElementById('cfg-receiver')?.value.trim() || state.settings.receiverName,
             cityName: document.getElementById('cfg-city')?.value.trim() || 'Curitiba',
-            radioUrl: document.getElementById('cfg-radio')?.value.trim() || state.settings.radioUrl,
+            radioUrl: spotify,
             whatsappNumber: document.getElementById('cfg-whatsapp')?.value.trim() || state.settings.whatsappNumber,
-            homepageImg: document.getElementById('cfg-homepage-img')?.value.trim() || state.settings.homepageImg
+            homepageImg: document.getElementById('cfg-homepage-img')?.value.trim() || state.settings.homepageImg,
+            heroPosition: document.getElementById('cfg-hero-position').value
         };
         try {
             if (saveButton) {

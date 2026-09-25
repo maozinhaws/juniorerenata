@@ -1,5 +1,36 @@
 import { db, appId, escapeHTML, state } from './firebase-init.js';
-import { collection, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { collection, addDoc, deleteDoc, doc } from './data-store.js';
+
+let embedLoader;
+function loadInstagram() {
+    if (window.instgrm?.Embeds) return Promise.resolve();
+    if (embedLoader) return embedLoader;
+    embedLoader = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://www.instagram.com/embed.js'; script.async = true;
+        const timeout = setTimeout(() => { script.remove(); reject(new Error('Instagram indisponível')); }, 12000);
+        script.onload = () => { clearTimeout(timeout); window.instgrm?.Embeds ? resolve() : reject(new Error('Instagram indisponível')); };
+        script.onerror = () => { clearTimeout(timeout); script.remove(); reject(new Error('Instagram bloqueado')); };
+        document.head.append(script);
+    }).catch(error => { embedLoader = null; throw error; });
+    return embedLoader;
+}
+export async function processInstagram() {
+    const grid = document.getElementById('gallery-grid');
+    if (!grid || !state.gallery.length || !document.getElementById('tab-gallery').classList.contains('active')) return;
+    try { await loadInstagram(); window.instgrm.Embeds.process(); }
+    catch {
+        grid.querySelectorAll('blockquote.instagram-media').forEach(quote => {
+            const frame = document.createElement('iframe');
+            frame.src = quote.dataset.instgrmPermalink + 'embed/captioned/';
+            frame.title = 'Publicação do Instagram'; frame.loading = 'lazy';
+            frame.allow = 'encrypted-media; fullscreen';
+            frame.className = 'instagram-fallback-frame';
+            quote.replaceWith(frame);
+        });
+    }
+    grid.querySelectorAll('.instagram-loading').forEach(el => el.remove());
+}
 
 export function renderGallery() {
     const grid = document.getElementById('gallery-grid');
@@ -11,35 +42,34 @@ export function renderGallery() {
     }
 
     grid.innerHTML = state.gallery.map(g => {
-        const url = escapeHTML(g.instagramUrl || '#');
-        const imgUrl = escapeHTML(g.imageUrl || g.instagramUrl || 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80');
-        const caption = escapeHTML(g.caption || 'Momento especial do casal 💍');
+        const url = normalizeInstagramUrl(g.instagramUrl || '');
+        if (!url) return '';
 
         return `
-            <div class="bg-white rounded-3xl overflow-hidden border border-stone-200 shadow-sm flex flex-col justify-between group relative">
+            <article class="instagram-shell bg-white rounded-3xl overflow-hidden border border-stone-200 shadow-sm group relative">
                 ${state.isAdminLoggedIn ? `
                     <div class="absolute top-3 right-3 z-30 flex gap-1.5 bg-white/90 p-1.5 rounded-2xl shadow-xl backdrop-blur">
                         <button type="button" onclick="window.deleteGalleryPhoto('${g.id}')" class="px-2.5 py-1 bg-red-600 text-white rounded-xl text-xs font-bold shadow cursor-pointer hover:bg-red-700">Excluir</button>
                     </div>
                 ` : ''}
-                <div class="relative w-full h-80 bg-stone-100 overflow-hidden cursor-pointer" onclick="window.openLightbox('${imgUrl}')">
-                    <img src="${imgUrl}" alt="Post Galeria" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80'"/>
-                    <div class="absolute inset-0 bg-stone-900/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <span class="bg-white/90 text-stone-900 px-4 py-2 rounded-full text-xs font-bold shadow-lg">🔍 Ampliar Foto</span>
-                    </div>
-                    <a href="${url}" target="_blank" rel="noopener noreferrer" class="absolute top-3 left-3 bg-stone-900/80 hover:bg-red-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold backdrop-blur shadow transition-all flex items-center gap-1.5 z-10" onclick="event.stopPropagation()">
-                        <i data-lucide="instagram" class="w-3.5 h-3.5"></i> Ver no Instagram
-                    </a>
+                <div class="instagram-loading p-8 text-center text-stone-400 text-xs">Carregando publicação do Instagram…</div>
+                <div class="instagram-embed-wrap">
+                    <blockquote class="instagram-media" data-instgrm-captioned data-instgrm-permalink="${escapeHTML(url)}" data-instgrm-version="14">
+                        <a href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">Ver publicação no Instagram</a>
+                    </blockquote>
                 </div>
-                <div class="p-4 flex flex-col justify-between flex-1 space-y-3">
-                    <p class="text-xs text-stone-600 line-clamp-2">${caption}</p>
-                </div>
-            </div>
+                <p class="instagram-help">Se a publicação não aparecer, confira se ela é pública e permite incorporação. <a href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">Abrir no Instagram ↗</a> <button type="button" data-retry-instagram>Tentar novamente</button></p>
+            </article>
         `;
     }).join('');
 
     if (window.lucide) lucide.createIcons();
+    requestAnimationFrame(processInstagram);
 }
+
+document.addEventListener('click', event => {
+    if (event.target.closest('[data-retry-instagram]')) renderGallery();
+});
 
 window.openLightbox = (imgUrl) => {
     let lb = document.getElementById('lightbox-modal');

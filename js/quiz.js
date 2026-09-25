@@ -1,7 +1,20 @@
 import { db, appId, sendWhatsAppAlert, escapeHTML, state } from './firebase-init.js';
-import { collection, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { collection, addDoc, deleteDoc, doc, setDoc, isPreview } from './data-store.js';
+import { beginRound, decide, STAKES } from './truco-engine.js';
+let match = null;
+let round = null;
+let selectedTeam = null;
+let resultSaving = false;
+const playedPrefix = isPreview ? 'wedding_demo_played_' : 'wedding_quiz_played_';
 
 export function initQuiz() {
+    window.chooseQuizTeam = team => {
+        if (!['noivo', 'noiva'].includes(team)) return;
+        selectedTeam = team;
+        document.querySelectorAll('[data-quiz-team]').forEach(button => {
+            button.setAttribute('aria-pressed', String(button.dataset.quizTeam === team));
+        });
+    };
     const quizInput = document.getElementById('quiz-guest-name');
     const sugBox = document.getElementById('quiz-suggestions');
 
@@ -41,18 +54,18 @@ export function initQuiz() {
             // Compatibility with rankings created by the previous version.
             return participant.type === 'main' && r.guestId === participant.guestId;
         });
-        return current || localStorage.getItem(`wedding_quiz_played_${participant.participantKey}`) === 'true';
+        return current || localStorage.getItem(`${playedPrefix}${participant.participantKey}`) === 'true';
     };
 
     const clearLocalPlayState = (ranking) => {
         if (!ranking) return;
         if (ranking.participantKey) {
-            localStorage.removeItem(`wedding_quiz_played_${ranking.participantKey}`);
+            localStorage.removeItem(`${playedPrefix}${ranking.participantKey}`);
             return;
         }
         if (ranking.guestId) {
-            localStorage.removeItem(`wedding_quiz_played_${ranking.guestId}`);
-            localStorage.removeItem(`wedding_quiz_played_${ranking.guestId}:main`);
+            localStorage.removeItem(`${playedPrefix}${ranking.guestId}`);
+            localStorage.removeItem(`${playedPrefix}${ranking.guestId}:main`);
         }
     };
 
@@ -92,6 +105,8 @@ export function initQuiz() {
     }
 
     window.startCoupleQuiz = () => {
+        if (!selectedTeam) return window.showToast('Escolha Time Noivo ou Time Noiva para começar.', true);
+        if (!state.timeline.length) return window.showToast('Os noivos ainda estão preparando as cartas!', true);
         const nameInput = quizInput?.value.trim().toLowerCase();
         const selectedKey = quizInput?.dataset.participantKey;
         if (!nameInput || nameInput.length < 2) return window.showToast("Selecione seu nome na lista suspensa!", true);
@@ -113,6 +128,8 @@ export function initQuiz() {
             participantType: participant.type,
             companionIndex: participant.companionIndex ?? null
         };
+        match = { id: crypto.randomUUID(), team: selectedTeam, player: 0, cpu: 0, questions: structuredClone(state.timeline), history: [] };
+        round = null;
         state.currentQuizStep = 0;
         state.quizAnswersState = [];
         document.getElementById('quiz-entry-card').classList.add('hidden');
@@ -120,82 +137,88 @@ export function initQuiz() {
         renderQuizStep();
     };
 
-    window.answerQuizStep = (step, chosenIdx, correctIdx) => {
-        // Ignore accidental double clicks after advancing the question.
-        if (step !== state.currentQuizStep) return;
-        state.quizAnswersState.push({ step, chosenIdx, correctIdx, isCorrect: chosenIdx === correctIdx });
-        state.currentQuizStep++;
+    window.answerQuizStep = (step, answer) => {
+        if (!match || step !== state.currentQuizStep || round) return;
+        round = beginRound(match.questions[step], answer);
         renderQuizStep();
     };
+    window.trucoDecision = action => {
+        if (!round || round.finished) return;
+        try { round = decide(round, action); } catch { return; }
+        if (round.finished) {
+            match[round.winner] += round.points;
+            match.history.push({ ...round });
+        }
+        renderQuizStep();
+    };
+    window.nextTrucoRound = () => {
+        if (!round?.finished) return;
+        round = null; state.currentQuizStep++;
+        renderQuizStep();
+    };
+    window.retryTrucoSave = () => finishQuiz();
 
     // Expose only the small helper needed by the delete flow.
     window.clearQuizLocalPlayState = clearLocalPlayState;
 }
 
+
+const suits = ['♡', '⚭', '✿', '♫'];
+const suitNames = ['Corações', 'Alianças', 'Buquês', 'Dança'];
+const ranks = ['A', 'K', 'Q', 'J'];
 const renderQuizStep = () => {
     const container = document.getElementById('quiz-game-container');
     const step = state.currentQuizStep;
-    const timeline = state.timeline;
-
-    if (step >= timeline.length) {
-        finishQuiz();
-        return;
+    if (step >= match.questions.length) { finishQuiz(); return; }
+    const q = match.questions[step];
+    const scoreboard = '<div class="truco-score"><span>Time ' + (match.team === 'noivo' ? 'Noivo' : 'Noiva') + '<b>' + match.player + '</b></span><span class="score-divider">×</span><span>CPU<b>' + match.cpu + '</b></span></div>';
+    const progress = '<p class="round-progress">Rodada ' + (step + 1) + ' / ' + match.questions.length + ' · ' + escapeHTML(state.activeQuizGuest.mainName) + '</p>';
+    const cards = q.options.map((option, i) => {
+        const chosen = round?.answer === i;
+        const cpu = round?.cpuAnswer === i;
+        const revealed = round?.finished;
+        return '<button type="button" ' + (round ? 'disabled ' : '') + 'onclick="window.answerQuizStep(' + step + ',' + i + ')" class="wedding-card suit-' + i + (chosen ? ' chosen-card' : '') + (revealed && q.correct === i ? ' correct-card' : '') + '" style="--deal:' + i * 70 + 'ms">' +
+            '<span class="card-corner">' + ranks[i] + '<small>' + suits[i] + '</small></span><span class="card-suit" aria-hidden="true">' + suits[i] + '</span><span class="card-answer">' + escapeHTML(option) + '</span>' +
+            '<span class="card-caption">' + (chosen ? 'SUA CARTA' : cpu ? 'CARTA DA CPU' : suitNames[i]) + '</span>' +
+            (revealed && q.correct === i ? '<span class="correct-label">Resposta certa</span>' : '') + '</button>';
+    }).join('');
+    let dispute = '';
+    if (round) {
+        if (!round.finished) {
+            const stake = round.offered || round.accepted;
+            const nextStake = STAKES[STAKES.indexOf(stake) + 1];
+            dispute = '<div class="truco-dispute" aria-live="polite"><span class="cpu-avatar" aria-hidden="true">♠</span><h4>' + escapeHTML(round.log.at(-1)) + '</h4><p>CPU escolheu: “' + escapeHTML(q.options[round.cpuAnswer]) + '”</p><p>Em jogo: ' + stake + ' pontos · correr entrega ' + round.accepted + '.</p>' +
+                '<div class="truco-actions"><button onclick="window.trucoDecision(\'accept\')">' + (round.offered ? 'Aceito! Abrir cartas' : 'Abrir cartas') + '</button>' +
+                (nextStake ? '<button class="raise-button" onclick="window.trucoDecision(\'raise\')">' + (nextStake === 3 ? 'TRUCO!' : 'GRITO ' + nextStake + '!') + '</button>' : '') +
+                '<button class="fold-button" onclick="window.trucoDecision(\'fold\')">Corro dessa</button></div></div>';
+        } else {
+            const explanation = round.reason === 'facão' ? 'Era FACÃO! A CPU estava blefando e você tinha a resposta certa.' :
+                round.reason === 'cpu-fold' ? 'A CPU correu! Sua coragem levou a rodada.' :
+                round.reason === 'player-fold' ? 'Você correu. Desta vez, a CPU tinha a resposta certa.' :
+                round.winner === 'player' ? 'Sua carta estava certa. Essa mão é sua!' : 'A CPU levou essa. Na próxima, capricha no blefe!';
+            dispute = '<div class="truco-dispute round-reveal" aria-live="polite"><h4>' + explanation + '</h4><p>' + (round.winner === 'player' ? 'Seu time' : 'CPU') + ' ganhou ' + round.points + ' ponto(s).</p><p>' + escapeHTML(q.text || '') + '</p><button onclick="window.nextTrucoRound()">' + (step + 1 === match.questions.length ? 'Ver placar final' : 'Próxima rodada →') + '</button></div>';
+        }
     }
-
-    const q = timeline[step];
-    const options = q.options || ["Opção A", "Opção B", "Opção C", "Opção D"];
-
-    container.innerHTML = `
-        <div class="space-y-6 animate-fadeIn">
-            <div class="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-stone-400 border-b pb-3">
-                <span>Convidado: ${escapeHTML(state.activeQuizGuest.mainName)}</span>
-                <span class="text-red-600">Pergunta ${step + 1} de ${timeline.length}</span>
-            </div>
-            <div class="space-y-2">
-                <span class="bg-red-50 text-red-600 text-xs font-bold px-3 py-1 rounded-full">${escapeHTML(q.tag)}</span>
-                <h4 class="font-serif text-2xl md:text-3xl font-bold text-stone-900">${escapeHTML(q.title)}</h4>
-            </div>
-            <div class="space-y-3 pt-2">
-                ${options.map((opt, idx) => `
-                    <button type="button" onclick="window.answerQuizStep(${step}, ${idx}, ${q.correct})" class="w-full text-left p-4 rounded-2xl border border-stone-200 hover:border-red-400 hover:bg-red-50 text-sm font-semibold transition-all bg-white shadow-xs cursor-pointer flex items-center justify-between">
-                        <span class="flex items-center gap-3"><span class="w-7 h-7 rounded-full bg-red-100 text-red-700 text-xs flex items-center justify-center font-bold shrink-0">${['A','B','C','D'][idx]}</span> ${escapeHTML(opt)}</span>
-                    </button>
-                `).join('')}
-            </div>
-        </div>
-    `;
-    lucide.createIcons();
+    container.innerHTML = '<div class="quiz-deal">' + scoreboard + progress + '<h4 class="question-title">' + escapeHTML(q.title) + '</h4><div class="wedding-hand">' + cards + '</div>' + dispute + '</div>';
 };
-
 const finishQuiz = async () => {
-    const correctCount = state.quizAnswersState.filter(a => a.isCorrect).length;
-    const score = correctCount * 100;
-
-    const participantKey = state.activeQuizGuest.participantKey || `${state.activeQuizGuest.id}:main`;
-    localStorage.setItem(`wedding_quiz_played_${participantKey}`, 'true');
-
-    try {
-        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'rankings'), {
-            guestId: state.activeQuizGuest.id,
-            guestName: state.activeQuizGuest.mainName,
-            participantKey: participantKey,
-            participantType: state.activeQuizGuest.participantType || 'main',
-            score: score,
-            timestamp: new Date().toISOString()
-        });
-        sendWhatsAppAlert(`🎮 Placar Quiz: ${state.activeQuizGuest.mainName} fez ${score} pontos.`);
-    } catch(e) { console.error(e); }
-
+    if (!match || resultSaving) return;
+    resultSaving = true;
     const container = document.getElementById('quiz-game-container');
-    container.innerHTML = `
-        <div class="space-y-6 text-center animate-fadeIn">
-            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto"><i data-lucide="award" class="w-8 h-8"></i></div>
-            <h3 class="font-serif text-3xl font-bold text-stone-900">Desafio Concluído!</h3>
-            <p class="text-stone-600 text-sm">Você acertou <b class="text-emerald-600">${correctCount} de ${state.timeline.length}</b> perguntas e somou <b class="text-red-600">${score} pontos</b> no ranking!</p>
-            <button type="button" onclick="location.reload()" class="py-3 px-6 bg-stone-900 text-white font-bold rounded-xl text-xs cursor-pointer">Ver Ranking Geral</button>
-        </div>
-    `;
-    lucide.createIcons();
+    const participantKey = state.activeQuizGuest.participantKey;
+    const title = match.player > match.cpu ? 'Seu time ganhou a mesa!' : match.player === match.cpu ? 'Empate! A festa decide na pista.' : 'A CPU ganhou. Mas o brinde é de todos!';
+    container.innerHTML = '<div class="truco-finale"><span aria-hidden="true">⚭</span><h3>' + title + '</h3><p>Time ' + (match.team === 'noivo' ? 'Noivo' : 'Noiva') + ' ' + match.player + ' × ' + match.cpu + ' CPU</p><p id="truco-save-status" role="status">Salvando resultado…</p></div>';
+    try {
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rankings', match.id), {
+            guestId: state.activeQuizGuest.id, guestName: state.activeQuizGuest.mainName,
+            participantKey, participantType: state.activeQuizGuest.participantType || 'main',
+            team: match.team, score: match.player * 100, trucoPoints: match.player, cpuPoints: match.cpu, timestamp: new Date().toISOString()
+        });
+        localStorage.setItem(playedPrefix + participantKey, 'true');
+        document.getElementById('truco-save-status').textContent = 'Resultado salvo! ' + match.player * 100 + ' pontos no ranking.';
+    } catch (e) {
+        document.getElementById('truco-save-status').innerHTML = 'Não foi possível salvar. <button onclick="window.retryTrucoSave()">Tentar novamente</button>';
+    } finally { resultSaving = false; }
 };
 
 export function renderRanking() {
@@ -228,7 +251,7 @@ window.deleteRankingEntry = (id) => {
             if (typeof window.clearQuizLocalPlayState === 'function') {
                 window.clearQuizLocalPlayState(ranking);
             } else if (ranking?.participantKey) {
-                localStorage.removeItem(`wedding_quiz_played_${ranking.participantKey}`);
+                localStorage.removeItem(`${playedPrefix}${ranking.participantKey}`);
             }
 
             window.showToast("Pontuação excluída. Essa pessoa já pode jogar novamente!");

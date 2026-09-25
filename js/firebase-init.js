@@ -1,9 +1,14 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDoc, isPreview, seedPreview } from './data-store.js';
+import { mountImageInput, validImageSource } from './image-input.js';
+import { initGuests } from './guests.js';
+import { initSpotify, updateSpotify } from './spotify.js';
+import { initBackgrounds, showBackground } from './backgrounds.js';
+import { initMural, refreshMural } from './mural.js';
 
 import { initQuiz, renderRanking } from './quiz.js';
-import { renderGallery } from './gallery.js';
+import { renderGallery, processInstagram } from './gallery.js';
 import { initAdmin, renderAdmin } from './admin.js';
 
 const firebaseConfig = typeof __firebase_config !== 'undefined'
@@ -48,11 +53,13 @@ export let state = {
         names: "Júnior & Renata", date: "2026-11-14T17:00", location: "Espaço das Flores - Curitiba, PR", maps: "https://maps.google.com", 
         pixKey: "12345678900", receiverName: "Júnior e Renata", cityName: "Curitiba", radioUrl: "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M",
         whatsappNumber: "5541999999999",
-        homepageImg: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"
+        homepageImg: "./assets/wedding/hero-rings.png",
+        heroPosition: "65"
     }
 };
 
 export function sendWhatsAppAlert(text) {
+    if (isPreview) return;
     try {
         console.log("📲 Alerta silencioso para WhatsApp dos noivos:", text);
         if (state.settings.whatsappWebhook) {
@@ -123,6 +130,8 @@ window.toggleSidebar = () => {
     const sidebar = document.getElementById('app-sidebar');
     const main = document.getElementById('main-content');
     const musicDock = document.getElementById('music-dock');
+    document.body.classList.toggle('menu-expanded', !state.isSidebarCollapsed);
+    document.querySelector('[data-action=toggle-sidebar]').setAttribute('aria-expanded', String(!state.isSidebarCollapsed));
     const labels = document.querySelectorAll('.sidebar-label');
 
     if (state.isSidebarCollapsed) {
@@ -189,11 +198,18 @@ window.switchTab = (tabId) => {
             "sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all bg-red-600 text-white shadow-sm cursor-pointer whitespace-nowrap" : 
             "sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all hover:bg-red-100 hover:text-red-700 cursor-pointer whitespace-nowrap";
     });
-    if (tabId === 'mural') setTimeout(() => renderMural(), 50);
+    if (tabId === 'mural') refreshMural();
+    showBackground(tabId);
+    if (tabId === 'gallery') requestAnimationFrame(processInstagram);
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 window.openAdminModal = () => {
+    if (isPreview) {
+        state.isAdminLoggedIn = true;
+        updateEditorUI(); renderAdmin(); refreshMural();
+        window.switchTab('admin'); return;
+    }
     if (auth.currentUser && state.isAdminLoggedIn) { window.switchTab('admin'); renderAdmin(); return; }
     document.getElementById('modal-admin-login').style.display = 'flex';
 };
@@ -228,11 +244,12 @@ window.submitAdminLogin = async (e) => {
 };
 
 window.adminLogout = async () => {
-    await signOut(auth);
+    if (!isPreview) await signOut(auth);
     state.isAdminLoggedIn = false;
     updateEditorUI();
     window.switchTab('home');
     window.showToast("Sessão encerrada com segurança.");
+    refreshMural();
 };
 
 function updateEditorUI() {
@@ -316,65 +333,17 @@ window.deleteGift = (id) => {
     });
 };
 
-const renderMural = () => {
-    const container = document.getElementById('mural-container');
-    if (!container) return;
-    const visibleMsgs = state.messages.filter(m => state.isAdminLoggedIn || !m.hidden);
-    if (!visibleMsgs.length) {
-        container.innerHTML = `<div class="absolute inset-0 flex flex-col items-center justify-center text-center text-stone-300 pointer-events-none py-20"><div class="text-6xl mb-4 opacity-75">📌</div><p class="font-serif text-2xl">O mural ainda está vazio</p></div>`;
-        return;
-    }
-    const isMobile = window.innerWidth <= 640;
-    container.style.minHeight = `${Math.max(850, Math.ceil(visibleMsgs.length / (isMobile ? 2 : 3)) * 215 + 80)}px`;
-    container.innerHTML = visibleMsgs.map((m, i) => {
-        const cols = isMobile ? 2 : 3, colWidth = (container.clientWidth || 860) / cols;
-        const x = Math.max(10, Math.min(cols * colWidth - 190 - 10, (i % cols) * colWidth + (colWidth - 190) / 2 + (Math.sin(i * 3) * 16)));
-        const y = 30 + Math.floor(i / cols) * 210 + (Math.cos(i * 2) * 12);
-        const rot = [-5, -3, 1.5, 3, -4, 4][i % 6];
-        const bg = { yellow: '#fff59d', pink: '#ffd0dc', green: '#d2f5c8', blue: '#cceeff' }[m.color || 'yellow'];
-        return `
-            <article class="real-postit group relative" style="position: absolute; left: ${x}px; top: ${y}px; width: 190px; min-height: 175px; padding: 25px 18px 18px; transform: rotate(${rot}deg); background: ${bg}; box-shadow: 0 10px 15px rgba(0,0,0,0.15);">
-                ${state.isAdminLoggedIn ? `
-                    <div class="absolute top-2 right-2 flex gap-1 z-20">
-                        <button type="button" onclick="window.deleteMessage('${m.id}')" class="p-1 bg-red-600 text-white rounded shadow text-[10px] cursor-pointer" title="Excluir Recado">✕</button>
-                    </div>
-                ` : ''}
-                <div style="font-family: var(--font-sans); font-size: 12px; font-weight: 700;">${escapeHTML(m.author)}</div>
-                <span style="font-family: var(--font-sans); font-size: 9px; opacity: .65; display:block; margin-bottom:10px;">${escapeHTML(m.relation)}</span>
-                <p style="font-family: var(--font-handwriting); font-size: 20px; line-height: 1.1;">${escapeHTML(m.text)}</p>
-            </article>`;
-    }).join('');
+window.openAddGiftModal = () => {
+    if (!state.isAdminLoggedIn) return window.showToast('Entre no painel para cadastrar presentes.', true);
+    document.getElementById('modal-add-gift').style.display = 'flex';
 };
-
-window.deleteMessage = (id) => {
-    window.openDeleteModal("Deseja realmente excluir este recado do mural?", async () => {
-        try {
-            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'messages', id));
-            window.showToast("Recado excluído com sucesso!");
-        } catch(e) { window.showToast("Erro ao excluir recado.", true); }
-    });
-};
+window.closeAddGiftModal = () => { document.getElementById('modal-add-gift').style.display = 'none'; };
 
 document.addEventListener('submit', async (e) => {
-    if (e.target && e.target.id === 'form-mural') {
-        e.preventDefault();
-        const msgObj = {
-            author: document.getElementById('mural-author').value.trim(),
-            relation: document.getElementById('mural-relation').value.trim() || 'Convidado(a)',
-            text: document.getElementById('mural-text').value.trim(),
-            color: document.querySelector('input[name="postit-color"]:checked')?.value || 'yellow',
-            hidden: false,
-            timestamp: new Date().toISOString()
-        };
-        e.target.reset();
-        try {
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), msgObj);
-            window.showToast("Post-it fixado no mural!");
-            sendWhatsAppAlert(`📌 Novo Recado no Mural de ${msgObj.author}`);
-        } catch(err) { window.showToast("Erro ao fixar recado.", true); }
-    }
     if (e.target && e.target.id === 'form-add-gift') {
         e.preventDefault();
+        if (!state.isAdminLoggedIn) return window.showToast('Acesso restrito aos noivos.', true);
+        if (e.target.dataset.saving) return;
         const giftObj = {
             title: document.getElementById('ag-title').value.trim(),
             totalAmount: parseFloat(document.getElementById('ag-amount').value) || 100,
@@ -382,17 +351,23 @@ document.addEventListener('submit', async (e) => {
             imageUrl: document.getElementById('ag-image').value.trim() || 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80',
             description: document.getElementById('ag-desc').value.trim()
         };
-        document.getElementById('modal-add-gift').style.display = 'none';
-        e.target.reset();
+        const photoInput = document.getElementById('ag-image');
+        if (photoInput.dataset.imageBusy) return window.showToast('Aguarde a preparação da foto.', true);
+        if (photoInput.value && !validImageSource(photoInput.value)) return window.showToast('Envie uma foto ou cole um link direto de imagem.', true);
         try {
+            e.target.dataset.saving = 'true';
             await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), giftObj);
+            document.getElementById('modal-add-gift').style.display = 'none';
+            e.target.reset();
             window.showToast("Presente adicionado com sucesso!");
         } catch(err) { window.showToast("Erro ao adicionar presente.", true); }
+        finally { delete e.target.dataset.saving; }
     }
 });
 
 const startFirebase = async () => {
-    onAuthStateChanged(auth, async (user) => {
+    seedPreview(db, appId, state);
+    if (!isPreview) onAuthStateChanged(auth, async (user) => {
         if (user) {
             const adminSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'admins', user.uid));
             state.isAdminLoggedIn = adminSnap.exists() && adminSnap.data().active;
@@ -422,6 +397,8 @@ const startFirebase = async () => {
             const cfgWhatsapp = document.getElementById('cfg-whatsapp');
             const cfgHomepageImg = document.getElementById('cfg-homepage-img');
             const cfgRadio = document.getElementById('cfg-radio');
+            const cfgPosition = document.getElementById('cfg-hero-position');
+            if (cfgPosition) cfgPosition.value = state.settings.heroPosition || '65';
 
             if (cfgNames && state.settings.names) cfgNames.value = state.settings.names;
             if (cfgDate && state.settings.date) cfgDate.value = state.settings.date;
@@ -451,10 +428,7 @@ const startFirebase = async () => {
         renderGallery();
     }, error => reportSyncError('a galeria', error));
 
-    onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), snap => {
-        state.messages = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-        renderMural();
-    }, error => reportSyncError('o mural', error));
+    // Moderated wall is served by the callable endpoint, never the legacy public collection.
 
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'guests'), snap => {
         state.guests = snap.docs.map(d => ({id: d.id, ...d.data()}));
@@ -473,6 +447,7 @@ const startFirebase = async () => {
 };
 
 const updateSiteContent = () => {
+    updateSpotify(state.settings.radioUrl);
     const elNames = document.getElementById('hero-names');
     const elLoc = document.getElementById('hero-location');
     const elMaps = document.getElementById('hero-maps-link');
@@ -482,7 +457,12 @@ const updateSiteContent = () => {
     if (elNames && state.settings.names) elNames.innerText = state.settings.names;
     if (elLoc && state.settings.location) elLoc.innerText = state.settings.location;
     if (elMaps && state.settings.maps) elMaps.href = state.settings.maps;
-    if (elImg && state.settings.homepageImg) elImg.src = state.settings.homepageImg;
+    if (elImg) {
+        const source = state.settings.homepageImg || '';
+        elImg.src = validImageSource(source) ? source : './assets/wedding/hero-rings.png';
+        elImg.style.objectPosition = 'center ' + (state.settings.heroPosition ?? 65) + '%';
+        elImg.onerror = () => { elImg.onerror = null; elImg.src = './assets/wedding/hero-rings.png'; };
+    }
     
     if (state.settings.date && elDate) {
         const dateObj = new Date(state.settings.date);
@@ -495,11 +475,28 @@ const updateSiteContent = () => {
 document.addEventListener('DOMContentLoaded', () => {
     renderGifts();
     renderGallery();
-    renderMural();
+    initMural();
     lucide.createIcons();
     startFirebase();
     initQuiz();
     initAdmin();
+    initSpotify();
+    initBackgrounds();
+    initGuests();
+    mountImageInput('cfg-homepage-img', 'capa do casal');
+    mountImageInput('ag-image', 'presente');
+    document.getElementById('cfg-homepage-img').addEventListener('input', e => {
+        if (validImageSource(e.target.value)) document.getElementById('homepage-couple-img').src = e.target.value;
+    });
+    document.getElementById('cfg-hero-position').addEventListener('input', e => {
+        document.getElementById('homepage-couple-img').style.objectPosition = 'center ' + e.target.value + '%';
+    });
+    if (isPreview) {
+        const banner = document.createElement('div');
+        banner.className = 'preview-banner';
+        banner.textContent = 'PRÉVIA LOCAL · dados fictícios · Painel do Casal abre o editor de teste';
+        document.body.prepend(banner);
+    }
     updateSiteContent();
 
     const rsvpInput = document.getElementById('rsvp-search-input');
@@ -571,4 +568,3 @@ setInterval(() => {
         countdownEl.innerHTML = `<div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(d).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Dias</span></div><div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(h).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Horas</span></div><div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(m).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Min</span></div><div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(s).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Seg</span></div>`;
     }
 }, 1000);
-
