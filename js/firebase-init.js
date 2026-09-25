@@ -201,6 +201,8 @@ window.switchTab = (tabId) => {
     if (tabId === 'mural') refreshMural();
     showBackground(tabId);
     if (tabId === 'gallery') requestAnimationFrame(processInstagram);
+    // Keep navigation available without letting the expanded menu cover the new page.
+    if (!state.isSidebarCollapsed) window.toggleSidebar();
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
