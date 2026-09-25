@@ -1,6 +1,6 @@
 import { db, appId, state } from './firebase-init.js';
 import { doc, onSnapshot, setDoc } from './data-store.js';
-import { mountImageInput, validImageSource } from './image-input.js';
+import { mountImageInput, validImageSource } from './image-input.js?v=20260925-1608';
 const sections = { home:'Início', history:'História & truco', gallery:'Instagram', gifts:'Presentes', mural:'Mural', rsvp:'Presença' };
 const saved = {};
 let active = 'home';
@@ -19,7 +19,7 @@ export function initBackgrounds() {
     document.body.prepend(backdrop);
     document.getElementById('section-backdrop-photo').onerror = event => { event.target.hidden = true; };
     const panel = document.createElement('section'); panel.className = 'background-editor';
-    panel.innerHTML = '<h3>Planos de fundo por página</h3><p>Escolha a página, envie ou cole uma foto e ajuste o enquadramento. Sem foto, aparecem os retratos dos noivos.</p><label for="bg-section">Página</label><select id="bg-section">' + Object.entries(sections).map(([id,label]) => '<option value="'+id+'">'+label+'</option>').join('') + '</select><label for="bg-image">Foto de fundo</label><input id="bg-image" type="text"><label for="bg-position">Enquadramento vertical</label><input id="bg-position" type="range" min="0" max="100" value="50"><div class="background-actions"><button type="button" id="bg-save">Salvar fundo desta página</button><button type="button" id="bg-clear">Usar retratos dos noivos</button></div><p id="bg-status" role="status"></p>';
+    panel.innerHTML = '<h3>Planos de fundo por página</h3><p>Escolha a página e envie uma foto. Ao selecionar um arquivo, você poderá arrastar e aproximar a imagem em um recorte 16:9, que funciona no celular e no desktop. Sem foto, aparecem os retratos dos noivos.</p><label for="bg-section">Página</label><select id="bg-section">' + Object.entries(sections).map(([id,label]) => '<option value="'+id+'">'+label+'</option>').join('') + '</select><label for="bg-image">Foto de fundo</label><input id="bg-image" type="text"><input id="bg-position" type="hidden" value="50"><div class="background-actions"><button type="button" id="bg-save">Salvar fundo desta página</button><button type="button" id="bg-clear">Usar retratos dos noivos</button></div><p id="bg-status" role="status"></p>';
     document.getElementById('tab-admin').append(panel);
     mountImageInput('bg-image','plano de fundo');
     const picker = document.getElementById('bg-section'), input = document.getElementById('bg-image'), position = document.getElementById('bg-position');

@@ -398,3 +398,47 @@ body.menu-expanded #main-content { padding-top:58px!important; }
   #main-content,
   body.menu-expanded #main-content { padding-top:62px!important; }
 }
+
+/* Final interaction pass: keep the desktop menu compact and make image cropping explicit. */
+#app-sidebar,
+#app-sidebar.sidebar-collapsed,
+#app-sidebar.sidebar-expanded { display:block!important; flex-wrap:nowrap!important; }
+#app-sidebar > div:first-child { display:flex!important; align-items:center; }
+body.menu-expanded #app-sidebar,
+body.menu-expanded #app-sidebar.sidebar-expanded { width:min(560px,calc(100vw - 28px))!important; max-width:calc(100vw - 28px); border-radius:16px!important; }
+body.menu-expanded #app-sidebar nav,
+body.menu-expanded #app-sidebar.sidebar-expanded nav {
+  position:static!important; display:grid!important; grid-template-columns:repeat(3,minmax(0,1fr));
+  min-width:0!important; width:100%; padding:8px 0 0!important; margin:0!important;
+  border:0!important; background:transparent!important; box-shadow:none!important;
+}
+body.menu-expanded #app-sidebar nav button,
+body.menu-expanded #app-sidebar.sidebar-expanded nav button { width:100%; min-width:0; padding:9px 8px!important; }
+body.menu-expanded #app-sidebar > div:last-child {
+  position:static!important; display:block!important; min-width:0!important; width:100%;
+  margin-top:6px; padding:8px 0 0!important; border-top:1px solid #d2a66d44!important;
+  background:transparent!important; border-radius:0!important; box-shadow:none!important;
+}
+body.menu-expanded #app-sidebar > div:last-child button { width:100%; padding:9px 8px!important; }
+#main-content,
+body.menu-expanded #main-content { padding-top:58px!important; }
+.image-crop-modal { position:fixed; inset:0; z-index:100000; display:grid; place-items:center; padding:16px; background:#160711cc; backdrop-filter:blur(8px); }
+.image-crop-dialog { width:min(720px,100%); max-height:min(92dvh,760px); overflow:hidden; display:flex; flex-direction:column; background:#241226; color:#f9edf4; border:1px solid #d2a66d88; border-radius:16px; box-shadow:0 24px 80px #10040dcc; }
+.image-crop-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; padding:18px 20px 12px; }
+.image-crop-header h3 { margin:0; color:#fff5e8; font:22px var(--font-serif); }
+.image-crop-header p { margin:5px 0 0; color:#dbc8d6; font-size:11px; line-height:1.5; }
+.image-crop-cancel { border:0; background:transparent; color:#f6d9e4; font-size:26px; line-height:1; cursor:pointer; }
+.image-crop-stage { min-height:240px; max-height:58dvh; padding:0 20px; background:#120a17; }
+.image-crop-stage img { display:block; max-width:100%; max-height:58dvh; margin:auto; }
+.image-crop-actions { display:flex; justify-content:flex-end; gap:8px; padding:14px 20px 18px; }
+.image-crop-actions button { border:1px solid #d2a66d88; border-radius:7px; padding:10px 14px; color:#fff; background:#8c1735; font-size:11px; cursor:pointer; }
+.image-crop-actions .image-crop-cancel { padding:10px 14px; color:#e7d4df; background:transparent; font-size:11px; }
+@media(max-width:700px) {
+  body.menu-expanded #app-sidebar nav,
+  body.menu-expanded #app-sidebar.sidebar-expanded nav { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .image-crop-modal { padding:10px; }
+  .image-crop-dialog { border-radius:12px; }
+  .image-crop-header { padding:14px 14px 10px; }
+  .image-crop-stage { padding:0 12px; min-height:210px; }
+  .image-crop-actions { padding:12px 14px 14px; }
+}

@@ -1,6 +1,6 @@
 import { db, appId, state } from './firebase-init.js';
 import { setDoc, doc } from './data-store.js';
-import { validImageSource } from './image-input.js';
+import { validImageSource } from './image-input.js?v=20260925-1608';
 import { spotifyEmbed } from './spotify.js';
 
 export function initAdmin() {
@@ -62,4 +62,3 @@ export function renderAdmin() {
     if (statConf) statConf.innerText = totalConfirmed;
     if (window.lucide) lucide.createIcons();
 }
-

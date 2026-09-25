@@ -1,7 +1,7 @@
 import { participants } from './guests.js';
 import { state, auth, escapeHTML } from './firebase-init.js';
 import { isPreview } from './data-store.js';
-import { mountImageInput } from './image-input.js';
+import { mountImageInput } from './image-input.js?v=20260925-1608';
 import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js';
 
 const previewKey = 'wedding-mural-preview-v1';

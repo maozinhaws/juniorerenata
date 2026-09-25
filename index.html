@@ -21,7 +21,9 @@
     <!-- Custom Modular CSS -->
     <link rel="stylesheet" href="./css/style.css?v=20260925-1523">
     <link rel="stylesheet" href="./css/premium.css?v=20260925-1523">
-    <link rel="stylesheet" href="./css/wedding-system.css?v=20260925-1523">
+    <link rel="stylesheet" href="./css/wedding-system.css?v=20260925-1608">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js" defer></script>
 </head>
 <body class="bg-red-50 text-stone-800 pb-28 selection:bg-red-200 flex min-h-screen relative overflow-x-hidden">
 
@@ -378,9 +380,8 @@
                     <div class="md:col-span-2 bg-stone-50 p-4 rounded-2xl border border-stone-200 space-y-2">
                         <label for="cfg-homepage-img" class="block text-xs font-bold text-stone-700 uppercase flex items-center gap-1.5"><i data-lucide="image" class="w-4 h-4 text-red-600"></i> Foto de fundo da homepage</label>
                         <input type="text" id="cfg-homepage-img" placeholder="Escolha uma foto ou cole um link direto" class="w-full p-2.5 border rounded-xl text-xs bg-white"/>
-                        <label for="cfg-hero-position">Enquadramento vertical da capa</label>
-                        <input id="cfg-hero-position" type="range" min="0" max="100" value="65" class="w-full"/>
-                        <p class="text-xs">Escolha ou cole a foto e ajuste o enquadramento. Links de perfil do Instagram não funcionam como arquivo de imagem.</p>
+                        <input id="cfg-hero-position" type="hidden" value="65"/>
+                        <p class="text-xs">Ao escolher um arquivo, use a ferramenta de recorte para arrastar e aproximar a imagem. A capa é preparada em 16:9 para funcionar no celular e no desktop. Links de perfil do Instagram não funcionam como arquivo de imagem.</p>
                     </div>
                     <div class="md:col-span-2 bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200 space-y-3">
                         <label class="block text-xs font-bold text-emerald-900 uppercase flex items-center gap-1.5"><i data-lucide="music" class="w-4 h-4 text-emerald-600"></i> Link da Playlist ou Música (Spotify)</label>
@@ -524,6 +525,6 @@
     </div>
 
     <!-- Modular JS entry point -->
-    <script type="module" src="./js/firebase-init.js?v=20260925-1523"></script>
+    <script type="module" src="./js/firebase-init.js?v=20260925-1608"></script>
 </body>
 </html>
