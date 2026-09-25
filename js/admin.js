@@ -1,6 +1,6 @@
 import { db, appId, state } from './firebase-init.js';
 import { setDoc, doc } from './data-store.js';
-import { validImageSource } from './image-input.js?v=20260925-1608';
+import { validImageSource } from './image-input.js?v=20260925-2006';
 import { spotifyEmbed } from './spotify.js';
 
 export function initAdmin() {

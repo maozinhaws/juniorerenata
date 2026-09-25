@@ -82,14 +82,14 @@ function modeForLabel(label) {
 export function mountImageInput(inputId, label) {
     const input = document.getElementById(inputId);
     if (!input || input.dataset.imageBound) return;
-    input.dataset.imageBound = 'true'; input.type = 'text';
+    input.dataset.imageBound = 'true'; input.type = 'text'; input.classList.add('image-source-value'); input.tabIndex = -1;
     const mode = modeForLabel(label);
     input.placeholder = 'Cole uma foto ou um link direto de imagem';
     const box = document.createElement('div'); box.className = 'photo-editor';
     const modeText = mode === 'profile' ? 'Recorte quadrado · arraste e use o zoom' : mode === 'background' ? 'Recorte 16:9 · funciona no mobile e desktop' : 'JPG, PNG ou WebP · até 3 MB';
-    box.innerHTML = '<label class="upload-choice"><span>Escolher foto · ' + label + '</span><input type="file" accept="image/jpeg,image/png,image/webp"></label><p>' + modeText + ' · você também pode colar uma foto aqui (Ctrl+V).</p><img alt="Prévia da foto selecionada" hidden><p class="photo-error" role="status"></p>';
+    box.innerHTML = '<label class="upload-choice"><span>Escolher foto · ' + label + '</span><input type="file" accept="image/jpeg,image/png,image/webp"><span class="upload-file-name" aria-live="polite">Nenhum arquivo escolhido</span></label><p>' + modeText + ' · você também pode colar uma foto aqui (Ctrl+V).</p><img alt="Prévia da foto selecionada" hidden><p class="photo-error" role="status"></p>';
     input.after(box);
-    const fileInput = box.querySelector('input'), preview = box.querySelector('img'), error = box.querySelector('[role=status]');
+    const fileInput = box.querySelector('input'), fileName = box.querySelector('.upload-file-name'), preview = box.querySelector('img'), error = box.querySelector('[role=status]');
     let version = 0;
     async function accept(file) {
         const ticket = ++version; error.textContent = mode === 'free' ? 'Preparando foto…' : 'Abra o recorte para ajustar a foto…'; input.dataset.imageBusy = 'true';
@@ -97,6 +97,7 @@ export function mountImageInput(inputId, label) {
             const source = await prepareImage(file, mode);
             if (ticket !== version) return;
             input.value = source; input.dispatchEvent(new Event('input', { bubbles: true }));
+            fileName.textContent = file.name || 'Foto colada ou selecionada';
             preview.src = source; preview.hidden = false; error.textContent = 'Foto pronta para salvar.';
         } catch (e) { if (ticket === version && e.message !== 'Recorte cancelado.') error.textContent = e.message; }
         finally { if (ticket === version) { delete input.dataset.imageBusy; fileInput.value = ''; } }

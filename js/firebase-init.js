@@ -1,15 +1,15 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDoc, isPreview, seedPreview } from './data-store.js';
-import { mountImageInput, validImageSource } from './image-input.js?v=20260925-1608';
+import { mountImageInput, validImageSource } from './image-input.js?v=20260925-2006';
 import { initGuests } from './guests.js';
 import { initSpotify, updateSpotify } from './spotify.js';
-import { initBackgrounds, showBackground } from './backgrounds.js?v=20260925-1608';
-import { initMural, refreshMural } from './mural.js?v=20260925-1608';
+import { initBackgrounds, showBackground } from './backgrounds.js?v=20260925-2006';
+import { initMural, refreshMural } from './mural.js?v=20260925-2006';
 
 import { initQuiz, renderRanking } from './quiz.js';
 import { renderGallery, processInstagram } from './gallery.js';
-import { initAdmin, renderAdmin } from './admin.js?v=20260925-1608';
+import { initAdmin, renderAdmin } from './admin.js?v=20260925-2006';
 
 const firebaseConfig = typeof __firebase_config !== 'undefined'
     ? (typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config)
