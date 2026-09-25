@@ -16,3 +16,9 @@ Fotos JPG/PNG/WebP até 3 MB são decodificadas, redimensionadas e reexportadas 
 Recados antigos da coleção messages não são publicados automaticamente pelo novo mural. Permanecem preservados; migração e aprovação exigem revisão dos noivos.
 
 Os testes de policy verificam validação, duplicidade e cotas. A validação integral de autenticação, regras e concorrência deve ser feita com emulador antes de liberar produção.
+
+## Fundos e música
+
+O painel permite escolher uma foto e seu enquadramento para Início, História & truco, Instagram, Presentes, Mural e Presença. Cada configuração é salva em `artifacts/{appId}/public/data/backgrounds/{section}`; documentos separados evitam acumular as seis imagens no documento de configurações. Sem imagem, o site usa os retratos dos noivos. Antes da publicação, revisar as regras dessa coleção: leitura pública, escrita apenas por administradores autenticados, com validação de campos e tamanho. Não foram implantadas regras neste trabalho.
+
+O miniplayer usa o embed oficial do Spotify, aceita links completos, localizados e URIs Spotify e mantém um link para abrir no aplicativo e uma opção de recarregar. A reprodução depende da disponibilidade do conteúdo e das restrições do Spotify/navegador. Na verificação local, o endpoint respondeu HTTP 200, mas o iframe permaneceu em branco no navegador integrado; a reprodução de áudio não foi confirmada.
