@@ -1,6 +1,37 @@
 import { db, appId, escapeHTML, state } from './firebase-init.js';
 import { collection, addDoc, deleteDoc, doc } from './data-store.js';
 
+let embedLoader;
+function loadInstagram() {
+    if (window.instgrm?.Embeds) return Promise.resolve();
+    if (embedLoader) return embedLoader;
+    embedLoader = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://www.instagram.com/embed.js'; script.async = true;
+        const timeout = setTimeout(() => { script.remove(); reject(new Error('Instagram indisponível')); }, 12000);
+        script.onload = () => { clearTimeout(timeout); window.instgrm?.Embeds ? resolve() : reject(new Error('Instagram indisponível')); };
+        script.onerror = () => { clearTimeout(timeout); script.remove(); reject(new Error('Instagram bloqueado')); };
+        document.head.append(script);
+    }).catch(error => { embedLoader = null; throw error; });
+    return embedLoader;
+}
+export async function processInstagram() {
+    const grid = document.getElementById('gallery-grid');
+    if (!grid || !state.gallery.length || !document.getElementById('tab-gallery').classList.contains('active')) return;
+    try { await loadInstagram(); window.instgrm.Embeds.process(); }
+    catch {
+        grid.querySelectorAll('blockquote.instagram-media').forEach(quote => {
+            const frame = document.createElement('iframe');
+            frame.src = quote.dataset.instgrmPermalink + 'embed/captioned/';
+            frame.title = 'Publicação do Instagram'; frame.loading = 'lazy';
+            frame.allow = 'encrypted-media; fullscreen';
+            frame.className = 'instagram-fallback-frame';
+            quote.replaceWith(frame);
+        });
+    }
+    grid.querySelectorAll('.instagram-loading').forEach(el => el.remove());
+}
+
 export function renderGallery() {
     const grid = document.getElementById('gallery-grid');
     if (!grid) return;
@@ -27,16 +58,18 @@ export function renderGallery() {
                         <a href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">Ver publicação no Instagram</a>
                     </blockquote>
                 </div>
+                <p class="instagram-help">Se a publicação não aparecer, confira se ela é pública e permite incorporação. <a href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">Abrir no Instagram ↗</a> <button type="button" data-retry-instagram>Tentar novamente</button></p>
             </article>
         `;
     }).join('');
 
     if (window.lucide) lucide.createIcons();
-    requestAnimationFrame(() => {
-        window.instgrm?.Embeds?.process();
-        window.setTimeout(() => grid.querySelectorAll('.instagram-loading').forEach(el => el.remove()), 1200);
-    });
+    requestAnimationFrame(processInstagram);
 }
+
+document.addEventListener('click', event => {
+    if (event.target.closest('[data-retry-instagram]')) renderGallery();
+});
 
 window.openLightbox = (imgUrl) => {
     let lb = document.getElementById('lightbox-modal');

@@ -47,15 +47,6 @@ export function initAdmin() {
 }
 
 export function renderAdmin() {
-    const select = document.getElementById('mural-invite-guest');
-    if (select) {
-        const selected = select.value;
-        select.replaceChildren(...state.guests.flatMap(guest => [
-            new Option(guest.mainName, guest.id + ':main'),
-            ...(guest.companions || []).map((person, index) => new Option(person.name + ' (acompanhante)', guest.id + ':' + index))
-        ]));
-        if ([...select.options].some(option => option.value === selected)) select.value = selected;
-    }
     let totalGenerated = 0, totalConfirmed = 0;
     state.guests.forEach(g => {
         const groupSize = 1 + (g.companions ? g.companions.length : 0);

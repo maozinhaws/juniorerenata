@@ -1,0 +1,128 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap');
+
+/* Typography and core palette from the supplied wedding reference. */
+:root { --font-serif:'Playfair Display',serif; --font-sans:'Manrope',sans-serif; --ink:#111113; --paper:#f4f0ec; --red:#e5223f; --wine:#7f122a; --pink:#f26d9c; --gold:#f4ba45; --lilac:#c7b3df; --night:#19121f; --leaf:#7f122a; --ease-out:cubic-bezier(.23,1,.32,1); }
+body { font-family:var(--font-sans); background:var(--paper)!important; padding-bottom:40px!important; }
+h1,h2,h3,h4,.font-serif { font-family:var(--font-serif); font-weight:500!important; letter-spacing:-.04em; }
+button,input,textarea,select { font-family:var(--font-sans); }
+button { transition:background .25s,transform .35s var(--ease-out),box-shadow .35s; }
+button:focus-visible,a:focus-visible { outline-color:var(--red); }
+button:not(:disabled):hover { filter:brightness(1.04); }
+.hero-eyebrow,.round-progress,.card-caption,.truco-score span { font-family:'DM Mono',monospace; letter-spacing:.13em; }
+#main-content { margin-left:76px!important; margin-right:0!important; width:calc(100% - 76px); padding:54px clamp(16px,3vw,48px) 40px; max-width:none; transition:margin .35s var(--ease-out),width .35s var(--ease-out); }
+body.menu-expanded #main-content { margin-left:260px!important; width:calc(100% - 260px); }
+#app-sidebar { top:0; bottom:auto; left:0; width:76px!important; height:100dvh; padding:64px 10px 20px; flex-direction:column; background:var(--night)!important; border-right:1px solid #c7b3df33; color:#e8ddea; box-shadow:none; overflow-y:auto; z-index:100; }
+#app-sidebar.sidebar-expanded { width:260px!important; box-shadow:20px 0 60px #110c2222; }
+#app-sidebar > div:first-child { flex:initial; }
+#app-sidebar > div:first-child > div { display:flex; }
+#app-sidebar nav { display:block; margin-top:20px; }
+#app-sidebar nav button { display:flex; width:100%; margin-bottom:8px; padding:13px 16px; border-radius:7px; font-size:12px; color:#e8ddea; box-shadow:none; }
+#app-sidebar nav button:hover { background:#c7b3df1a; }
+#app-sidebar nav button:not(.bg-red-600),#app-sidebar > div:last-child button { background:transparent!important; }
+#app-sidebar svg { color:inherit!important; }
+#app-sidebar nav button.bg-red-600 { background:var(--wine)!important; color:#fff; border:1px solid #e5223f55; }
+#app-sidebar .sidebar-label { display:block!important; }
+#app-sidebar.sidebar-collapsed .sidebar-label { display:none!important; }
+#app-sidebar.sidebar-expanded .sidebar-label { opacity:1!important; }
+#app-sidebar > div:last-child { padding-top:16px; border-top:1px solid #c7b3df22; }
+#app-sidebar > div:last-child button { padding:12px 16px; color:#d5c6df; }
+#app-sidebar [data-action=toggle-sidebar] { color:var(--lilac); padding:14px; }
+#music-dock { left:88px!important; bottom:18px; z-index:90; }
+#music-dock > div:last-child > div { display:none; }
+.preview-banner { background:#e9dfef; color:#41334d; }
+.hero-stage { min-height:740px; padding:92px 7% 100px; border-radius:2px!important; background:var(--night)!important; }
+.hero-cover { opacity:.75; }
+.hero-shade { background:linear-gradient(90deg,#19121feb 3%,#5213289c 56%,#19121f22); }
+#hero-names { font-family:var(--font-serif); font-size:clamp(64px,8vw,130px); letter-spacing:-.075em; line-height:.95; font-weight:500!important; }
+.hero-eyebrow { color:#edc891; font-size:10px; }
+.hero-intro { color:#f4e7ed; font-size:16px; }
+.hero-rsvp { background:var(--red); color:white; border:1px solid #f26d9c66; border-radius:2px; font-size:11px; text-transform:uppercase; letter-spacing:.09em; }
+.hero-stage::before { display:block; content:''; width:105%; height:65%; left:-20%; top:15%; filter:none; opacity:1; border:1px solid #f4ba4566; background:none; border-radius:50%; transform:rotate(-20deg); z-index:-1; animation:weddingOrbit 12s ease-in-out infinite alternate; }
+.hero-stage::after { display:block; content:'⚭'; position:absolute; left:auto; top:auto; right:6%; bottom:10%; width:auto; height:auto; background:none; filter:none; color:var(--gold); opacity:.8; font:80px var(--font-serif); animation:none; z-index:-1; }
+.glass-card { background:#fffaf8; border-color:#e2d5db; border-radius:8px!important; box-shadow:0 18px 55px #30132408; }
+#countdown span:first-child { color:var(--wine); font-family:'DM Mono',monospace; }
+#tab-home > .glass-card { position:relative; margin-top:-30px; }
+.couple-story { display:grid; grid-template-columns:1fr 1fr; gap:clamp(16px,4vw,55px); max-width:1050px; margin:80px auto 30px; position:relative; padding:34px; }
+.couple-story::before { content:''; position:absolute; inset:10% -2%; border:1px solid #bc893e; border-radius:50%; transform:rotate(-14deg); pointer-events:none; }
+.couple-story figure { position:relative; margin:0; background:var(--night); }
+.couple-story figure:nth-child(2) { margin-top:80px; }
+.couple-story img { display:block; width:100%; aspect-ratio:4/5; object-fit:cover; }
+.couple-story figcaption { padding:20px; color:#f4f0ec; font:italic 26px var(--font-serif); }
+.couple-story figcaption span { display:block; margin-bottom:8px; color:var(--gold); font:9px 'DM Mono',monospace; letter-spacing:.16em; }
+#quiz-entry-card,#quiz-game-container { background:var(--night); border:1px solid #c7b3df44; border-radius:8px!important; box-shadow:0 25px 70px #24102920; }
+#quiz-entry-card h3 { font-size:clamp(34px,5vw,55px); }
+#quiz-entry-card p { color:#d5c6df!important; }
+.intro-hand span { background:#f4f0ec; border:1px solid #bd955b; color:var(--wine); border-radius:4px; }
+.intro-hand span:nth-child(n+3) { color:#755186; }
+.team-choice button { border-color:#c7b3df66; color:#eee3f4; border-radius:2px; }
+.team-choice button[aria-pressed=true] { background:var(--lilac); color:var(--night); box-shadow:0 0 0 3px #c7b3df22; }
+.wedding-card { border-radius:5px; background:#f4f0ec; color:var(--wine); border-color:#c4a16b; box-shadow:0 7px 0 #39223d,0 14px 25px #0003; }
+.wedding-card:hover { box-shadow:0 13px 0 #39223d,0 22px 30px #0004; }
+.suit-2,.suit-3 { color:#755186; }
+.card-answer { font-weight:600; }
+.card-corner { font-family:'DM Mono',monospace; }
+.chosen-card { outline-color:var(--gold); }
+.correct-card { background:#e7dcef; }
+.correct-label { color:#573867; }
+.truco-dispute { background:#eae0ee; border:1px solid #c7b3df; border-radius:4px; }
+.truco-dispute button,.truco-finale button { background:var(--wine); border-radius:2px; }
+.truco-dispute .raise-button { background:var(--red); }
+.truco-dispute .fold-button { background:transparent; color:#51405a; }
+.truco-score,.round-progress { color:#ddd0e7; }
+.guest-suggestions { margin-top:6px; border:1px solid #d9c6dd; border-radius:5px; max-height:230px; overflow:auto; background:white; }
+.guest-suggestions[hidden] { display:none; }
+.guest-suggestions button { display:block; width:100%; text-align:left; padding:12px; color:#312339; border-bottom:1px solid #eee; font-size:13px; }
+.guest-suggestions button:hover { background:#efe5f3; }
+.guest-suggestions small { display:block; font-size:10px; color:#786481; }
+.cork-board { position:relative; padding:45px 32px!important; min-height:440px; border:14px ridge #b78b47!important; border-radius:18px!important; outline:2px solid #7c572b; box-shadow:inset 0 0 35px #130c1bcc,0 0 0 5px #e0c898,0 20px 45px #26102133; background-color:#4b244f; background-image:repeating-linear-gradient(0deg,#dfacd713 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,#08051633 0 1px,transparent 1px 4px); }
+.cork-board::before,.cork-board::after { content:'❦'; position:absolute; top:-23px; left:-15px; color:#efd39b; font:45px var(--font-serif); text-shadow:1px 2px 0 #6e4524; pointer-events:none; }
+.cork-board::after { left:auto; right:-15px; transform:scaleX(-1); }
+.memory-grid { grid-template-columns:repeat(auto-fit,minmax(205px,1fr)); align-items:start; gap:45px 32px; min-height:320px!important; padding:12px 0; }
+.memory-note { --note:#f6df8d; position:relative; background:none; border:0; box-shadow:none; padding:0; max-width:330px; width:100%; margin:auto; transform:rotate(-3deg); }
+.memory-note:nth-child(even) { transform:rotate(3deg); }
+.note-pink { --note:#f5b4c4; }.note-green { --note:#c5dfbb; }.note-blue { --note:#bce1ec; }
+.memory-note img { width:100%; aspect-ratio:4/5; object-fit:cover; border:10px solid #fff8ed; border-bottom-width:32px; box-shadow:3px 8px 15px #16091f66; }
+.sticky-paper { position:relative; padding:22px 20px; min-height:170px; background:var(--note); box-shadow:2px 8px 12px #16091f55; border-radius:0 0 20px 0; color:#332536; }
+.has-photo .sticky-paper { width:87%; margin:-65px -8px 0 auto; transform:rotate(4deg); z-index:2; }
+.memory-note p { font:25px/1.2 var(--font-handwriting); margin:8px 0 20px; }
+.memory-note footer { font-size:9px; font-weight:600; line-height:1.5; }
+.board-pin { position:absolute; z-index:4; width:16px; height:16px; top:-6px; left:48%; border-radius:50%; background:radial-gradient(circle at 30% 25%,#ffb5ae,#de2944 50%,#79152b 85%); box-shadow:3px 4px 3px #14061766; }
+.memory-note:nth-child(2n) .board-pin { background:radial-gradient(circle at 30% 25%,#e1d4ff,#8663b4 50%,#43306e 85%); }
+.memory-note:nth-child(3n) .board-pin { background:radial-gradient(circle at 30% 25%,#fff5b3,#e6a229 50%,#95601b 85%); }
+.empty-memory { color:#ebd6ec; font-family:var(--font-serif); font-size:25px; }
+#postit-color-picker,#form-mural > div.flex { display:flex; }
+#postit-color-picker label { position:relative; }
+#postit-color-picker input { display:block; position:absolute; width:24px; height:24px; opacity:0; cursor:pointer; }
+#postit-color-picker label:focus-within { outline:2px solid var(--wine); outline-offset:4px; border-radius:50%; }
+.photo-editor { background:#f2eaf4; border-color:#b8a0c2; border-radius:5px; }
+.upload-choice { color:#60326c; }
+.instagram-shell { min-height:0; border-radius:6px!important; }
+.instagram-fallback-frame { display:block; width:100%; height:630px; border:0; background:white; }
+.instagram-help { padding:16px; font-size:11px; line-height:1.7; background:#ede3f1; color:#56415d; }
+.instagram-help a,.instagram-help button { display:inline-block; text-decoration:underline; margin-right:12px; }
+@keyframes weddingOrbit { to { transform:rotate(-12deg) translateY(8px); } }
+@media(max-width:700px) {
+ #main-content { margin-left:62px!important; width:calc(100% - 62px); padding:48px 12px 35px; }
+ body.menu-expanded #main-content { margin-left:62px!important; width:calc(100% - 62px); }
+ #app-sidebar { width:62px!important; padding:45px 5px 18px; }
+ #app-sidebar nav button,#app-sidebar > div:last-child button { padding:13px 14px; }
+ #app-sidebar.sidebar-expanded { width:246px!important; }
+ #app-sidebar [data-action=toggle-sidebar] { padding:14px; }
+ #music-dock { left:72px!important; bottom:12px; }
+ .hero-stage { padding:75px 22px; min-height:670px; }
+ #hero-names { font-size:clamp(46px,12vw,74px); }
+ .hero-shade { background:linear-gradient(180deg,#19121f99,#521328c9); }
+ .hero-stage::before { width:160%; height:50%; left:-30%; top:20%; }
+ .couple-story { padding:10px 0; gap:15px; margin:50px 0; }
+ .couple-story figure:nth-child(2) { margin-top:45px; }
+ .couple-story figcaption { padding:13px; font-size:20px; }
+ .couple-story figcaption span { font-size:7px; }
+ .cork-board { padding:30px 18px!important; border-width:10px!important; }
+ .memory-grid { grid-template-columns:1fr; }
+ .wedding-hand { gap:10px; }.wedding-card { min-height:205px; padding:35px 9px 14px; }
+ .question-title { font-size:25px; }.card-answer { font-size:11px; }
+ #tab-mural h2 { font-size:36px; }
+ #tab-mural form { padding:20px; }
+ #toast { max-width:calc(100vw - 80px); right:10px; }
+}
+@media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; } }

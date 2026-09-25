@@ -2,10 +2,11 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebas
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDoc, isPreview, seedPreview } from './data-store.js';
 import { mountImageInput, validImageSource } from './image-input.js';
+import { initGuests } from './guests.js';
 import { initMural, refreshMural } from './mural.js';
 
 import { initQuiz, renderRanking } from './quiz.js';
-import { renderGallery } from './gallery.js';
+import { renderGallery, processInstagram } from './gallery.js';
 import { initAdmin, renderAdmin } from './admin.js';
 
 const firebaseConfig = typeof __firebase_config !== 'undefined'
@@ -127,6 +128,8 @@ window.toggleSidebar = () => {
     const sidebar = document.getElementById('app-sidebar');
     const main = document.getElementById('main-content');
     const musicDock = document.getElementById('music-dock');
+    document.body.classList.toggle('menu-expanded', !state.isSidebarCollapsed);
+    document.querySelector('[data-action=toggle-sidebar]').setAttribute('aria-expanded', String(!state.isSidebarCollapsed));
     const labels = document.querySelectorAll('.sidebar-label');
 
     if (state.isSidebarCollapsed) {
@@ -194,7 +197,7 @@ window.switchTab = (tabId) => {
             "sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all hover:bg-red-100 hover:text-red-700 cursor-pointer whitespace-nowrap";
     });
     if (tabId === 'mural') refreshMural();
-    if (tabId === 'gallery') setTimeout(() => window.instgrm?.Embeds?.process(), 80);
+    if (tabId === 'gallery') requestAnimationFrame(processInstagram);
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
@@ -473,6 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
     startFirebase();
     initQuiz();
     initAdmin();
+    initGuests();
     mountImageInput('cfg-homepage-img', 'capa do casal');
     mountImageInput('ag-image', 'presente');
     document.getElementById('cfg-homepage-img').addEventListener('input', e => {

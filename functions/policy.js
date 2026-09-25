@@ -1,5 +1,5 @@
 export function validateSubmission(data) {
-    if (typeof data.code !== 'string' || data.code.length > 80 || data.code.length < 8) throw new Error('Informe seu código de convite.');
+    if (typeof data.guestId !== 'string' || !/^[\w-]+:(main|[0-9]+)$/.test(data.guestId)) throw new Error('Selecione seu nome na lista.');
     if (typeof data.text !== 'string' || !data.text.trim() || data.text.length > 1000) throw new Error('Escreva um recado de até 1.000 caracteres.');
     if (typeof data.requestId !== 'string' || !/^[a-f0-9-]{36}$/.test(data.requestId)) throw new Error('Identificador inválido.');
     if (typeof data.image !== 'string' || data.image.length > 340000 || (data.image && !/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(data.image))) throw new Error('Foto inválida. Envie uma foto pelo seletor.');
@@ -11,6 +11,6 @@ export function validateSubmission(data) {
 export function nextSlot(existing, requestId) {
     const duplicate = existing.find(row => row.requestId === requestId);
     if (duplicate) return { duplicate: true, id: duplicate.id };
-    if (existing.length >= 2) throw new Error('Este convite já enviou os dois recados permitidos.');
+    if (existing.length >= 2) throw new Error('Este convidado já enviou os dois recados permitidos.');
     return { slot: existing.length + 1 };
 }

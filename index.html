@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="referrer" content="no-referrer">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <title>Júnior & Renata - Nosso Casamento</title>
     
     <!-- Tailwind CSS -->
@@ -13,11 +13,12 @@
     <!-- Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
     <!-- Instagram Embed Script -->
-    <script async src="https://www.instagram.com/embed.js"></script>
+
     
     <!-- Custom Modular CSS -->
     <link rel="stylesheet" href="./css/style.css">
     <link rel="stylesheet" href="./css/premium.css">
+    <link rel="stylesheet" href="./css/wedding-system.css">
 </head>
 <body class="bg-red-50 text-stone-800 pb-28 selection:bg-red-200 flex min-h-screen relative overflow-x-hidden">
 
@@ -85,7 +86,7 @@
     <aside id="app-sidebar" class="sidebar-collapsed sidebar-transition fixed top-0 left-0 h-full bg-white/95 backdrop-blur-md border-r border-red-100 shadow-xl z-50 flex flex-col justify-between p-3.5 overflow-x-hidden pt-16">
         <div class="space-y-6">
             <div class="flex items-center justify-end">
-                <button data-action="toggle-sidebar" class="text-stone-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 transition-colors cursor-pointer shrink-0" title="Expandir / Recolher Menu">
+                <button aria-label="Expandir ou recolher menu" aria-expanded="false" aria-controls="app-sidebar" data-action="toggle-sidebar" class="text-stone-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 transition-colors cursor-pointer shrink-0" title="Expandir / Recolher Menu">
                     <i data-lucide="panel-left" class="w-5 h-5"></i>
                 </button>
             </div>
@@ -153,6 +154,10 @@
             <div class="glass-card rounded-3xl p-6 md:p-10 shadow-xl border border-red-200 text-center max-w-5xl mx-auto -mt-16 relative z-10">
                 <h2 class="font-serif text-2xl md:text-3xl text-red-900 mb-6 font-semibold">Contagem Regressiva para o Grande Dia</h2>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="countdown"></div>
+            </div>
+            <div class="couple-story" aria-label="Os noivos">
+                <figure><img src="./assets/wedding/junior.png" loading="lazy" alt="Júnior sorrindo"><figcaption><span>TIME NOIVO</span>Pronto para o sim.</figcaption></figure>
+                <figure><img src="./assets/wedding/renata.png" loading="lazy" alt="Renata sorrindo"><figcaption><span>TIME NOIVA</span>E para a pista.</figcaption></figure>
             </div>
         </section>
 
@@ -250,8 +255,9 @@
             <form id="form-mural" class="glass-card p-6 md:p-8 rounded-3xl border border-red-200 mb-12 shadow-sm space-y-4 max-w-2xl mx-auto">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label for="mural-code" class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Código do seu convite</label>
-                        <input required type="text" id="mural-code" maxlength="80" autocomplete="off" placeholder="Seu código individual" class="w-full px-4 py-2.5 rounded-xl border border-stone-200 text-sm focus:outline-none focus:border-red-500 bg-white"/>
+                        <label for="mural-name" class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Seu nome na lista</label>
+                        <input required type="text" id="mural-name" maxlength="120" autocomplete="off" placeholder="Digite e selecione seu nome" class="w-full px-4 py-2.5 rounded-xl border border-stone-200 text-sm focus:outline-none focus:border-red-500 bg-white"/>
+                        <div id="mural-suggestions" class="guest-suggestions" hidden></div>
                     </div>
                     <div>
                         <p class="text-sm">Até dois recados e duas fotos por convidado. Uma foto opcional em cada recado. Os noivos aprovam antes de aparecer aqui.</p>
@@ -264,12 +270,12 @@
                     <input id="mural-image" type="text" class="w-full p-3 border rounded-xl" placeholder="Escolha ou cole uma foto"/>
                 </div>
                 <div class="flex items-center justify-between pt-2">
-                    <span class="text-xs text-stone-400">Escolha a cor:</span>
+                    <span class="text-xs text-stone-400">Cor do post-it:</span>
                     <div class="flex gap-2" id="postit-color-picker">
-                        <label class="cursor-pointer"><input type="radio" name="postit-color" value="yellow" checked class="hidden peer"/><div class="w-6 h-6 rounded-full bg-yellow-200 border-2 border-transparent peer-checked:border-stone-800 shadow-sm"></div></label>
-                        <label class="cursor-pointer"><input type="radio" name="postit-color" value="pink" class="hidden peer"/><div class="w-6 h-6 rounded-full bg-pink-200 border-2 border-transparent peer-checked:border-stone-800 shadow-sm"></div></label>
-                        <label class="cursor-pointer"><input type="radio" name="postit-color" value="green" class="hidden peer"/><div class="w-6 h-6 rounded-full bg-emerald-200 border-2 border-transparent peer-checked:border-stone-800 shadow-sm"></div></label>
-                        <label class="cursor-pointer"><input type="radio" name="postit-color" value="blue" class="hidden peer"/><div class="w-6 h-6 rounded-full bg-sky-200 border-2 border-transparent peer-checked:border-stone-800 shadow-sm"></div></label>
+                        <label class="cursor-pointer"><input type="radio" name="postit-color" aria-label="Amarelo" value="yellow" checked class="hidden peer"/><div class="w-6 h-6 rounded-full bg-yellow-200 border-2 border-transparent peer-checked:border-stone-800 shadow-sm"></div></label>
+                        <label class="cursor-pointer"><input type="radio" name="postit-color" aria-label="Rosa" value="pink" class="hidden peer"/><div class="w-6 h-6 rounded-full bg-pink-200 border-2 border-transparent peer-checked:border-stone-800 shadow-sm"></div></label>
+                        <label class="cursor-pointer"><input type="radio" name="postit-color" aria-label="Verde" value="green" class="hidden peer"/><div class="w-6 h-6 rounded-full bg-emerald-200 border-2 border-transparent peer-checked:border-stone-800 shadow-sm"></div></label>
+                        <label class="cursor-pointer"><input type="radio" name="postit-color" aria-label="Azul" value="blue" class="hidden peer"/><div class="w-6 h-6 rounded-full bg-sky-200 border-2 border-transparent peer-checked:border-stone-800 shadow-sm"></div></label>
                     </div>
                 </div>
                 <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3.5 rounded-xl text-sm shadow flex items-center justify-center gap-2 transition-all cursor-pointer">
@@ -383,12 +389,9 @@
                 </div>
             </div>
             <div class="invite-panel">
-                <h3>Códigos para o mural</h3>
-                <label for="mural-invite-guest">Selecione o convidado</label>
-                <select id="mural-invite-guest"></select>
-                <button type="button" onclick="window.createMuralInvite()">Gerar código individual</button>
-                <p id="mural-invite-result" role="status"></p>
-                <p>Ao gerar outro código, o anterior deixa de funcionar. O limite de recados permanece.</p>
+                <h3>Convidados & recados</h3>
+                <button type="button" data-action="open-add-guest">Cadastrar convidado</button>
+                <p>Os convidados selecionam o próprio nome. Cada pessoa pode enviar dois recados, sujeitos à aprovação.</p>
                 <button type="button" aria-label="Mural" data-tab="mural">Ver recados aguardando aprovação</button>
             </div>
         </section>
