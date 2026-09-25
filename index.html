@@ -86,8 +86,9 @@
     <aside id="app-sidebar" class="sidebar-collapsed sidebar-transition fixed top-0 left-0 h-full bg-white/95 backdrop-blur-md border-r border-red-100 shadow-xl z-50 flex flex-col justify-between p-3.5 overflow-x-hidden pt-16">
         <div class="space-y-6">
             <div class="flex items-center justify-end">
-                <button aria-label="Expandir ou recolher menu" aria-expanded="false" aria-controls="app-sidebar" data-action="toggle-sidebar" class="text-stone-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 transition-colors cursor-pointer shrink-0" title="Expandir / Recolher Menu">
-                    <i data-lucide="panel-left" class="w-5 h-5"></i>
+                <button aria-label="Abrir menu" aria-expanded="false" aria-controls="app-sidebar" data-action="toggle-sidebar" class="text-stone-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 transition-colors cursor-pointer shrink-0" title="Abrir menu">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                    <span class="mobile-menu-label">Menu</span>
                 </button>
             </div>
 
@@ -154,10 +155,6 @@
             <div class="glass-card rounded-3xl p-6 md:p-10 shadow-xl border border-red-200 text-center max-w-5xl mx-auto -mt-16 relative z-10">
                 <h2 class="font-serif text-2xl md:text-3xl text-red-900 mb-6 font-semibold">Contagem Regressiva para o Grande Dia</h2>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="countdown"></div>
-            </div>
-            <div class="couple-story" aria-label="Os noivos">
-                <figure><img src="./assets/wedding/junior.png" loading="lazy" alt="Júnior sorrindo"><figcaption><span>TIME NOIVO</span>Pronto para o sim.</figcaption></figure>
-                <figure><img src="./assets/wedding/renata.png" loading="lazy" alt="Renata sorrindo"><figcaption><span>TIME NOIVA</span>E para a pista.</figcaption></figure>
             </div>
         </section>
 
@@ -376,8 +373,8 @@
                     <div><label class="block text-xs font-bold text-stone-500 uppercase">Cidade Pix</label><input type="text" id="cfg-city" class="w-full mt-1 p-2.5 border rounded-xl bg-white"/></div>
                     <div><label class="block text-xs font-bold text-stone-500 uppercase">WhatsApp dos Noivos (Para Alertas)</label><input type="text" id="cfg-whatsapp" placeholder="5541999999999" class="w-full mt-1 p-2.5 border rounded-xl bg-white"/></div>
                     <div class="md:col-span-2 bg-stone-50 p-4 rounded-2xl border border-stone-200 space-y-2">
-                        <label for="cfg-homepage-img" class="block text-xs font-bold text-stone-700 uppercase flex items-center gap-1.5"><i data-lucide="image" class="w-4 h-4 text-red-600"></i> Foto de capa do casal</label>
-                        <input type="url" id="cfg-homepage-img" placeholder="https://images.unsplash.com/..." class="w-full p-2.5 border rounded-xl text-xs bg-white"/>
+                        <label for="cfg-homepage-img" class="block text-xs font-bold text-stone-700 uppercase flex items-center gap-1.5"><i data-lucide="image" class="w-4 h-4 text-red-600"></i> Foto de fundo da homepage</label>
+                        <input type="text" id="cfg-homepage-img" placeholder="Escolha uma foto ou cole um link direto" class="w-full p-2.5 border rounded-xl text-xs bg-white"/>
                         <label for="cfg-hero-position">Enquadramento vertical da capa</label>
                         <input id="cfg-hero-position" type="range" min="0" max="100" value="65" class="w-full"/>
                         <p class="text-xs">Escolha ou cole a foto e ajuste o enquadramento. Links de perfil do Instagram não funcionam como arquivo de imagem.</p>

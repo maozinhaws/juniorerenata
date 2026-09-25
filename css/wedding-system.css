@@ -127,6 +127,67 @@ body.menu-expanded #main-content { margin-left:260px!important; width:calc(100% 
 }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; } }
 
+/* Final responsive pass: keep the photo as a background layer and let content flow normally. */
+#section-backdrop .backdrop-bride,
+#section-backdrop .backdrop-groom { display:none!important; }
+#section-backdrop { background:#350817; }
+#section-backdrop .backdrop-veil { background:linear-gradient(120deg,#350817e8,#56142fbb 52%,#241326d9); }
+.hero-cover { opacity:.58!important; mix-blend-mode:normal!important; z-index:-2; }
+.hero-shade { background:linear-gradient(90deg,#19121fe8 0%,#321323aa 58%,#19121f33 100%)!important; }
+.mobile-menu-label { display:none; font-size:11px; font-weight:800; letter-spacing:.16em; text-transform:uppercase; }
+
+@media(max-width:700px) {
+  body { padding-bottom:18px!important; }
+  #app-sidebar,
+  #app-sidebar.sidebar-collapsed,
+  #app-sidebar.sidebar-expanded {
+    top:0!important; bottom:auto!important; left:0!important;
+    width:100%!important; height:auto!important; min-height:0;
+    padding:10px 14px!important; display:block; overflow:visible;
+    background:#19121ff7!important; border:0; border-bottom:1px solid #d2a66d55;
+    box-shadow:0 12px 28px #16071155; backdrop-filter:blur(16px);
+  }
+  #app-sidebar > div:first-child { display:block; }
+  #app-sidebar > div:first-child > div { display:flex; align-items:center; justify-content:flex-start; }
+  #app-sidebar [data-action=toggle-sidebar] {
+    display:flex; align-items:center; gap:10px; padding:8px 4px!important;
+    color:#f5dfbe; background:transparent; border:0;
+  }
+  #app-sidebar [data-action=toggle-sidebar] svg { width:20px; height:20px; }
+  .mobile-menu-label { display:inline; }
+  #app-sidebar nav,
+  #app-sidebar.sidebar-collapsed nav { display:none; margin:10px 0 2px; padding-top:10px; border-top:1px solid #c7b3df2b; }
+  body.menu-expanded #app-sidebar nav,
+  body.menu-expanded #app-sidebar.sidebar-expanded nav { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+  #app-sidebar nav button,
+  #app-sidebar.sidebar-expanded nav button { width:100%; margin:0; padding:11px 10px!important; min-height:42px; justify-content:flex-start; gap:8px; }
+  #app-sidebar nav button .sidebar-label,
+  #app-sidebar.sidebar-collapsed .sidebar-label,
+  #app-sidebar.sidebar-expanded .sidebar-label { display:block!important; opacity:1!important; font-size:10px; overflow:hidden; text-overflow:ellipsis; }
+  #app-sidebar > div:last-child { display:none; }
+  body.menu-expanded #app-sidebar > div:last-child { display:block; border:0; padding:6px 0 0; }
+  body.menu-expanded #app-sidebar > div:last-child button { padding:9px 10px!important; }
+  body.menu-expanded #app-sidebar > div:last-child .sidebar-label { display:inline!important; }
+  #main-content,
+  body.menu-expanded #main-content { margin-left:0!important; width:100%!important; padding:78px 12px 72px!important; }
+  body.menu-expanded #main-content { padding-top:205px!important; }
+  #main-content .tab-content { min-height:0; }
+  .hero-stage { min-height:590px!important; padding:72px 20px 44px!important; border-radius:12px!important; }
+  .hero-cover { opacity:.48!important; object-position:center 55%; }
+  .hero-shade { background:linear-gradient(180deg,#19121f99 0%,#19121fd9 90%)!important; }
+  #hero-names { font-size:clamp(46px,13vw,72px)!important; line-height:.98; max-width:100%; }
+  .hero-stage .pt-6 { flex-direction:column; align-items:stretch; width:100%; }
+  .hero-stage .pt-6 > * { justify-content:center; width:100%; }
+  #tab-home > .glass-card { margin:16px 0 0!important; padding:22px 14px!important; }
+  #countdown { gap:8px; }
+  #countdown > div { min-width:0; padding:10px 4px; }
+  #music-dock { right:14px!important; bottom:14px!important; left:auto!important; }
+  #music-dock > div:last-child { width:48px; height:48px; padding:7px; border-radius:50%; justify-content:center; }
+  #music-dock > div:last-child > div { display:none!important; }
+  #music-btn { width:34px; height:34px; }
+  .background-editor { margin-inline:0; }
+}
+
 /* The photo-led crimson theme is the surface, not just an accent. */
 html { background:#350817; }
 body { background:#350817!important; color:#f9edf3; isolation:isolate; }
