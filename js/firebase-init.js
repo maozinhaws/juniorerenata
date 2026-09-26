@@ -1,15 +1,15 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDoc, isPreview, seedPreview } from './data-store.js';
-import { mountImageInput, validImageSource } from './image-input.js?v=20260925-2227';
+import { mountImageInput, validImageSource } from './image-input.js?v=20260925-2329';
 import { initGuests } from './guests.js';
 import { initSpotify, updateSpotify } from './spotify.js';
-import { initBackgrounds, showBackground } from './backgrounds.js?v=20260925-2227';
-import { initMural, refreshMural } from './mural.js?v=20260925-2227';
+import { initBackgrounds, showBackground } from './backgrounds.js?v=20260925-2329';
+import { initMural, refreshMural } from './mural.js?v=20260925-2329';
 
 import { initQuiz, renderRanking } from './quiz.js';
 import { renderGallery, processInstagram } from './gallery.js';
-import { initAdmin, renderAdmin } from './admin.js?v=20260925-2227';
+import { initAdmin, renderAdmin } from './admin.js?v=20260925-2329';
 
 const firebaseConfig = typeof __firebase_config !== 'undefined'
     ? (typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config)
@@ -201,78 +201,34 @@ document.addEventListener('keydown', (e) => {
 });
 
 const scrollTabs = ['home', 'history', 'gallery', 'gifts', 'mural', 'rsvp'];
-let scrollNavigationLocked = false;
-let touchStartY = 0;
-let touchStartX = 0;
+const browserThemes = { home: '#350817', history: '#241128', gallery: '#301529', gifts: '#2b1726', mural: '#4b244f', rsvp: '#241128', admin: '#19121f' };
 
-function activeScrollTab() {
-    return scrollTabs.findIndex(id => document.getElementById(`tab-${id}`)?.classList.contains('active'));
-}
-function scrollTarget(direction) {
-    const current = activeScrollTab();
-    if (current < 0) return null;
-    const next = current + direction;
-    return scrollTabs[next] || null;
-}
-function pageEdgeAllows(direction) {
-    const active = document.querySelector('.tab-content.active');
-    if (!active) return false;
-    const atTop = window.scrollY <= 8;
-    const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 8;
-    // Short sections can change on either gesture; long sections preserve
-    // normal reading and change only when the reader reaches an edge.
-    if (document.documentElement.scrollHeight <= window.innerHeight + 80) return true;
-    return direction > 0 ? atBottom : atTop;
-}
-function isScrollLockedTarget(target) {
-    return target instanceof Element && Boolean(target.closest('input, textarea, select, [data-scroll-lock]'));
-}
-function navigateByScroll(direction) {
-    if (scrollNavigationLocked) return;
-    const target = scrollTarget(direction);
-    if (!target) return;
-    scrollNavigationLocked = true;
-    window.switchTab(target);
-    window.setTimeout(() => { scrollNavigationLocked = false; }, 520);
-}
-window.addEventListener('wheel', (e) => {
-    if (Math.abs(e.deltaY) < 24 || isScrollLockedTarget(e.target)) return;
-    const direction = e.deltaY > 0 ? 1 : -1;
-    e.preventDefault();
-    navigateByScroll(direction);
-}, { passive: false });
-window.addEventListener('touchstart', (e) => {
-    if (e.touches.length !== 1) return;
-    touchStartY = e.touches[0].clientY; touchStartX = e.touches[0].clientX;
-}, { passive: true });
-window.addEventListener('touchend', (e) => {
-    if (!touchStartY || e.changedTouches.length !== 1) return;
-    const dy = e.changedTouches[0].clientY - touchStartY;
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    touchStartY = 0;
-    if (Math.abs(dy) < 64 || Math.abs(dy) < Math.abs(dx) * 1.2) return;
-    const direction = dy < 0 ? 1 : -1;
-    if (isScrollLockedTarget(e.target)) return;
-    navigateByScroll(direction);
-}, { passive: true });
-
-window.switchTab = (tabId) => {
-    const browserThemes = { home: '#350817', history: '#241128', gallery: '#301529', gifts: '#2b1726', mural: '#4b244f', rsvp: '#241128', admin: '#19121f' };
+function setActiveSection(tabId) {
     const themeColor = document.querySelector('meta[name="theme-color"]');
     if (themeColor) themeColor.setAttribute('content', browserThemes[tabId] || browserThemes.home);
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.getElementById('tab-' + tabId)?.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.toggle('active', el.id === `tab-${tabId}`));
     document.querySelectorAll('.sidebar-nav-btn').forEach(b => {
-        b.className = b.dataset.tab === tabId ? 
-            "sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all bg-red-600 text-white shadow-sm cursor-pointer whitespace-nowrap" : 
+        b.className = b.dataset.tab === tabId ?
+            "sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all bg-red-600 text-white shadow-sm cursor-pointer whitespace-nowrap" :
             "sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all hover:bg-red-100 hover:text-red-700 cursor-pointer whitespace-nowrap";
     });
-    if (tabId === 'mural') refreshMural();
     showBackground(tabId);
+}
+
+// Native scrolling remains completely natural. The observer only updates the
+// highlighted menu item and browser theme as each section enters the viewport.
+const sectionObserver = new IntersectionObserver(entries => {
+    const visible = entries.filter(entry => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+    if (visible) setActiveSection(visible.target.id.replace('tab-', ''));
+}, { rootMargin: '-18% 0px -58% 0px', threshold: [0, .2, .5] });
+scrollTabs.forEach(id => { const section = document.getElementById(`tab-${id}`); if (section) sectionObserver.observe(section); });
+
+window.switchTab = (tabId) => {
+    setActiveSection(tabId);
+    if (tabId === 'mural') refreshMural();
     if (tabId === 'gallery') requestAnimationFrame(processInstagram);
-    // Keep navigation available without letting the expanded menu cover the new page.
     if (!state.isSidebarCollapsed) window.toggleSidebar();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById('tab-' + tabId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
 window.openAdminModal = () => {

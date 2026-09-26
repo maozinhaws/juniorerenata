@@ -689,3 +689,21 @@ body.menu-expanded #app-sidebar > div:last-child {
   body.menu-expanded #app-sidebar > div:last-child { animation:none!important; }
   #app-sidebar [data-action="toggle-sidebar"]:active { transform:none; }
 }
+
+
+/* Single-page navigation: sections stay in the document and the browser owns scrolling. */
+html { scroll-behavior:smooth; }
+#main-content .tab-content,
+#main-content .tab-content.active { display:block!important; scroll-margin-top:86px; }
+#main-content .tab-content:not(.active) > * { animation:none!important; }
+@media(max-width:700px) {
+  #main-content .tab-content,
+  #main-content .tab-content.active { scroll-margin-top:78px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  html { scroll-behavior:auto; }
+}
+
+/* The couple panel remains an explicit admin view, not part of the guest scroll. */
+#main-content > #tab-admin { display:none!important; }
+#main-content > #tab-admin.active { display:block!important; }
