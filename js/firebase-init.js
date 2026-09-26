@@ -1,15 +1,15 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDoc, isPreview, seedPreview } from './data-store.js';
-import { mountImageInput, validImageSource } from './image-input.js?v=20260925-2006';
+import { mountImageInput, validImageSource } from './image-input.js?v=20260925-2227';
 import { initGuests } from './guests.js';
 import { initSpotify, updateSpotify } from './spotify.js';
-import { initBackgrounds, showBackground } from './backgrounds.js?v=20260925-2006';
-import { initMural, refreshMural } from './mural.js?v=20260925-2006';
+import { initBackgrounds, showBackground } from './backgrounds.js?v=20260925-2227';
+import { initMural, refreshMural } from './mural.js?v=20260925-2227';
 
 import { initQuiz, renderRanking } from './quiz.js';
 import { renderGallery, processInstagram } from './gallery.js';
-import { initAdmin, renderAdmin } from './admin.js?v=20260925-2006';
+import { initAdmin, renderAdmin } from './admin.js?v=20260925-2227';
 
 const firebaseConfig = typeof __firebase_config !== 'undefined'
     ? (typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config)
@@ -189,6 +189,72 @@ document.addEventListener('click', (e) => {
         if (act === 'toggle-sidebar') window.toggleSidebar();
     }
 });
+
+// The menu is a popover: tapping anywhere outside it closes it without
+// stealing the click that may navigate to another section.
+document.addEventListener('pointerdown', (e) => {
+    const target = e.target instanceof Element ? e.target : null;
+    if (!state.isSidebarCollapsed && !target?.closest('#app-sidebar')) window.toggleSidebar();
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !state.isSidebarCollapsed) window.toggleSidebar();
+});
+
+const scrollTabs = ['home', 'history', 'gallery', 'gifts', 'mural', 'rsvp'];
+let scrollNavigationLocked = false;
+let touchStartY = 0;
+let touchStartX = 0;
+
+function activeScrollTab() {
+    return scrollTabs.findIndex(id => document.getElementById(`tab-${id}`)?.classList.contains('active'));
+}
+function scrollTarget(direction) {
+    const current = activeScrollTab();
+    if (current < 0) return null;
+    const next = current + direction;
+    return scrollTabs[next] || null;
+}
+function pageEdgeAllows(direction) {
+    const active = document.querySelector('.tab-content.active');
+    if (!active) return false;
+    const atTop = window.scrollY <= 8;
+    const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 8;
+    // Short sections can change on either gesture; long sections preserve
+    // normal reading and change only when the reader reaches an edge.
+    if (document.documentElement.scrollHeight <= window.innerHeight + 80) return true;
+    return direction > 0 ? atBottom : atTop;
+}
+function isScrollLockedTarget(target) {
+    return target instanceof Element && Boolean(target.closest('input, textarea, select, [data-scroll-lock]'));
+}
+function navigateByScroll(direction) {
+    if (scrollNavigationLocked) return;
+    const target = scrollTarget(direction);
+    if (!target) return;
+    scrollNavigationLocked = true;
+    window.switchTab(target);
+    window.setTimeout(() => { scrollNavigationLocked = false; }, 520);
+}
+window.addEventListener('wheel', (e) => {
+    if (Math.abs(e.deltaY) < 24 || isScrollLockedTarget(e.target)) return;
+    const direction = e.deltaY > 0 ? 1 : -1;
+    e.preventDefault();
+    navigateByScroll(direction);
+}, { passive: false });
+window.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
+    touchStartY = e.touches[0].clientY; touchStartX = e.touches[0].clientX;
+}, { passive: true });
+window.addEventListener('touchend', (e) => {
+    if (!touchStartY || e.changedTouches.length !== 1) return;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    touchStartY = 0;
+    if (Math.abs(dy) < 64 || Math.abs(dy) < Math.abs(dx) * 1.2) return;
+    const direction = dy < 0 ? 1 : -1;
+    if (isScrollLockedTarget(e.target)) return;
+    navigateByScroll(direction);
+}, { passive: true });
 
 window.switchTab = (tabId) => {
     const browserThemes = { home: '#350817', history: '#241128', gallery: '#301529', gifts: '#2b1726', mural: '#4b244f', rsvp: '#241128', admin: '#19121f' };
