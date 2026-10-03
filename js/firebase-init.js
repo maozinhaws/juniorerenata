@@ -218,6 +218,9 @@ function setActiveSection(tabId) {
 // Native scrolling remains completely natural. The observer only updates the
 // highlighted menu item and browser theme as each section enters the viewport.
 const sectionObserver = new IntersectionObserver(entries => {
+    // Ignore delayed scroll observations while the admin editor is active.
+    // Otherwise an event queued for the previous page can hide the panel.
+    if (document.getElementById('tab-admin')?.classList.contains('active')) return;
     const visible = entries.filter(entry => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
     if (visible) setActiveSection(visible.target.id.replace('tab-', ''));
 }, { rootMargin: '-18% 0px -58% 0px', threshold: [0, .2, .5] });
