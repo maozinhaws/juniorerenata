@@ -224,11 +224,27 @@ const sectionObserver = new IntersectionObserver(entries => {
 scrollTabs.forEach(id => { const section = document.getElementById(`tab-${id}`); if (section) sectionObserver.observe(section); });
 
 window.switchTab = (tabId) => {
+    if (tabId === 'admin' && !isPreview && (!auth.currentUser || !state.isAdminLoggedIn)) {
+        window.openAdminModal();
+        return;
+    }
+
     setActiveSection(tabId);
     if (tabId === 'mural') refreshMural();
     if (tabId === 'gallery') requestAnimationFrame(processInstagram);
+    if (tabId === 'admin') {
+        updateEditorUI();
+        renderAdmin();
+    }
     if (!state.isSidebarCollapsed) window.toggleSidebar();
-    document.getElementById('tab-' + tabId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    const target = document.getElementById('tab-' + tabId);
+    if (target) {
+        requestAnimationFrame(() => {
+            const top = target.getBoundingClientRect().top + window.scrollY - (tabId === 'admin' ? 88 : 0);
+            window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+        });
+    }
 };
 
 window.openAdminModal = () => {
@@ -262,8 +278,9 @@ window.submitAdminLogin = async (e) => {
 
         state.isAdminLoggedIn = true;
         window.closeAdminModal();
-        window.switchTab('home');
         updateEditorUI();
+        window.switchTab('admin');
+        renderAdmin();
         window.showToast("Modo de Edição ativado (Wix Style)!");
     } catch (err) {
         window.showToast("Credenciais incorretas ou acesso restrito.", true);
