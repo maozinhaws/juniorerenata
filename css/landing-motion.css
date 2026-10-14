@@ -76,3 +76,23 @@ body[data-admin-view="true"] #music-dock {display:none!important;}
 #music-dock:not(.music-minimized) {width:min(340px,calc(100vw - 82px));max-height:65dvh;}
 #spotify-embed-wrapper {max-height:50dvh;overflow-y:auto;}
 #music-dock button:focus-visible {outline:2px solid #edc88d;outline-offset:-3px;}
+/* Reveal transforms must not enlarge the scrollable document. Keep one vertical scroller. */
+html {max-width:100%;overflow-x:clip;}
+body {width:100%;max-width:100%;min-width:0;overflow-x:clip!important;overflow-y:visible!important;}
+*,*::before,*::after {box-sizing:border-box;}
+#main-content {flex:0 1 auto;max-width:calc(100% - 84px);overflow-x:clip;}
+#main-content > section {min-width:0;max-width:100%;}
+.bio-copy,.bio-memory,#gifts-container > * {min-width:0;}
+.bio-copy {overflow-wrap:anywhere;}
+#music-dock.music-section {right:max(12px,env(safe-area-inset-right))!important;bottom:max(12px,env(safe-area-inset-bottom))!important;max-width:calc(100% - 80px);}
+#music-dock.music-minimized {width:92px!important;height:48px!important;background:#1ed760!important;border:1px solid #b6ffce!important;box-shadow:0 4px 20px #0006,0 0 0 3px #1ed76022;}
+#music-dock.music-minimized #music-toggle,#music-dock.music-minimized #music-collapse {color:#082b16!important;width:44px;min-width:44px;}
+#music-dock.music-minimized #music-toggle:disabled {opacity:.65;}
+#music-dock.music-minimized button:focus-visible {outline-color:#082b16;}
+#music-dock:not(.music-minimized) {border-color:#1ed760;}
+@media(max-width:700px) {#main-content {max-width:calc(100% - 62px);}}
+@media(max-width:380px) {
+ #main-content {padding-inline:8px!important;}
+ .hero-stage {padding-inline:12px!important;}
+ #hero-names {font-size:clamp(32px,10vw,46px)!important;overflow-wrap:anywhere;}
+}
