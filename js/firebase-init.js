@@ -9,7 +9,7 @@ import { initBackgrounds, showBackground } from './backgrounds.js?v=20260925-232
 import { initMural, refreshMural } from './mural.js?v=20260925-2329';
 
 import { initBiography, renderBiography } from './biography.js';
-import { initGifts, safeStoreUrl } from './gifts.js';
+import { initGifts, refreshGiftPayments, safeStoreUrl } from './gifts.js';
 import { countdownParts } from './site-values.js';
 import { renderGallery, processInstagram } from './gallery.js';
 import { initAdmin, renderAdmin } from './admin.js?v=20260925-2329';
@@ -298,14 +298,15 @@ function updateEditorUI() {
     renderGallery();
     renderGifts();
     renderBiography();
+    refreshGiftPayments();
 }
 
-const renderGifts = () => {
+export const renderGifts = () => {
     const container = document.getElementById('gifts-container');
     if (!container) return;
     container.innerHTML = state.gifts.map(g => {
         const approvedContribs = state.contributions.filter(c => c.giftId === g.id && c.status === 'approved');
-        const cur = approvedContribs.reduce((acc, c) => acc + (parseFloat(c.amount) || 0), 0);
+        const cur = approvedContribs.reduce((acc, c) => acc + (parseFloat(c.amount) || 0), 0) + (state.giftPaymentTotals?.find(t => t.giftId === g.id)?.amountCents || 0) / 100;
         const tot = g.totalAmount || 1;
         const rem = Math.max(0, tot - cur), pct = Math.min(100, (cur / tot) * 100);
         const isDone = rem <= 0;
@@ -323,17 +324,17 @@ const renderGifts = () => {
                     <span class="absolute top-3 left-3 bg-white/90 px-3 py-1 rounded-full text-xs font-bold text-stone-700">${escapeHTML(g.category || 'Geral')}</span>
                     ${isDone ? `<div class="absolute inset-0 bg-stone-900/60 flex items-center justify-center"><span class="bg-emerald-500 text-white px-4 py-1.5 rounded-full text-xs font-bold">Completo</span></div>` : ''}
                 </div>
-                <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                <p class="gift-price">Valor do presente: ${Number(g.totalAmount || 0).toLocaleString('pt-BR', {style:'currency',currency:'BRL'})}</p><div class="p-5 flex-1 flex flex-col justify-between space-y-4">
                     <div><h3 class="font-serif text-lg font-bold text-stone-900">${escapeHTML(g.title)}</h3><p class="text-stone-500 text-xs mt-1">${escapeHTML(g.description || '')}</p></div>
                     <div class="space-y-3">
                         <div>
-                            <div class="flex justify-between text-xs mb-1 font-semibold"><span class="text-stone-500">R$ ${cur.toFixed(2)}</span><span class="text-red-600">${pct.toFixed(0)}%</span></div>
+                            <div class="flex justify-between text-xs mb-1 font-semibold"><span class="text-stone-500">${cur.toLocaleString('pt-BR', {style:'currency',currency:'BRL'})}</span><span class="text-red-600">${pct.toFixed(0)}%</span></div>
                             <div class="w-full h-2 bg-red-100 rounded-full overflow-hidden"><div class="h-full bg-red-600" style="width: ${pct}%"></div></div>
                         </div>
                         <button type="button" ${isDone ? 'disabled' : ''} data-pix-gift="${escapeHTML(g.id)}" class="w-full py-3 rounded-xl text-sm font-bold transition-all ${isDone ? 'bg-stone-100 text-stone-400' : 'bg-red-600 text-white hover:bg-red-700 shadow-md cursor-pointer'}">
-                            ${isDone ? 'Concluído' : 'Ver chave Pix'}
+                            ${isDone ? 'Concluído' : 'Quero presentear'}
                         </button>
-                        ${safeStoreUrl(g.storeUrl) ? `<a class="gift-store-link" href="${escapeHTML(safeStoreUrl(g.storeUrl))}" target="_blank" rel="noopener noreferrer">Comprar direto na loja ↗</a>` : ''}
+                        <button type="button" data-confirm-gift="${escapeHTML(g.id)}" class="gift-store-link">Confirmar pagamento / compra na loja</button>
                     </div>
                 </div>
             </div>
@@ -357,6 +358,7 @@ window.openAddGiftModal = () => {
     document.getElementById('gift-modal-heading').textContent = 'Adicionar presente';
     document.getElementById('form-add-gift').reset();
     document.getElementById('ag-id').value = '';
+    for (const id of ['ag-image','ag-qr']) document.getElementById(id).dispatchEvent(new Event('input'));
     document.getElementById('modal-add-gift').style.display = 'flex';
 };
 window.closeAddGiftModal = () => { document.getElementById('modal-add-gift').style.display = 'none'; };
@@ -368,10 +370,15 @@ document.addEventListener('submit', async (e) => {
         if (e.target.dataset.saving) return;
         const storeUrl = safeStoreUrl(document.getElementById('ag-store').value);
         if (document.getElementById('ag-store').value.trim() && !storeUrl) return window.showToast('Use um link HTTPS válido para a loja.', true);
+        const paymentUrl = safeStoreUrl(document.getElementById('ag-payment').value);
+        if (document.getElementById('ag-payment').value.trim() && !paymentUrl) return window.showToast('Use um link HTTPS válido para pagamento.', true);
+        const qrInput = document.getElementById('ag-qr');
+        if (qrInput.dataset.imageBusy) return window.showToast('Aguarde o QR code.', true);
+        if (qrInput.value && !validImageSource(qrInput.value)) return window.showToast('Envie uma imagem válida do QR code.', true);
         const amount = Number(document.getElementById('ag-amount').value);
         if (!Number.isFinite(amount) || amount <= 0 || amount > 1000000000) return window.showToast('Informe um valor de presente válido.', true);
         const giftObj = {
-            storeUrl,
+            storeUrl, paymentUrl, qrImageUrl: qrInput.value.trim(),
             title: document.getElementById('ag-title').value.trim(),
             totalAmount: amount,
             category: document.getElementById('ag-category').value.trim() || 'Geral',
@@ -524,6 +531,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initMotion();
     mountImageInput('cfg-homepage-img', 'capa do casal');
     mountImageInput('ag-image', 'presente');
+    mountImageInput('ag-qr', 'QR code dos noivos');
+    document.getElementById('ag-qr').nextElementSibling.querySelector('.upload-choice > span').textContent = 'Enviar QR code';
     document.getElementById('cfg-homepage-img').addEventListener('input', e => {
         if (validImageSource(e.target.value)) document.getElementById('homepage-couple-img').src = e.target.value;
     });
