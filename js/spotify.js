@@ -9,7 +9,7 @@ export function spotifyEmbed(value) {
     } catch { return null; }
 }
 
-export const DEFAULT_SPOTIFY_URL = 'https://open.spotify.com/album/6fu2Vky35ZXLoGDzdUcHjv';
+export const DEFAULT_SPOTIFY_URL = 'https://open.spotify.com/playlist/37i9dQZF1E4FuBHeAGTKp0';
 let current, controller, generation = 0, apiPromise, clearActivation = () => {};
 function loadApi() {
     if (!apiPromise) apiPromise = new Promise(resolve => {
@@ -108,5 +108,5 @@ export function initSpotify() {
             toggle.click(); toggle.focus();
         }
     });
-    updateSpotify(DEFAULT_SPOTIFY_URL);
+    document.getElementById('spotify-embed-wrapper').textContent = 'Carregando a playlist salva…';
 }

@@ -418,6 +418,7 @@ const startFirebase = async () => {
         if (snap.exists()) {
             const { adminPass: _legacyPassword, ...publicSettings } = snap.data();
             state.settings = { ...state.settings, ...publicSettings };
+            updateSpotify(state.settings.radioUrl);
             updateSiteContent();
             
             if (document.getElementById('config-inputs-container').dataset.dirty) return;
@@ -444,8 +445,13 @@ const startFirebase = async () => {
             if (cfgWhatsapp && state.settings.whatsappNumber) cfgWhatsapp.value = state.settings.whatsappNumber;
             if (cfgHomepageImg && state.settings.homepageImg) cfgHomepageImg.value = state.settings.homepageImg;
             if (cfgRadio) cfgRadio.value = state.settings.radioUrl || '';
+        } else {
+            updateSpotify(DEFAULT_SPOTIFY_URL);
         }
-    }, error => reportSyncError('as configurações', error));
+    }, error => {
+        reportSyncError('as configurações', error);
+        document.getElementById('spotify-embed-wrapper').textContent = 'Não foi possível carregar a playlist salva. Recarregue a página.';
+    });
 
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), snap => {
         state.gifts = snap.docs.map(d => ({id: d.id, ...d.data()}));
@@ -478,7 +484,6 @@ const startFirebase = async () => {
 };
 
 const updateSiteContent = () => {
-    updateSpotify(state.settings.radioUrl);
     const elNames = document.getElementById('hero-names');
     const elLoc = document.getElementById('hero-location');
     const elMaps = document.getElementById('hero-maps-link');

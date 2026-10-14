@@ -36,3 +36,9 @@ test('blocked autoplay retries on a real gesture once and cleans up after playba
         events.get('playback_update')({data:{isPaused:true}}); assert.equal(plays,before);
     } finally {globalThis.document=oldDocument;globalThis.window=oldWindow;globalThis.setTimeout=oldTimeout;}
 });
+
+test('default playlist matches the owner supplied radio link', async () => {
+    const {DEFAULT_SPOTIFY_URL} = await import('./spotify.js');
+    assert.equal(DEFAULT_SPOTIFY_URL,'https://open.spotify.com/playlist/37i9dQZF1E4FuBHeAGTKp0');
+    assert.equal(spotifyEmbed(DEFAULT_SPOTIFY_URL),'https://open.spotify.com/embed/playlist/37i9dQZF1E4FuBHeAGTKp0?theme=0');
+});
