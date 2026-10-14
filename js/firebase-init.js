@@ -184,12 +184,21 @@ function setActiveSection(tabId) {
 
 // Native scrolling remains completely natural. The observer only updates the
 // highlighted menu item and browser theme as each section enters the viewport.
-const sectionObserver = new IntersectionObserver(entries => {
-    const visible = entries.filter(entry => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+let navigationFrame;
+function syncNavigation() {
+    navigationFrame = null;
     if (document.body.dataset.adminView === 'true') return;
-    if (visible) setActiveSection(visible.target.id.replace('tab-', ''));
-}, { rootMargin: '-18% 0px -58% 0px', threshold: [0, .2, .5] });
-scrollTabs.forEach(id => { const section = document.getElementById(`tab-${id}`); if (section) sectionObserver.observe(section); });
+    const marker = Math.min(window.innerHeight * .35, 240);
+    let active = 'home';
+    for (const id of scrollTabs) {
+        const section = document.getElementById('tab-' + id);
+        if (section && section.getBoundingClientRect().top <= marker) active = id;
+    }
+    if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 4) active = 'rsvp';
+    setActiveSection(active);
+}
+window.addEventListener('scroll', () => { if (!navigationFrame) navigationFrame = requestAnimationFrame(syncNavigation); }, {passive:true});
+window.addEventListener('resize', syncNavigation);
 
 window.switchTab = (tabId) => {
     if (tabId === 'admin' && !isPreview && (!auth.currentUser || !state.isAdminLoggedIn)) {
@@ -204,13 +213,14 @@ window.switchTab = (tabId) => {
     if (tabId === 'admin') {
         updateEditorUI();
         renderAdmin();
+        refreshMural();
     }
 
 
     const target = document.getElementById('tab-' + tabId);
     if (target) {
         requestAnimationFrame(() => {
-            const top = target.getBoundingClientRect().top + window.scrollY - (tabId === 'admin' ? 88 : 0);
+            const top = target.getBoundingClientRect().top + window.scrollY - 100;
             window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
         });
     }
@@ -480,6 +490,7 @@ const startFirebase = async () => {
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'guests'), snap => {
         state.guests = snap.docs.map(d => ({id: d.id, ...d.data()}));
         if (state.isAdminLoggedIn) renderAdmin();
+        refreshMural();
     }, error => reportSyncError('os convidados', error));
 
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'contributions'), snap => {
