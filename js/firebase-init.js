@@ -3,7 +3,8 @@ import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDoc, isPreview, seedPreview } from './data-store.js';
 import { mountImageInput, validImageSource } from './image-input.js?v=20260925-2329';
 import { initGuests } from './guests.js';
-import { initSpotify, updateSpotify } from './spotify.js';
+import { initSpotify, updateSpotify, DEFAULT_SPOTIFY_URL } from './spotify.js';
+import { initMotion } from './motion.js';
 import { initBackgrounds, showBackground } from './backgrounds.js?v=20260925-2329';
 import { initMural, refreshMural } from './mural.js?v=20260925-2329';
 
@@ -53,7 +54,7 @@ export let state = {
     pendingDelete: null, activeQuizGuest: null, currentQuizStep: 0, quizAnswersState: [],
     settings: { 
         names: "Júnior & Renata", date: "2026-11-14T17:00", location: "Espaço das Flores - Curitiba, PR", maps: "https://maps.google.com", 
-        pixKey: "", receiverName: "Júnior e Renata", cityName: "Curitiba", radioUrl: "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M",
+        pixKey: "", receiverName: "Júnior e Renata", cityName: "Curitiba", radioUrl: DEFAULT_SPOTIFY_URL,
         whatsappNumber: "5541999999999",
         homepageImg: "./assets/wedding/hero-rings.png",
         heroPosition: "65"
@@ -127,34 +128,6 @@ window.openDeleteModal = (msg, act) => {
 window.closeDeleteModal = () => { state.pendingDelete = null; document.getElementById('modal-delete-confirm').style.display = 'none'; };
 window.confirmPendingDelete = async () => { const act = state.pendingDelete; window.closeDeleteModal(); if (typeof act === 'function') await act(); };
 
-window.toggleSidebar = () => {
-    state.isSidebarCollapsed = !state.isSidebarCollapsed;
-    const sidebar = document.getElementById('app-sidebar');
-    const main = document.getElementById('main-content');
-    const musicDock = document.getElementById('music-dock');
-    document.body.classList.toggle('menu-expanded', !state.isSidebarCollapsed);
-    document.querySelector('[data-action=toggle-sidebar]').setAttribute('aria-expanded', String(!state.isSidebarCollapsed));
-    const labels = document.querySelectorAll('.sidebar-label');
-
-    if (state.isSidebarCollapsed) {
-        sidebar.classList.remove('sidebar-expanded');
-        sidebar.classList.add('sidebar-collapsed');
-        main.classList.remove('ml-[270px]');
-        main.classList.add('ml-[90px]');
-        musicDock.classList.remove('left-[270px]');
-        musicDock.classList.add('left-[90px]');
-        labels.forEach(l => l.style.opacity = '0');
-    } else {
-        sidebar.classList.remove('sidebar-collapsed');
-        sidebar.classList.add('sidebar-expanded');
-        main.classList.remove('ml-[90px]');
-        main.classList.add('ml-[270px]');
-        musicDock.classList.remove('left-[90px]');
-        musicDock.classList.add('left-[270px]');
-        setTimeout(() => labels.forEach(l => l.style.opacity = '1'), 150);
-    }
-};
-
 window.showToast = (msg, err = false) => {
     const t = document.getElementById('toast');
     document.getElementById('toast-msg').innerText = msg;
@@ -172,7 +145,7 @@ document.addEventListener('click', (e) => {
     if (btn.dataset.tab) window.switchTab(btn.dataset.tab);
     else if (btn.dataset.action) {
         const act = btn.dataset.action;
-        if (act === 'toggle-music') window.toggleMusicWidget();
+
         if (act === 'open-admin') window.openAdminModal();
         if (act === 'close-admin') window.closeAdminModal();
         if (act === 'close-pix') window.closePixModal();
@@ -188,18 +161,8 @@ document.addEventListener('click', (e) => {
         if (act === 'open-add-gallery') window.openAddGalleryModal();
         if (act === 'close-add-gallery') window.closeAddGalleryModal();
         if (act === 'add-companion-row') window.addCompanionRow();
-        if (act === 'toggle-sidebar') window.toggleSidebar();
-    }
-});
 
-// The menu is a popover: tapping anywhere outside it closes it without
-// stealing the click that may navigate to another section.
-document.addEventListener('pointerdown', (e) => {
-    const target = e.target instanceof Element ? e.target : null;
-    if (!state.isSidebarCollapsed && !target?.closest('#app-sidebar')) window.toggleSidebar();
-});
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !state.isSidebarCollapsed) window.toggleSidebar();
+    }
 });
 
 const scrollTabs = ['home', 'history', 'gallery', 'gifts', 'mural', 'rsvp'];
@@ -210,6 +173,7 @@ function setActiveSection(tabId) {
     if (themeColor) themeColor.setAttribute('content', browserThemes[tabId] || browserThemes.home);
     document.querySelectorAll('.tab-content').forEach(el => el.classList.toggle('active', el.id === `tab-${tabId}`));
     document.querySelectorAll('.sidebar-nav-btn').forEach(b => {
+        if (b.dataset.tab === tabId) b.setAttribute('aria-current', 'location'); else b.removeAttribute('aria-current');
         b.className = b.dataset.tab === tabId ?
             "sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all bg-red-600 text-white shadow-sm cursor-pointer whitespace-nowrap" :
             "sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all hover:bg-red-100 hover:text-red-700 cursor-pointer whitespace-nowrap";
@@ -241,7 +205,7 @@ window.switchTab = (tabId) => {
         updateEditorUI();
         renderAdmin();
     }
-    if (!state.isSidebarCollapsed) window.toggleSidebar();
+
 
     const target = document.getElementById('tab-' + tabId);
     if (target) {
@@ -552,6 +516,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initSpotify();
     initBackgrounds();
     initGuests();
+    initMotion();
     mountImageInput('cfg-homepage-img', 'capa do casal');
     mountImageInput('ag-image', 'presente');
     document.getElementById('cfg-homepage-img').addEventListener('input', e => {

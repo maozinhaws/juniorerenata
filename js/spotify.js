@@ -8,40 +8,53 @@ export function spotifyEmbed(value) {
         return match ? 'https://open.spotify.com/embed/' + match[1] + '/' + match[2] + '?theme=0' : null;
     } catch { return null; }
 }
-let current, desired;
-function renderPlayer(force = false) {
+
+export const DEFAULT_SPOTIFY_URL = 'https://open.spotify.com/album/6fu2Vky35ZXLoGDzdUcHjv';
+let current, controller, generation = 0, apiPromise;
+function loadApi() {
+    if (!apiPromise) apiPromise = new Promise(resolve => {
+        window.onSpotifyIframeApiReady = resolve;
+        const script = document.createElement('script');
+        script.src = 'https://open.spotify.com/embed/iframe-api/v1'; script.async = true;
+        script.onerror = () => resolve(null);
+        document.head.append(script);
+        setTimeout(() => resolve(null), 10000);
+    });
+    return apiPromise;
+}
+export async function updateSpotify(value, force = false) {
+    const desired = spotifyEmbed(value?.trim() || DEFAULT_SPOTIFY_URL);
     const wrapper = document.getElementById('spotify-embed-wrapper');
     if (!wrapper || (!force && current === desired && wrapper.children.length)) return;
-    current = desired; wrapper.replaceChildren();
-    if (!desired) { wrapper.textContent = 'Nenhuma playlist disponível. Os noivos podem adicionar o link no painel.'; return; }
-    const status = document.createElement('p'); status.setAttribute('role','status'); status.textContent = 'Carregando Spotify…';
-    const iframe = document.createElement('iframe');
-    iframe.title = 'Spotify · música dos noivos'; iframe.width = '100%'; iframe.height = '152';
-    iframe.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
-    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
-    iframe.style.border = '0'; iframe.style.borderRadius = '12px';
-    iframe.onload = () => { status.textContent = 'Toque em play para ouvir. Se o player não aparecer, tente recarregar ou abrir no Spotify.'; };
-    wrapper.append(status, iframe);
-    iframe.src = desired;
+    current = desired;
+    const version = ++generation;
+    controller?.destroy(); controller = null; wrapper.replaceChildren();
+    if (!desired) { wrapper.textContent = 'Link do Spotify inválido. Confira o endereço no painel.'; return; }
+    const mount = document.createElement('div');
+    const status = document.createElement('p'); status.setAttribute('role','status');
+    status.textContent = 'Carregando nossa trilha…';
     const link = document.createElement('a'); link.href = desired.replace('/embed/', '/').split('?')[0];
-    link.textContent = 'Abrir no Spotify ↗'; link.target = '_blank'; link.rel = 'noopener noreferrer'; wrapper.append(link);
+    link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = 'Abrir no Spotify ↗';
     const retry = document.createElement('button'); retry.type = 'button'; retry.textContent = 'Recarregar player';
-    retry.onclick = () => renderPlayer(true); wrapper.append(retry);
+    retry.onclick = () => updateSpotify(value, true);
+    wrapper.append(mount, status, link, retry);
+    const api = await loadApi();
+    if (version !== generation) return;
+    status.textContent = 'Se o som não iniciar, toque no play do Spotify.';
+    if (!api) {
+        const frame = document.createElement('iframe'); frame.src = desired;
+        frame.title = 'Spotify · trilha dos noivos'; frame.width = '100%'; frame.height = '152';
+        frame.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
+        mount.replaceWith(frame); return;
+    }
+    const parts = new URL(desired).pathname.split('/');
+    api.createController(mount, {uri:'spotify:' + parts[2] + ':' + parts[3],width:'100%',height:152}, instance => {
+        if (version !== generation) { instance.destroy(); return; }
+        controller = instance;
+        instance.addListener('ready', () => { if (version === generation) instance.play(); });
+        instance.addListener('playback_update', event => {
+            if (version === generation) status.textContent = event.data.isPaused ? 'Toque no play do Spotify para ouvir.' : 'Nossa trilha está tocando.';
+        });
+    });
 }
-export function updateSpotify(value) {
-    desired = spotifyEmbed(value || '');
-    const popup = document.getElementById('spotify-popup');
-    if (popup && !popup.classList.contains('hidden')) renderPlayer();
-    else if (current !== desired) { document.getElementById('spotify-embed-wrapper')?.replaceChildren(); current = undefined; }
-}
-export function initSpotify() {
-    window.toggleMusicWidget = () => {
-        const popup = document.getElementById('spotify-popup');
-        const open = popup.classList.toggle('hidden') === false;
-        document.getElementById('music-btn').setAttribute('aria-expanded', String(open));
-        document.getElementById('music-btn').setAttribute('aria-label', open ? 'Fechar música dos noivos' : 'Abrir música dos noivos');
-        if (open) renderPlayer();
-    };
-    document.getElementById('music-btn').setAttribute('aria-controls', 'spotify-popup');
-    document.getElementById('music-btn').setAttribute('aria-expanded', 'false');
-}
+export function initSpotify() { updateSpotify(DEFAULT_SPOTIFY_URL); }

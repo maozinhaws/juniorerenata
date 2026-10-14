@@ -11,7 +11,7 @@ export function initGifts() {
         document.getElementById('pix-title').textContent = gift.title;
         document.getElementById('pix-key').value = key;
         document.getElementById('pix-receiver').textContent = key ? 'Titular: ' + (state.settings.receiverName || 'Confira no seu banco') : '';
-        document.getElementById('pix-status').textContent = key ? 'O site nÃƒÂ£o confirma pagamentos automaticamente.' : 'Os noivos ainda nÃƒÂ£o cadastraram a chave Pix.';
+        document.getElementById('pix-status').textContent = key ? 'O site nÃ£o confirma pagamentos automaticamente.' : 'Os noivos ainda nÃ£o cadastraram a chave Pix.';
         document.getElementById('btn-copy-pix').disabled = !key;
         const store = document.getElementById('pix-store'), url = safeStoreUrl(gift.storeUrl);
         store.hidden = !url;

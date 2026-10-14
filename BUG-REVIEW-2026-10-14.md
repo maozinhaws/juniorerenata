@@ -29,3 +29,11 @@ Escopo: código da main 3566a64, fluxos locais com dados isolados, leitura da co
 ## Verificação
 
 12 testes automatizados aprovados (validação de fotos, links, identidade do módulo principal, contagem regressiva e política do mural); checagem de sintaxe dos módulos e git diff --check. Na prévia: salvar/recarregar chave Pix, copiar chave, editar link de loja e recuperar após reload, editar foto/texto/post-its e persistir, entrar/sair do painel, carregar Spotify e acionar Play/Pausar. Dados usados nesses testes são locais e fictícios.
+
+## Atualização: landing page, curiosidades e trilha
+
+Navegação lateral fixa apenas com ícones e nomes acessíveis; a página permanece contínua. Animações por seção com fades, entradas laterais, subida, descida e escala, respeitando movimento reduzido. Curiosidades usam uma única autoria por foto, com post-it diagonal sobre a borda; registros antigos continuam legíveis sem misturar as duas pessoas.
+
+Spotify agora fica incorporado na página com o álbum fornecido pelo casal. A API oficial tenta iniciar a reprodução quando pronta, mantendo controles nativos e fallback de iframe. Autoplay pode exigir interação, e a disponibilidade de músicas completas/prévias depende do Spotify. Configuração vazia usa o álbum fornecido como padrão; nenhuma configuração de produção foi escrita.
+
+Validação atual: 14 testes aprovados. Na prévia local, painel abriu, capítulo foi salvo com autoria individual, álbum carregou e o player indicou reprodução. As pendências de backend e credencial pública descritas acima permanecem fora destas alterações de frontend.

@@ -1,0 +1,49 @@
+/* Fixed icon rail; the document remains a continuous landing page. */
+#app-sidebar,#app-sidebar.sidebar-collapsed,#app-sidebar.sidebar-expanded {
+ position:fixed!important; top:50%!important; left:8px!important; bottom:auto!important; transform:translateY(-50%)!important;
+ width:60px!important; min-width:0!important; max-width:60px!important; height:auto!important; max-height:90dvh;
+ display:flex!important; flex-direction:column!important; padding:8px!important; border:1px solid #b9956655!important;
+ border-radius:18px!important; background:#291321ed!important; box-shadow:0 12px 40px #10091566!important; overflow:auto;
+}
+#app-sidebar > div:first-child {display:block!important; width:100%;}
+#app-sidebar nav,#app-sidebar.sidebar-collapsed nav {display:flex!important; flex-direction:column; position:static!important; width:100%; min-width:0; margin:0!important; padding:0!important; gap:4px; border:0;}
+#app-sidebar nav button,#app-sidebar > div:last-child button {width:44px!important; height:44px; min-height:44px; padding:10px!important; margin:0!important; display:flex; justify-content:center!important; align-items:center; border-radius:10px; color:#e9d8e4!important;}
+#app-sidebar > div:last-child {display:block!important; position:static!important; padding:8px 0 0!important; margin-top:8px; border-top:1px solid #b9956644;}
+#app-sidebar button[aria-current] {background:#86253e!important; border:1px solid #d5b078!important;}
+#app-sidebar button:focus-visible {outline:2px solid #edc88d; outline-offset:-2px;}
+#main-content {margin-left:84px!important; width:calc(100% - 84px)!important; min-width:0; padding-top:24px!important;}
+#music-dock.music-section {position:relative!important; inset:auto!important; transform:none; width:100%; max-width:none; display:grid; grid-template-columns:1fr minmax(300px,1.2fr); gap:32px; align-items:center; margin:32px 0 64px; padding:28px; border-block:1px solid #d5b07844;}
+.music-heading h2 {font-family:'Playfair Display',serif; font-size:clamp(25px,3vw,38px); color:#f7e5ed; margin-top:12px;}
+#music-dock #spotify-embed-wrapper {display:block!important; width:100%; height:auto; padding:0; background:none; border:0; border-radius:12px; min-width:0;}
+#music-dock #spotify-embed-wrapper > div {display:block!important;}
+#spotify-embed-wrapper iframe {border:0; border-radius:12px; width:100%; min-height:152px;}
+#spotify-embed-wrapper a,#spotify-embed-wrapper button {font-size:11px; color:#e4c385; margin-right:16px; text-decoration:underline;}
+body[data-admin-view="true"] #music-dock {display:none!important;}
+.bio-chapter {grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr); gap:clamp(28px,5vw,70px); margin:80px 0;}
+.bio-memory {position:relative; margin:0 10px 65px 0; width:100%; max-width:340px; justify-self:center;}
+.bio-chapter:nth-child(even) .bio-memory {order:2;}
+.bio-memory .bio-photo {transform:rotate(-3deg); aspect-ratio:4/5; min-height:0; display:block;}
+.bio-memory .bio-photo img {width:100%; height:100%; max-height:none; object-fit:cover;}
+.bio-memory .bio-note {position:absolute; bottom:-45px; right:-8px; width:180px; max-width:78%; margin:0; padding:18px; transform:rotate(8deg); font-size:13px; line-height:1.5; z-index:1;}
+.bio-memory .bio-note::before {content:''; position:absolute; width:50px; height:18px; background:#f7ecc697; top:-8px; left:35%; transform:rotate(-7deg);}
+.dialog-card select {width:100%; padding:12px; background:white; color:#30222e; border:1px solid #bb9dab; border-radius:8px;}
+#main-content .tab-content,#main-content .tab-content.active > * {animation:none!important;}
+.reveal-pending {--reveal-x:0px; --reveal-y:35px; --reveal-scale:1; opacity:0; transform:translate(var(--reveal-x),var(--reveal-y)) scale(var(--reveal-scale)); transition:opacity .8s ease var(--reveal-delay,0ms),transform .8s cubic-bezier(.2,.7,.2,1) var(--reveal-delay,0ms);}
+.bio-memory.reveal-pending {--reveal-x:-35px;--reveal-y:0px;}
+.bio-copy.reveal-pending {--reveal-x:35px;--reveal-y:0px;}
+#tab-gallery > .reveal-pending {--reveal-scale:.94;--reveal-y:0px;}
+#tab-gifts > .reveal-pending {--reveal-y:45px;}
+#tab-mural > .reveal-pending {--reveal-x:-25px;--reveal-y:18px;}
+#tab-rsvp > .reveal-pending {--reveal-y:-30px;}
+.reveal-pending.is-revealed {opacity:1;transform:translate(0,0) scale(1);}
+@media(max-width:700px) {
+ #app-sidebar,#app-sidebar.sidebar-collapsed,#app-sidebar.sidebar-expanded {left:4px!important;width:52px!important;max-width:52px!important;padding:4px!important;}
+ #main-content {margin-left:62px!important;width:calc(100% - 62px)!important;padding-inline:10px!important;}
+ #music-dock.music-section {grid-template-columns:1fr;gap:20px;padding:24px 0;}
+ .bio-chapter {grid-template-columns:1fr;gap:24px;margin:48px 0;}
+ .bio-chapter .bio-memory,.bio-chapter:nth-child(even) .bio-memory {order:2;max-width:270px;width:calc(100% - 20px);}
+ .bio-memory .bio-note {width:165px;font-size:12px;padding:15px;}
+}
+@media(prefers-reduced-motion:reduce) {.reveal-pending {opacity:1!important;transform:none!important;transition:none!important;} html {scroll-behavior:auto!important;}}
+#app-sidebar {overflow-x:hidden!important;}
+#app-sidebar nav button,#app-sidebar > div:last-child button {width:100%!important;max-width:44px;}

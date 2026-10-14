@@ -19,3 +19,10 @@ test('HTML and cyclic imports resolve the same application module identity', () 
     assert.equal(entries[0][1],'./js/firebase-init.js');
     assert.doesNotMatch(html,/startCoupleQuiz|chooseQuizTeam|public-ranking-list/);
 });
+
+import { chapterCuriosity } from './site-values.js';
+test('one photo has exactly one curiosity author, including legacy chapters', () => {
+    assert.deepEqual(chapterCuriosity({groomNote:'Groom',brideNote:'Bride'}),{author:'noivo',text:'Groom'});
+    assert.deepEqual(chapterCuriosity({curiosityAuthor:'noiva',curiosity:'Bride',groomNote:'Old'}),{author:'noiva',text:'Bride'});
+    assert.deepEqual(chapterCuriosity({curiosityAuthor:'noiva',curiosity:'',groomNote:'Old'}),{author:'noiva',text:''});
+});
