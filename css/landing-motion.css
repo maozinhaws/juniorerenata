@@ -55,3 +55,24 @@ body[data-admin-view="true"] #music-dock {display:none!important;}
 #music-dock.music-minimized .music-heading {margin:0;}
 #main-content {padding-bottom:280px!important;}
 @media(max-width:400px) {#music-dock.music-section {right:8px!important;padding:8px;}}
+#music-dock.music-minimized {width:48px!important;height:48px!important;padding:0!important;border-radius:50%!important;overflow:hidden;}
+#music-dock.music-minimized .section-kicker {display:none;}
+#music-dock .music-heading {justify-content:space-between;}
+#music-dock.music-minimized .music-heading {display:block;}
+#music-collapse {width:44px;height:44px;min-height:44px;font-size:24px;text-decoration:none;}
+#main-content {padding-bottom:90px!important;}
+.bio-memory {overflow:visible!important;}
+.bio-photo-edit {position:absolute;top:12px;left:12px;z-index:2;padding:9px 12px;border-radius:8px;color:white;background:#681b37;box-shadow:0 2px 12px #0004;font-size:12px;}
+#story-live-preview {margin:26px 12px 80px;}
+#story-live-preview .bio-memory {width:180px;margin:0 auto;}
+#story-live-preview .bio-photo > span {font-size:16px;}
+#story-live-preview .bio-note {font-size:12px;}
+#music-dock.music-minimized {width:82px!important;height:48px!important;border-radius:28px!important;}
+#music-dock.music-minimized .music-heading {display:flex;gap:0;}
+#music-toggle {width:46px;height:44px;flex-shrink:0;font-size:24px;color:#f8e8ed;}
+#music-toggle:disabled {opacity:.5;cursor:wait;}
+#music-toggle[aria-label="Pausar música"] {color:#edc88d;}
+#music-collapse {width:30px;flex-shrink:0;}
+#music-dock:not(.music-minimized) {width:min(340px,calc(100vw - 82px));max-height:65dvh;}
+#spotify-embed-wrapper {max-height:50dvh;overflow-y:auto;}
+#music-dock button:focus-visible {outline:2px solid #edc88d;outline-offset:-3px;}

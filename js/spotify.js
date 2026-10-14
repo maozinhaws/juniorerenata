@@ -27,6 +27,8 @@ export async function updateSpotify(value, force = false) {
     const wrapper = document.getElementById('spotify-embed-wrapper');
     if (!wrapper || (!force && current === desired && wrapper.children.length)) return;
     current = desired;
+    const musicButton = document.getElementById('music-toggle');
+    if (musicButton) musicButton.disabled = true;
     const version = ++generation;
     clearActivation();
     controller?.destroy(); controller = null; wrapper.replaceChildren();
@@ -49,11 +51,12 @@ export async function updateSpotify(value, force = false) {
         mount.replaceWith(frame); return;
     }
     const parts = new URL(desired).pathname.split('/');
-    api.createController(mount, {uri:'spotify:' + parts[2] + ':' + parts[3],width:'100%',height:152}, instance => {
+    api.createController(mount, {uri:'spotify:' + parts[2] + ':' + parts[3],width:'100%',height:352}, instance => {
         if (version !== generation) { instance.destroy(); return; }
         controller = instance;
         let ready = false, started = false;
         const activate = event => {
+            if (event.target?.closest?.('#music-dock')) return;
             if (!event.isTrusted || !ready || started || version !== generation) return;
             if (event.type === 'keydown' && !['Enter', ' '].includes(event.key)) return;
             // Retry within a user activation, once. Never restart music after a pause.
@@ -70,6 +73,7 @@ export async function updateSpotify(value, force = false) {
         instance.addListener('ready', () => {
             if (version !== generation) return;
             ready = true;
+            if (musicButton) musicButton.disabled = false;
             status.textContent = 'Tentando iniciar a trilha. Se não tocar, toque na página ou no play do Spotify.';
             instance.play();
         });
@@ -79,9 +83,12 @@ export async function updateSpotify(value, force = false) {
             clearActivation();
         });
         instance.addListener('playback_update', event => {
+            if (version === generation && musicButton) musicButton.setAttribute('aria-label', event.data.isPaused ? 'Tocar música' : 'Pausar música');
             if (version === generation) status.textContent = event.data.isPaused ? 'Toque no play do Spotify para ouvir.' : event.data.isBuffering ? 'Carregando áudio…' : 'Reprodução ativa no Spotify.';
         });
     });
+    // Spotify creates a lazy iframe; a collapsed player must initialize too.
+    wrapper.querySelector?.('iframe')?.setAttribute('loading', 'eager');
 }
 export function initSpotify() {
     const dock = document.getElementById('music-dock');
@@ -89,7 +96,17 @@ export function initSpotify() {
     toggle.addEventListener('click', () => {
         const collapsed = dock.classList.toggle('music-minimized');
         toggle.setAttribute('aria-expanded', String(!collapsed));
-        toggle.textContent = collapsed ? 'Abrir player' : 'Recolher player';
+        toggle.innerHTML = '<span aria-hidden="true">' + (collapsed ? '⌃' : '×') + '</span>';
+        toggle.setAttribute('aria-label', collapsed ? 'Abrir controles da música' : 'Recolher player');
+    });
+    document.getElementById('music-toggle').addEventListener('click', () => {
+        clearActivation();
+        controller?.togglePlay();
+    });
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && !dock.classList.contains('music-minimized')) {
+            toggle.click(); toggle.focus();
+        }
     });
     updateSpotify(DEFAULT_SPOTIFY_URL);
 }

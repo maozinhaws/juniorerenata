@@ -12,12 +12,23 @@ export function renderBiography() {
         const photo = row.imageUrl && validImageSource(row.imageUrl) ? row.imageUrl : '';
         return '<article class="bio-chapter"><figure class="bio-memory"><div class="bio-photo">' +
             (photo ? '<img loading="lazy" src="' + escapeHTML(photo) + '" alt="Foto do capítulo ' + escapeHTML(row.heading || row.tag || '') + '">' : '<span aria-hidden="true">⚭</span>') +
-            '</div>' + (note.text && photo ? '<aside class="bio-note ' + (note.author === 'noiva' ? 'bride-note' : '') + '"><b>' + (note.author === 'noiva' ? 'Ela conta' : 'Ele conta') + '</b>' + escapeHTML(note.text) + '</aside>' : '') + '</figure><div class="bio-copy"><span class="section-kicker">Capítulo ' + String(index + 1).padStart(2,'0') + '</span><h3>' + escapeHTML(row.heading || row.tag || 'Nossa história') + '</h3><p>' + escapeHTML(row.text || '') + '</p>' + (state.isAdminLoggedIn ? '<button type="button" data-edit-story="' + escapeHTML(row.id) + '">Editar texto, foto e curiosidades</button>' : '') + '</div></article>';
+            '</div>' + (note.text ? '<aside class="bio-note ' + (note.author === 'noiva' ? 'bride-note' : '') + '"><b>' + (note.author === 'noiva' ? 'Ela conta' : 'Ele conta') + '</b>' + escapeHTML(note.text) + '</aside>' : '') + (state.isAdminLoggedIn ? '<button type="button" class="bio-photo-edit" data-edit-story="' + escapeHTML(row.id) + '">Editar foto e post-it</button>' : '') + '</figure><div class="bio-copy"><span class="section-kicker">Capítulo ' + String(index + 1).padStart(2,'0') + '</span><h3>' + escapeHTML(row.heading || row.tag || 'Nossa história') + '</h3><p>' + escapeHTML(row.text || '') + '</p>' + (state.isAdminLoggedIn ? '<button type="button" data-edit-story="' + escapeHTML(row.id) + '">Editar texto, foto e curiosidades</button>' : '') + '</div></article>';
     }).join('') || '<p>Nossa história está sendo preparada com carinho.</p>';
 }
 export function initBiography() {
     mountImageInput('story-image', 'foto do capítulo');
     const form = document.getElementById('form-story');
+    const preview = document.getElementById('story-live-preview');
+    const updatePreview = () => {
+        const photo = document.getElementById('story-image').value.trim();
+        const note = document.getElementById('story-curiosity').value.trim();
+        const bride = document.getElementById('story-author').value === 'noiva';
+        preview.innerHTML = '<figure class="bio-memory"><div class="bio-photo">' +
+            (photo && validImageSource(photo) ? '<img src="' + escapeHTML(photo) + '" alt="Prévia da foto com curiosidade">' : '<span>Escolha uma foto</span>') +
+            '</div>' + (note ? '<aside class="bio-note ' + (bride ? 'bride-note' : '') + '"><b>' + (bride ? 'Ela conta' : 'Ele conta') + '</b>' + escapeHTML(note) + '</aside>' : '') + '</figure>';
+    };
+    form.addEventListener('input', updatePreview);
+    form.addEventListener('change', updatePreview);
     window.editStory = id => {
         if (!state.isAdminLoggedIn) return;
         const row = state.timeline.find(row => row.id === id) || {};
@@ -25,6 +36,7 @@ export function initBiography() {
         const fields = {id:row.id,title:row.heading || row.tag,text:row.text,image:row.imageUrl,author:chapterCuriosity(row).author,curiosity:chapterCuriosity(row).text,order:row.order ?? (row.id ? state.timeline.findIndex(item => item.id === row.id) : state.timeline.length)};
         for (const [key,value] of Object.entries(fields)) document.getElementById('story-' + key).value = value ?? '';
         document.getElementById('story-image').dispatchEvent(new Event('input'));
+        updatePreview();
         document.getElementById('modal-story').classList.remove('hidden');
     };
     document.addEventListener('click', e => {

@@ -310,8 +310,8 @@
             <section class="glass-card p-6 rounded-2xl"><h3>Nossa história e presentes</h3><div class="dialog-actions"><button type="button" onclick="window.switchTab('history')">Editar biografia, fotos e post-its</button><button type="button" onclick="window.switchTab('gifts')">Editar presentes e links das lojas</button></div></section>
         </section>
     </main>
-        <section id="music-dock" class="music-section" aria-label="Trilha sonora do casal">
-            <div class="music-heading"><span class="section-kicker">Nossa trilha</span><button type="button" id="music-collapse" aria-expanded="true" aria-controls="spotify-embed-wrapper">Recolher player</button></div>
+        <section id="music-dock" class="music-section music-minimized" aria-label="Trilha sonora do casal">
+            <div class="music-heading"><span class="section-kicker">Nossa trilha</span><button type="button" id="music-toggle" aria-label="Tocar música" title="Tocar ou pausar música" disabled><span aria-hidden="true">♫</span></button><button type="button" id="music-collapse" aria-label="Abrir controles da música" aria-expanded="false" aria-controls="spotify-embed-wrapper"><span aria-hidden="true">⌃</span></button></div>
             <div id="spotify-embed-wrapper"></div>
         </section>
 
@@ -361,7 +361,7 @@
         <label for="story-image">Foto escolhida pelo casal</label><input id="story-image">
         <label for="story-author">De quem é a curiosidade desta foto?</label><select id="story-author"><option value="noivo">Do noivo</option><option value="noiva">Da noiva</option></select>
         <label for="story-curiosity">Uma curiosidade para o post-it</label><textarea id="story-curiosity" maxlength="240" rows="3"></textarea>
-        <label for="story-order">Ordem</label><input id="story-order" type="number" min="0" max="999" value="0">
+        <div id="story-live-preview" aria-label="Prévia da foto e post-it"></div><label for="story-order">Ordem</label><input id="story-order" type="number" min="0" max="999" value="0">
         <div class="dialog-actions"><button type="button" onclick="document.getElementById('modal-story').classList.add('hidden')">Cancelar</button><button type="submit">Salvar capítulo</button></div>
       </form>
     </div>
