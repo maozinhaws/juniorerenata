@@ -123,10 +123,7 @@
             </div>
         </section>
 
-        <section id="music-dock" class="music-section" aria-label="Trilha sonora do casal">
-            <div class="music-heading"><span class="section-kicker">Dê o play na nossa história</span><h2>Um amor com trilha sonora.</h2></div>
-            <div id="spotify-embed-wrapper"></div>
-        </section>
+
 
         <section id="tab-history" class="tab-content py-10 max-w-5xl mx-auto space-y-10 motion-section">
             <header class="text-center"><span class="section-kicker">Entre encontros e boas histórias</span><h2 class="font-serif text-4xl md:text-5xl">Nossa história</h2><p>Os capítulos que nos trouxeram até o nosso sim.</p></header>
@@ -313,6 +310,10 @@
             <section class="glass-card p-6 rounded-2xl"><h3>Nossa história e presentes</h3><div class="dialog-actions"><button type="button" onclick="window.switchTab('history')">Editar biografia, fotos e post-its</button><button type="button" onclick="window.switchTab('gifts')">Editar presentes e links das lojas</button></div></section>
         </section>
     </main>
+        <section id="music-dock" class="music-section" aria-label="Trilha sonora do casal">
+            <div class="music-heading"><span class="section-kicker">Nossa trilha</span><button type="button" id="music-collapse" aria-expanded="true" aria-controls="spotify-embed-wrapper">Recolher player</button></div>
+            <div id="spotify-embed-wrapper"></div>
+        </section>
 
     <!-- MODALS -->
     <div id="modal-calendar" class="fixed inset-0 z-[9999] bg-stone-900/80 backdrop-blur-sm hidden items-center justify-center p-4">

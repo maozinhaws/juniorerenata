@@ -10,7 +10,7 @@ export function spotifyEmbed(value) {
 }
 
 export const DEFAULT_SPOTIFY_URL = 'https://open.spotify.com/album/6fu2Vky35ZXLoGDzdUcHjv';
-let current, controller, generation = 0, apiPromise;
+let current, controller, generation = 0, apiPromise, clearActivation = () => {};
 function loadApi() {
     if (!apiPromise) apiPromise = new Promise(resolve => {
         window.onSpotifyIframeApiReady = resolve;
@@ -28,6 +28,7 @@ export async function updateSpotify(value, force = false) {
     if (!wrapper || (!force && current === desired && wrapper.children.length)) return;
     current = desired;
     const version = ++generation;
+    clearActivation();
     controller?.destroy(); controller = null; wrapper.replaceChildren();
     if (!desired) { wrapper.textContent = 'Link do Spotify inválido. Confira o endereço no painel.'; return; }
     const mount = document.createElement('div');
@@ -51,10 +52,44 @@ export async function updateSpotify(value, force = false) {
     api.createController(mount, {uri:'spotify:' + parts[2] + ':' + parts[3],width:'100%',height:152}, instance => {
         if (version !== generation) { instance.destroy(); return; }
         controller = instance;
-        instance.addListener('ready', () => { if (version === generation) instance.play(); });
+        let ready = false, started = false;
+        const activate = event => {
+            if (!event.isTrusted || !ready || started || version !== generation) return;
+            if (event.type === 'keydown' && !['Enter', ' '].includes(event.key)) return;
+            // Retry within a user activation, once. Never restart music after a pause.
+            clearActivation();
+            instance.play();
+            status.textContent = 'Se o áudio continuar bloqueado, toque no play dentro do Spotify.';
+        };
+        clearActivation = () => {
+            document.removeEventListener('click', activate);
+            document.removeEventListener('keydown', activate);
+        };
+        document.addEventListener('click', activate);
+        document.addEventListener('keydown', activate);
+        instance.addListener('ready', () => {
+            if (version !== generation) return;
+            ready = true;
+            status.textContent = 'Tentando iniciar a trilha. Se não tocar, toque na página ou no play do Spotify.';
+            instance.play();
+        });
+        instance.addListener('playback_started', () => {
+            if (version !== generation) return;
+            started = true;
+            clearActivation();
+        });
         instance.addListener('playback_update', event => {
-            if (version === generation) status.textContent = event.data.isPaused ? 'Toque no play do Spotify para ouvir.' : 'Nossa trilha está tocando.';
+            if (version === generation) status.textContent = event.data.isPaused ? 'Toque no play do Spotify para ouvir.' : event.data.isBuffering ? 'Carregando áudio…' : 'Reprodução ativa no Spotify.';
         });
     });
 }
-export function initSpotify() { updateSpotify(DEFAULT_SPOTIFY_URL); }
+export function initSpotify() {
+    const dock = document.getElementById('music-dock');
+    const toggle = document.getElementById('music-collapse');
+    toggle.addEventListener('click', () => {
+        const collapsed = dock.classList.toggle('music-minimized');
+        toggle.setAttribute('aria-expanded', String(!collapsed));
+        toggle.textContent = collapsed ? 'Abrir player' : 'Recolher player';
+    });
+    updateSpotify(DEFAULT_SPOTIFY_URL);
+}

@@ -47,3 +47,11 @@ body[data-admin-view="true"] #music-dock {display:none!important;}
 @media(prefers-reduced-motion:reduce) {.reveal-pending {opacity:1!important;transform:none!important;transition:none!important;} html {scroll-behavior:auto!important;}}
 #app-sidebar {overflow-x:hidden!important;}
 #app-sidebar nav button,#app-sidebar > div:last-child button {width:100%!important;max-width:44px;}
+/* Keep the external frame in the viewport so its focus cannot scroll the landing page. */
+#music-dock.music-section {position:fixed!important;top:auto!important;left:auto!important;right:16px!important;bottom:12px!important;width:min(360px,calc(100vw - 82px));max-height:65dvh;overflow:auto;z-index:110;display:block;margin:0;padding:12px;border:1px solid #b9956688;border-radius:16px;background:#291321f5;box-shadow:0 12px 40px #10091566;}
+#music-dock .music-heading {display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;}
+#music-collapse {font-size:11px;color:#f5e2ed;min-height:32px;text-decoration:underline;}
+#music-dock.music-minimized #spotify-embed-wrapper {display:none!important;}
+#music-dock.music-minimized .music-heading {margin:0;}
+#main-content {padding-bottom:280px!important;}
+@media(max-width:400px) {#music-dock.music-section {right:8px!important;padding:8px;}}
