@@ -102,3 +102,15 @@ body {width:100%;max-width:100%;min-width:0;overflow-x:clip!important;overflow-y
 #music-dock #spotify-embed-wrapper iframe {display:block;width:100%;height:352px;min-height:352px;pointer-events:auto;}
 #music-dock:not(.music-minimized) .music-heading {position:sticky;top:-12px;z-index:2;background:#291321;padding-block:4px;}
 #spotify-embed-wrapper > a,#spotify-embed-wrapper > button {display:inline-block;min-height:44px;padding:12px 4px;}
+.gift-price {padding:14px 20px 0;font-weight:700;color:#e9c789;}
+.gift-dialog button,.payment-review button {padding:12px 16px;background:#761e3e;color:white;border-radius:8px;margin:8px 6px 8px 0;}
+.gift-dialog select {width:100%;padding:12px;border:1px solid #bb9dab;border-radius:8px;background:white;color:#30222e;}
+.gift-dialog h4 {font-weight:bold;margin-top:24px;}
+.gift-dialog [hidden] {display:none!important;}
+.gift-dialog #gift-qr {width:min(260px,100%);height:auto;object-fit:contain;margin:20px auto;padding:14px;background:white;border:1px solid #ccc;}
+.gift-confirm-check {display:flex!important;gap:10px;align-items:flex-start;}
+.gift-dialog #gift-paid {width:20px;min-width:20px;height:20px;}
+.payment-review {padding:18px;margin-top:14px;border:1px solid #c9a76d;border-radius:12px;overflow-wrap:anywhere;}
+.payment-review img {max-width:100%;max-height:280px;object-fit:contain;display:block;background:white;}
+#modal-add-gift {z-index:100010!important;}
+#modal-add-gift > div {max-height:90dvh;overflow-y:auto;}

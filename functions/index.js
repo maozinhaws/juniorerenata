@@ -1,3 +1,4 @@
+import { validateGiftClaim, giftDecision } from './gift-policy.js';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
@@ -48,4 +49,53 @@ export const weddingMural = onCall({ maxInstances: 4 }, async request => {
         return { success: true };
     }
     throw new HttpsError('invalid-argument', 'Operação desconhecida.');
+});
+
+// Claims and receipts are private. Only approved amounts are exposed publicly.
+export const weddingGifts = onCall({ maxInstances: 4 }, async request => {
+    const data = request.data || {};
+    const isAdmin = await admin(request);
+    const root = db.collection('weddingGiftsPrivate').doc(appId);
+    const claims = root.collection('claims');
+    if (data.action === 'list') {
+        const totals = (await root.collection('totals').get()).docs.map(d => ({giftId:d.id,amountCents:d.data().amountCents}));
+        const rows = isAdmin ? (await claims.where('status','==','pending').limit(100).get()).docs.map(d => ({id:d.id,...d.data()})) : [];
+        return {totals,rows};
+    }
+    if (data.action === 'submit') {
+        try { validateGiftClaim(data); } catch (e) { throw new HttpsError('invalid-argument',e.message); }
+        const [groupId, member] = data.guestId.split(':');
+        return db.runTransaction(async tx => {
+            const ref = claims.doc(data.requestId);
+            if ((await tx.get(ref)).exists) return {id:ref.id};
+            const gift = (await tx.get(db.doc(base+'gifts/'+data.giftId))).data();
+            const guest = (await tx.get(db.doc(base+'guests/'+groupId))).data();
+            const author = member === 'main' ? guest?.mainName : guest?.companions?.[Number(member)]?.name;
+            if (!gift || !author) throw new HttpsError('not-found','Presente ou convidado não encontrado.');
+            const quotaRef = root.collection('quotas').doc(data.guestId);
+            const quota = (await tx.get(quotaRef)).data() || {};
+            const day = new Date().toISOString().slice(0,10);
+            const count = quota.day === day ? quota.count || 0 : 0;
+            if (count >= 20) throw new HttpsError('resource-exhausted','Limite diário de solicitações atingido.');
+            tx.create(ref,{giftId:data.giftId,giftTitle:gift.title,guestId:data.guestId,author,amountCents:data.amountCents,method:data.method,receipt:data.receipt || '',status:'pending',timestamp:new Date().toISOString()});
+            tx.set(quotaRef,{day,count:count+1});
+            return {id:ref.id};
+        });
+    }
+    if (data.action === 'moderate') {
+        if (!isAdmin) throw new HttpsError('permission-denied','Aprovação restrita aos noivos.');
+        if (!/^[a-f0-9-]{36}$/.test(data.id || '')) throw new HttpsError('invalid-argument','Pedido inválido.');
+        return db.runTransaction(async tx => {
+            const ref = claims.doc(data.id); const row = (await tx.get(ref)).data();
+            if (!row) throw new HttpsError('not-found','Pedido não encontrado.');
+            try { giftDecision(row.status,data.status); } catch(e) { throw new HttpsError('failed-precondition',e.message); }
+            if (row.status === data.status) return {success:true};
+            const totalRef = root.collection('totals').doc(row.giftId);
+            const total = (await tx.get(totalRef)).data()?.amountCents || 0;
+            tx.update(ref,{status:data.status,reviewedBy:request.auth.uid,reviewedAt:new Date().toISOString()});
+            if (data.status === 'approved') tx.set(totalRef,{amountCents:total+row.amountCents});
+            return {success:true};
+        });
+    }
+    throw new HttpsError('invalid-argument','Operação desconhecida.');
 });
