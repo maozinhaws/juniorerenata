@@ -102,9 +102,9 @@
                     <i data-lucide="home" class="w-5 h-5 shrink-0"></i>
                     <span class="sidebar-label transition-opacity duration-200 opacity-0">Início</span>
                 </button>
-                <button aria-label="História e jogo" data-tab="history" class="sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all hover:bg-red-100 hover:text-red-700 cursor-pointer whitespace-nowrap">
+                <button aria-label="Nossa história" data-tab="history" class="sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all hover:bg-red-100 hover:text-red-700 cursor-pointer whitespace-nowrap">
                     <i data-lucide="book-open" class="w-5 h-5 shrink-0"></i>
-                    <span class="sidebar-label transition-opacity duration-200 opacity-0">História & Jogo</span>
+                    <span class="sidebar-label transition-opacity duration-200 opacity-0">Nossa história</span>
                 </button>
                 <button aria-label="Galeria do Instagram" data-tab="gallery" class="sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all hover:bg-red-100 hover:text-red-700 cursor-pointer whitespace-nowrap">
                     <i data-lucide="image" class="w-5 h-5 shrink-0"></i>
@@ -163,60 +163,10 @@
             </div>
         </section>
 
-        <!-- HISTORY & QUIZ SECTION -->
         <section id="tab-history" class="tab-content py-10 max-w-5xl mx-auto space-y-10 motion-section">
-            <div class="text-center space-y-3 relative">
-                <div id="admin-quiz-toolbar" class="hidden mb-4 flex justify-center gap-2">
-                    <button onclick="window.openAddTimelineModal()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5 cursor-pointer">
-                        <i data-lucide="plus" class="w-4 h-4"></i> Adicionar Pergunta ao Quiz
-                    </button>
-                </div>
-                <span class="text-red-600 text-xs font-bold tracking-widest uppercase bg-red-100 px-3 py-1 rounded-full">Nossa Trajetória</span>
-                <h2 class="font-serif text-4xl md:text-5xl text-red-900 font-bold">Você conhece nossa história?</h2>
-                <p class="text-stone-600 text-base max-w-2xl mx-auto">A sorte ajuda. Conhecer os noivos ajuda mais. Escolha suas cartas e entre na brincadeira.</p>
-            </div>
-            
-            <div id="quiz-entry-card" class="glass-card p-8 md:p-12 rounded-3xl shadow-xl border border-red-200 text-center space-y-6 max-w-2xl mx-auto relative">
-                <div class="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
-                    <i data-lucide="gamepad-2" class="w-8 h-8"></i>
-                </div>
-                <div>
-                    <div class="intro-hand" aria-hidden="true"><span>A<br>♡</span><span>K<br>⚭</span><span>Q<br>✿</span><span>J<br>♫</span></div>
-                    <h3 class="font-serif text-3xl font-bold text-stone-900">Truco do amor</h3>
-                    <p class="text-sm text-stone-600 mt-2">Digite seu nome completo ou o nome do acompanhante para validar sua participação e começar a jogar. <br><b class="text-red-600">Atenção: Apenas 1 tentativa permitida por pessoa!</b></p>
-                </div>
-                <fieldset class="team-choice"><legend>Primeiro, escolha seu time</legend><button type="button" data-quiz-team="noivo" aria-pressed="false" onclick="window.chooseQuizTeam('noivo')">Time Noivo</button><button type="button" data-quiz-team="noiva" aria-pressed="false" onclick="window.chooseQuizTeam('noiva')">Time Noiva</button></fieldset>
-                <p class="truco-rules">Escolha sua resposta, encare a CPU e aposte 1, 3, 6 ou 9 pontos. Ela pode blefar — e também pode correr!</p>
-                <div class="relative max-w-md mx-auto">
-                    <input type="search" id="quiz-guest-name" autocomplete="off" placeholder="Digite seu nome ou nome do acompanhante..." class="w-full px-5 py-3.5 border border-stone-300 rounded-2xl text-sm focus:outline-none focus:border-red-500 bg-white font-medium shadow-sm"/>
-                    <div id="quiz-suggestions" class="absolute left-0 right-0 top-full mt-2 bg-white border border-stone-200 rounded-2xl shadow-2xl max-h-56 overflow-y-auto z-50 hidden divide-y divide-stone-100 p-1.5"></div>
-                    <button onclick="window.startCoupleQuiz()" class="w-full mt-3 py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl text-sm shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-all">
-                        <i data-lucide="play" class="w-4 h-4"></i> Iniciar Desafio (Estilo Cartas)
-                    </button>
-                </div>
-            </div>
-            
-            <div id="quiz-game-container" class="hidden glass-card p-6 md:p-10 rounded-3xl shadow-xl border border-red-200 max-w-3xl mx-auto space-y-6"></div>
-            
-            <div class="bg-white p-6 md:p-8 rounded-3xl shadow-md border border-stone-200 max-w-3xl mx-auto space-y-4 relative">
-                <h3 class="font-serif text-2xl font-bold text-stone-900 flex items-center justify-between">
-                    <span class="flex items-center gap-2.5"><i data-lucide="trophy" class="w-6 h-6 text-amber-500"></i> Ranking dos Convidados Mais Íntimos</span>
-                    <button id="admin-clear-ranking-btn" onclick="window.clearEntireRanking()" class="hidden px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold cursor-pointer">Zerar Ranking</button>
-                </h3>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead>
-                            <tr class="border-b text-stone-400 uppercase text-xs">
-                                <th class="py-2.5">Posição</th>
-                                <th class="py-2.5">Convidado</th>
-                                <th class="py-2.5 text-right">Pontuação</th>
-                                <th class="py-2.5 text-right admin-ranking-col hidden">Ação</th>
-                            </tr>
-                        </thead>
-                        <tbody id="public-ranking-list" class="divide-y divide-stone-100 font-medium"></tbody>
-                    </table>
-                </div>
-            </div>
+            <header class="text-center"><span class="section-kicker">Entre encontros e boas histórias</span><h2 class="font-serif text-4xl md:text-5xl">Nossa história</h2><p>Os capítulos que nos trouxeram até o nosso sim.</p></header>
+            <div id="admin-story-toolbar" class="hidden"><button type="button" onclick="window.editStory()">Adicionar capítulo</button></div>
+            <div id="biography-chapters"></div>
         </section>
 
         <!-- GALLERY SECTION -->
@@ -395,6 +345,7 @@
                 <p>Os convidados selecionam o próprio nome. Cada pessoa pode enviar dois recados, sujeitos à aprovação.</p>
                 <button type="button" aria-label="Mural" data-tab="mural">Ver recados aguardando aprovação</button>
             </div>
+            <section class="glass-card p-6 rounded-2xl"><h3>Nossa história e presentes</h3><div class="dialog-actions"><button type="button" onclick="window.switchTab('history')">Editar biografia, fotos e post-its</button><button type="button" onclick="window.switchTab('gifts')">Editar presentes e links das lojas</button></div></section>
         </section>
     </main>
 
@@ -436,29 +387,17 @@
         </div>
     </div>
 
-    <div id="modal-add-timeline" class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
-        <div class="bg-white w-full max-w-lg rounded-3xl p-6 border border-stone-200 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center border-b pb-3"><h3 id="modal-timeline-title" class="font-serif text-xl font-bold text-stone-900">Adicionar Pergunta</h3><button data-action="close-add-timeline" class="text-stone-400 hover:text-stone-700 cursor-pointer"><i data-lucide="x" class="w-5 h-5"></i></button></div>
-            <form id="form-add-timeline" class="space-y-3 text-sm">
-                <input type="hidden" id="edit-timeline-id"/>
-                <div><label class="block text-xs font-bold text-stone-600 uppercase mb-1">Tema / Tag</label><input required type="text" id="tl-tag" class="w-full px-4 py-2.5 border rounded-xl bg-white"/></div>
-                <div><label class="block text-xs font-bold text-stone-600 uppercase mb-1">Pergunta</label><input required type="text" id="tl-title" class="w-full px-4 py-2.5 border rounded-xl bg-white"/></div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <div><label class="block text-[10px] font-bold text-stone-500 uppercase mb-1">Alternativa A</label><input required type="text" id="tl-opt-0" class="w-full px-3 py-2 border rounded-xl bg-white text-xs"/></div>
-                    <div><label class="block text-[10px] font-bold text-stone-500 uppercase mb-1">Alternativa B</label><input required type="text" id="tl-opt-1" class="w-full px-3 py-2 border rounded-xl bg-white text-xs"/></div>
-                    <div><label class="block text-[10px] font-bold text-stone-500 uppercase mb-1">Alternativa C</label><input required type="text" id="tl-opt-2" class="w-full px-3 py-2 border rounded-xl bg-white text-xs"/></div>
-                    <div><label class="block text-[10px] font-bold text-stone-500 uppercase mb-1">Alternativa D</label><input required type="text" id="tl-opt-3" class="w-full px-3 py-2 border rounded-xl bg-white text-xs"/></div>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Alternativa Correta</label>
-                    <select id="tl-correct" class="w-full px-4 py-2 border rounded-xl bg-white text-xs">
-                        <option value="0">Alternativa A</option><option value="1">Alternativa B</option><option value="2">Alternativa C</option><option value="3">Alternativa D</option>
-                    </select>
-                </div>
-                <div><label class="block text-xs font-bold text-stone-600 uppercase mb-1">História Real (Exibida ao Final)</label><textarea required rows="2" id="tl-text" class="w-full px-4 py-2.5 border rounded-xl resize-none bg-white"></textarea></div>
-                <div class="flex gap-2 pt-2 border-t"><button type="button" data-action="close-add-timeline" class="w-1/3 py-2.5 border rounded-xl font-bold text-stone-500 cursor-pointer">Cancelar</button><button type="submit" class="w-2/3 py-2.5 bg-red-600 text-white rounded-xl font-bold cursor-pointer">Salvar Pergunta</button></div>
-            </form>
-        </div>
+    <div id="modal-story" class="dialog-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="story-heading">
+      <form id="form-story" class="dialog-card">
+        <h3 id="story-heading">Editar nossa história</h3><input type="hidden" id="story-id">
+        <label for="story-title">Título do capítulo</label><input id="story-title" required maxlength="120">
+        <label for="story-text">Parágrafo da biografia</label><textarea id="story-text" required maxlength="4000" rows="6"></textarea>
+        <label for="story-image">Foto escolhida pelo casal</label><input id="story-image">
+        <label for="story-groom">Post-it: curiosidade do noivo</label><textarea id="story-groom" maxlength="240" rows="2"></textarea>
+        <label for="story-bride">Post-it: curiosidade da noiva</label><textarea id="story-bride" maxlength="240" rows="2"></textarea>
+        <label for="story-order">Ordem</label><input id="story-order" type="number" min="0" max="999" value="0">
+        <div class="dialog-actions"><button type="button" onclick="document.getElementById('modal-story').classList.add('hidden')">Cancelar</button><button type="submit">Salvar capítulo</button></div>
+      </form>
     </div>
 
     <div id="modal-add-gallery" class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
@@ -489,33 +428,22 @@
         </div>
     </div>
 
-    <div id="modal-pix" class="fixed inset-0 z-50 bg-stone-900/80 backdrop-blur-sm hidden items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-stone-200">
-            <div class="bg-red-600 p-5 text-white flex justify-between items-center"><h3 id="pix-title" class="font-serif text-lg font-bold truncate pr-4">Presente</h3><button data-action="close-pix" class="shrink-0 cursor-pointer"><i data-lucide="x" class="w-5 h-5"></i></button></div>
-            <div class="p-6 space-y-4">
-                <div id="pix-step-1">
-                    <div class="bg-stone-50 p-3 rounded-xl border border-stone-200 text-xs flex justify-between"><span class="text-stone-500">Falta Arrecadar:</span><span id="pix-remaining" class="font-bold text-red-600">R$ 0,00</span></div>
-                    <div><label class="text-xs font-bold uppercase text-stone-500">Valor da Cota (R$)</label><input type="number" id="pix-amount" inputmode="decimal" class="w-full mt-1 px-4 py-3 border border-stone-200 rounded-xl font-bold text-lg text-stone-900 bg-white"/></div>
-                    <div><label class="text-xs font-bold uppercase text-stone-500">Seu Nome</label><input type="text" id="pix-name" class="w-full mt-1 px-4 py-3 border border-stone-200 rounded-xl text-sm bg-white"/></div>
-                    <div><label class="text-xs font-bold uppercase text-stone-500">Mensagem Carinhosa</label><textarea id="pix-msg" rows="2" class="w-full mt-1 px-4 py-3 border border-stone-200 rounded-xl text-sm bg-white"></textarea></div>
-                    <button data-action="generate-pix" class="w-full mt-4 py-4 bg-red-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-md hover:bg-red-700 transition-all cursor-pointer">Gerar Código Pix <i data-lucide="chevron-right" class="w-4 h-4"></i></button>
-                </div>
-                <div id="pix-step-2" class="hidden text-center space-y-4">
-                    <p class="text-xs text-stone-500 font-bold uppercase">QR Code Pix Oficial</p>
-                    <img id="pix-qrcode" src="" alt="QR Code" class="w-48 h-48 mx-auto rounded-xl border border-stone-200 p-2 shadow-sm"/>
-                    <div class="flex items-center gap-2 bg-stone-50 p-2 rounded-xl border border-stone-200"><input type="text" id="pix-payload" readonly class="w-full text-[10px] font-mono text-stone-500 bg-transparent outline-none truncate"/><button data-action="copy-pix" id="btn-copy-pix" class="px-4 py-2 rounded-lg text-xs font-bold text-white shrink-0 bg-stone-900 cursor-pointer">Copiar</button></div>
-                    <button data-action="confirm-pix" class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"><i data-lucide="check-circle" class="w-5 h-5"></i> Confirmar Pagamento Efetuado</button>
-                </div>
-            </div>
-        </div>
+    <div id="modal-pix" class="dialog-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="pix-title">
+      <div class="dialog-card"><h3 id="pix-title">Presentear com Pix</h3>
+        <p>Copie a chave abaixo e faça o Pix no aplicativo do seu banco. Confira o titular antes de concluir.</p>
+        <label for="pix-key">Chave Pix dos noivos</label><input id="pix-key" readonly>
+        <p id="pix-receiver"></p><p id="pix-status" role="status"></p>
+        <div class="dialog-actions"><button type="button" data-action="close-pix">Fechar</button><button type="button" data-action="copy-pix" id="btn-copy-pix">Copiar chave Pix</button></div>
+        <a id="pix-store" target="_blank" rel="noopener noreferrer" hidden>Prefiro comprar na loja ↗</a>
+      </div>
     </div>
 
     <div id="modal-add-gift" class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-3xl p-6 border border-stone-200 shadow-2xl">
             <h3 class="font-serif text-xl font-bold mb-4 text-stone-900">Adicionar Presente</h3>
             <form id="form-add-gift" class="space-y-3 text-sm">
-                <input required type="text" id="ag-title" placeholder="Título do Presente" class="w-full px-4 py-3 border rounded-xl bg-white"/>
-                <input required type="number" id="ag-amount" placeholder="Valor Total (R$)" class="w-full px-4 py-3 border rounded-xl bg-white"/>
+                <input type="hidden" id="ag-id"><label for="ag-store">Link do produto na loja (opcional)</label><input type="url" id="ag-store" placeholder="https://loja.com/produto" class="w-full px-4 py-3 border rounded-xl bg-white"><input required type="text" id="ag-title" placeholder="Título do Presente" class="w-full px-4 py-3 border rounded-xl bg-white"/>
+                <input required type="number" id="ag-amount" min="0.01" step="0.01" max="1000000000" placeholder="Valor Total (R$)" class="w-full px-4 py-3 border rounded-xl bg-white"/>
                 <input type="text" id="ag-category" placeholder="Categoria (ex: Cozinha, Lua de Mel)" class="w-full px-4 py-3 border rounded-xl bg-white"/>
                 <div><label for="ag-image" class="block text-xs font-bold text-stone-600 uppercase mb-1">Foto do presente</label><input type="text" id="ag-image" placeholder="Escolha, cole uma foto ou um link direto" class="w-full px-4 py-3 border rounded-xl bg-white text-xs"/></div>
                 <textarea id="ag-desc" placeholder="Breve descrição" class="w-full px-4 py-3 border rounded-xl bg-white"></textarea>
@@ -525,6 +453,6 @@
     </div>
 
     <!-- Modular JS entry point -->
-    <script type="module" src="./js/firebase-init.js?v=20260925-2329"></script>
+    <script type="module" src="./js/firebase-init.js"></script>
 </body>
 </html>

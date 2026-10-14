@@ -63,7 +63,7 @@ export function renderGallery() {
         `;
     }).join('');
 
-    if (window.lucide) lucide.createIcons();
+    if (window.lucide) window.lucide?.createIcons();
     requestAnimationFrame(processInstagram);
 }
 
@@ -116,7 +116,7 @@ window.openAddGalleryModal = () => {
         input.value = '';
         requestAnimationFrame(() => input.focus());
     }
-    if (window.lucide) lucide.createIcons();
+    if (window.lucide) window.lucide?.createIcons();
 };
 
 window.closeAddGalleryModal = () => {

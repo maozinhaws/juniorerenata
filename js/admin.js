@@ -5,6 +5,7 @@ import { spotifyEmbed } from './spotify.js';
 
 export function initAdmin() {
     window.saveAllPanelChanges = async () => {
+        if (!state.isAdminLoggedIn) return window.showToast('Entre no painel para salvar.', true);
         const spotify = document.getElementById('cfg-radio').value.trim();
         if (spotify && !spotifyEmbed(spotify)) return window.showToast('Cole o link completo de uma música, álbum ou playlist em open.spotify.com.', true);
         const photo = document.getElementById('cfg-homepage-img');
@@ -18,7 +19,7 @@ export function initAdmin() {
             date: document.getElementById('cfg-date')?.value || state.settings.date,
             location: document.getElementById('cfg-location')?.value.trim() || state.settings.location,
             maps: document.getElementById('cfg-maps')?.value.trim() || state.settings.maps,
-            pixKey: document.getElementById('cfg-pix')?.value.trim() || state.settings.pixKey,
+            pixKey: document.getElementById('cfg-pix').value.trim(),
             receiverName: document.getElementById('cfg-receiver')?.value.trim() || state.settings.receiverName,
             cityName: document.getElementById('cfg-city')?.value.trim() || 'Curitiba',
             radioUrl: spotify,
@@ -34,8 +35,9 @@ export function initAdmin() {
 
             // Apply immediately; onSnapshot will reconcile the cached value with
             // the server response without making the editor wait for a round trip.
-            state.settings = nextSettings;
+
             await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), nextSettings, { merge: true });
+            delete document.getElementById('config-inputs-container').dataset.dirty;
             window.showToast("Configurações salvas com sucesso!");
         } catch (err) {
             console.error(err);
@@ -60,5 +62,5 @@ export function renderAdmin() {
     const statConf = document.getElementById('stat-confirmed-guests');
     if (statTotal) statTotal.innerText = totalGenerated;
     if (statConf) statConf.innerText = totalConfirmed;
-    if (window.lucide) lucide.createIcons();
+    if (window.lucide) window.lucide?.createIcons();
 }
