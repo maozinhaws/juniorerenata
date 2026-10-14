@@ -3,11 +3,14 @@ import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDoc, isPreview, seedPreview } from './data-store.js';
 import { mountImageInput, validImageSource } from './image-input.js?v=20260925-2329';
 import { initGuests } from './guests.js';
-import { initSpotify, updateSpotify } from './spotify.js';
+import { initSpotify, updateSpotify, DEFAULT_SPOTIFY_URL } from './spotify.js';
+import { initMotion } from './motion.js';
 import { initBackgrounds, showBackground } from './backgrounds.js?v=20260925-2329';
 import { initMural, refreshMural } from './mural.js?v=20260925-2329';
 
-import { initQuiz, renderRanking } from './quiz.js';
+import { initBiography, renderBiography } from './biography.js';
+import { initGifts, safeStoreUrl } from './gifts.js';
+import { countdownParts } from './site-values.js';
 import { renderGallery, processInstagram } from './gallery.js';
 import { initAdmin, renderAdmin } from './admin.js?v=20260925-2329';
 
@@ -51,7 +54,7 @@ export let state = {
     pendingDelete: null, activeQuizGuest: null, currentQuizStep: 0, quizAnswersState: [],
     settings: { 
         names: "Júnior & Renata", date: "2026-11-14T17:00", location: "Espaço das Flores - Curitiba, PR", maps: "https://maps.google.com", 
-        pixKey: "12345678900", receiverName: "Júnior e Renata", cityName: "Curitiba", radioUrl: "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M",
+        pixKey: "", receiverName: "Júnior e Renata", cityName: "Curitiba", radioUrl: DEFAULT_SPOTIFY_URL,
         whatsappNumber: "5541999999999",
         homepageImg: "./assets/wedding/hero-rings.png",
         heroPosition: "65"
@@ -72,7 +75,7 @@ export function sendWhatsAppAlert(text) {
     } catch(e) {}
 }
 
-window.openCalendarModal = () => { document.getElementById('modal-calendar').style.display = 'flex'; lucide.createIcons(); };
+window.openCalendarModal = () => { document.getElementById('modal-calendar').style.display = 'flex'; window.lucide?.createIcons(); };
 window.closeCalendarModal = () => { document.getElementById('modal-calendar').style.display = 'none'; };
 
 function getEventCalendarDetails() {
@@ -120,45 +123,17 @@ window.openDeleteModal = (msg, act) => {
     state.pendingDelete = act;
     document.getElementById('delete-confirm-message').innerText = msg;
     document.getElementById('modal-delete-confirm').style.display = 'flex';
-    lucide.createIcons();
+    window.lucide?.createIcons();
 };
 window.closeDeleteModal = () => { state.pendingDelete = null; document.getElementById('modal-delete-confirm').style.display = 'none'; };
 window.confirmPendingDelete = async () => { const act = state.pendingDelete; window.closeDeleteModal(); if (typeof act === 'function') await act(); };
-
-window.toggleSidebar = () => {
-    state.isSidebarCollapsed = !state.isSidebarCollapsed;
-    const sidebar = document.getElementById('app-sidebar');
-    const main = document.getElementById('main-content');
-    const musicDock = document.getElementById('music-dock');
-    document.body.classList.toggle('menu-expanded', !state.isSidebarCollapsed);
-    document.querySelector('[data-action=toggle-sidebar]').setAttribute('aria-expanded', String(!state.isSidebarCollapsed));
-    const labels = document.querySelectorAll('.sidebar-label');
-
-    if (state.isSidebarCollapsed) {
-        sidebar.classList.remove('sidebar-expanded');
-        sidebar.classList.add('sidebar-collapsed');
-        main.classList.remove('ml-[270px]');
-        main.classList.add('ml-[90px]');
-        musicDock.classList.remove('left-[270px]');
-        musicDock.classList.add('left-[90px]');
-        labels.forEach(l => l.style.opacity = '0');
-    } else {
-        sidebar.classList.remove('sidebar-collapsed');
-        sidebar.classList.add('sidebar-expanded');
-        main.classList.remove('ml-[90px]');
-        main.classList.add('ml-[270px]');
-        musicDock.classList.remove('left-[90px]');
-        musicDock.classList.add('left-[270px]');
-        setTimeout(() => labels.forEach(l => l.style.opacity = '1'), 150);
-    }
-};
 
 window.showToast = (msg, err = false) => {
     const t = document.getElementById('toast');
     document.getElementById('toast-msg').innerText = msg;
     t.className = `fixed top-16 right-5 z-[9999] text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 border ${err ? 'bg-red-950 border-red-700' : 'bg-stone-900 border-emerald-600'} show`;
     document.getElementById('toast-icon').setAttribute('data-lucide', err ? 'alert-circle' : 'check-circle-2');
-    lucide.createIcons();
+    window.lucide?.createIcons();
     setTimeout(() => { t.className = t.className.replace('show', ''); }, 4000);
 };
 
@@ -170,34 +145,24 @@ document.addEventListener('click', (e) => {
     if (btn.dataset.tab) window.switchTab(btn.dataset.tab);
     else if (btn.dataset.action) {
         const act = btn.dataset.action;
-        if (act === 'toggle-music') window.toggleMusicWidget();
+
         if (act === 'open-admin') window.openAdminModal();
         if (act === 'close-admin') window.closeAdminModal();
         if (act === 'close-pix') window.closePixModal();
-        if (act === 'generate-pix') window.generatePix();
+
         if (act === 'copy-pix') window.copyPix();
-        if (act === 'confirm-pix') window.confirmContribution();
+
         if (act === 'open-add-gift') window.openAddGiftModal();
         if (act === 'close-add-gift') window.closeAddGiftModal();
         if (act === 'open-add-guest') window.openAddGuestModal();
         if (act === 'close-add-guest') window.closeAddGuestModal();
-        if (act === 'open-add-timeline') window.openAddTimelineModal();
-        if (act === 'close-add-timeline') window.closeAddTimelineModal();
+
+
         if (act === 'open-add-gallery') window.openAddGalleryModal();
         if (act === 'close-add-gallery') window.closeAddGalleryModal();
         if (act === 'add-companion-row') window.addCompanionRow();
-        if (act === 'toggle-sidebar') window.toggleSidebar();
-    }
-});
 
-// The menu is a popover: tapping anywhere outside it closes it without
-// stealing the click that may navigate to another section.
-document.addEventListener('pointerdown', (e) => {
-    const target = e.target instanceof Element ? e.target : null;
-    if (!state.isSidebarCollapsed && !target?.closest('#app-sidebar')) window.toggleSidebar();
-});
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !state.isSidebarCollapsed) window.toggleSidebar();
+    }
 });
 
 const scrollTabs = ['home', 'history', 'gallery', 'gifts', 'mural', 'rsvp'];
@@ -208,17 +173,20 @@ function setActiveSection(tabId) {
     if (themeColor) themeColor.setAttribute('content', browserThemes[tabId] || browserThemes.home);
     document.querySelectorAll('.tab-content').forEach(el => el.classList.toggle('active', el.id === `tab-${tabId}`));
     document.querySelectorAll('.sidebar-nav-btn').forEach(b => {
+        if (b.dataset.tab === tabId) b.setAttribute('aria-current', 'location'); else b.removeAttribute('aria-current');
         b.className = b.dataset.tab === tabId ?
             "sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all bg-red-600 text-white shadow-sm cursor-pointer whitespace-nowrap" :
             "sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all hover:bg-red-100 hover:text-red-700 cursor-pointer whitespace-nowrap";
     });
     showBackground(tabId);
+    if (tabId === 'gallery') requestAnimationFrame(processInstagram);
 }
 
 // Native scrolling remains completely natural. The observer only updates the
 // highlighted menu item and browser theme as each section enters the viewport.
 const sectionObserver = new IntersectionObserver(entries => {
     const visible = entries.filter(entry => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+    if (document.body.dataset.adminView === 'true') return;
     if (visible) setActiveSection(visible.target.id.replace('tab-', ''));
 }, { rootMargin: '-18% 0px -58% 0px', threshold: [0, .2, .5] });
 scrollTabs.forEach(id => { const section = document.getElementById(`tab-${id}`); if (section) sectionObserver.observe(section); });
@@ -229,6 +197,7 @@ window.switchTab = (tabId) => {
         return;
     }
 
+    document.body.dataset.adminView = String(tabId === 'admin');
     setActiveSection(tabId);
     if (tabId === 'mural') refreshMural();
     if (tabId === 'gallery') requestAnimationFrame(processInstagram);
@@ -236,7 +205,7 @@ window.switchTab = (tabId) => {
         updateEditorUI();
         renderAdmin();
     }
-    if (!state.isSidebarCollapsed) window.toggleSidebar();
+
 
     const target = document.getElementById('tab-' + tabId);
     if (target) {
@@ -260,18 +229,21 @@ window.closeAdminModal = () => document.getElementById('modal-admin-login').styl
 
 window.submitAdminLogin = async (e) => {
     e.preventDefault();
+    const button = e.target.querySelector('[type=submit]');
+    if (button?.disabled) return;
     const email = document.getElementById('admin-input-email').value.trim();
-    const pass = document.getElementById('admin-input-pass').value.trim();
+    const pass = document.getElementById('admin-input-pass').value;
     if (!email || !pass) return window.showToast("Preencha e-mail e senha!", true);
 
     try {
+        if (button) button.disabled = true;
         window.showToast("Autenticando...");
         const cred = await signInWithEmailAndPassword(auth, email, pass);
         const uid = cred.user.uid;
         const adminDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'admins', uid);
         const adminSnap = await getDoc(adminDocRef);
 
-        if (!adminSnap.exists() || !adminSnap.data().active) {
+        if (!adminSnap.exists() || adminSnap.data().active !== true) {
             await signOut(auth);
             return window.showToast("Acesso Negado: Conta sem privilégios de administrador.", true);
         }
@@ -283,8 +255,9 @@ window.submitAdminLogin = async (e) => {
         renderAdmin();
         window.showToast("Modo de Edição ativado (Wix Style)!");
     } catch (err) {
-        window.showToast("Credenciais incorretas ou acesso restrito.", true);
-    }
+        const permission = err.code === 'permission-denied';
+        window.showToast(permission ? 'Login recebido, mas o Firebase bloqueou a consulta de administrador. Confira as regras e o cadastro de permissões.' : 'Não foi possível entrar. Confira e-mail, senha e conexão.', true);
+    } finally { if (button) button.disabled = false; }
 };
 
 window.adminLogout = async () => {
@@ -298,7 +271,7 @@ window.adminLogout = async () => {
 
 function updateEditorUI() {
     const wixBar = document.getElementById('wix-admin-bar');
-    const adminQuizToolbar = document.getElementById('admin-quiz-toolbar');
+    const adminQuizToolbar = document.getElementById('admin-story-toolbar');
     const adminGalleryToolbar = document.getElementById('admin-gallery-toolbar');
     const adminGiftToolbar = document.getElementById('admin-gift-toolbar');
     const adminGuestToolbar = document.getElementById('admin-guest-toolbar');
@@ -324,7 +297,7 @@ function updateEditorUI() {
     }
     renderGallery();
     renderGifts();
-    renderRanking();
+    renderBiography();
 }
 
 const renderGifts = () => {
@@ -340,7 +313,7 @@ const renderGifts = () => {
             <div class="bg-white rounded-3xl overflow-hidden border border-red-200 shadow-sm flex flex-col relative group">
                 ${state.isAdminLoggedIn ? `
                     <div class="absolute top-3 right-3 z-20 flex gap-1 bg-white/90 p-1 rounded-xl shadow backdrop-blur">
-                        <button type="button" onclick="window.deleteGift('${g.id}')" class="p-1.5 text-red-600 hover:bg-red-50 rounded-lg cursor-pointer" title="Excluir Presente">
+                        <button type="button" data-edit-gift="${escapeHTML(g.id)}" class="p-1.5" title="Editar presente">Editar</button><button type="button" data-delete-gift="${escapeHTML(g.id)}" class="p-1.5 text-red-600 hover:bg-red-50 rounded-lg cursor-pointer" title="Excluir Presente">
                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                         </button>
                     </div>
@@ -357,18 +330,20 @@ const renderGifts = () => {
                             <div class="flex justify-between text-xs mb-1 font-semibold"><span class="text-stone-500">R$ ${cur.toFixed(2)}</span><span class="text-red-600">${pct.toFixed(0)}%</span></div>
                             <div class="w-full h-2 bg-red-100 rounded-full overflow-hidden"><div class="h-full bg-red-600" style="width: ${pct}%"></div></div>
                         </div>
-                        <button type="button" ${isDone ? 'disabled' : ''} onclick="window.openPixModal('${g.id}')" class="w-full py-3 rounded-xl text-sm font-bold transition-all ${isDone ? 'bg-stone-100 text-stone-400' : 'bg-red-600 text-white hover:bg-red-700 shadow-md cursor-pointer'}">
-                            ${isDone ? 'Concluído' : 'Presentear com Pix'}
+                        <button type="button" ${isDone ? 'disabled' : ''} data-pix-gift="${escapeHTML(g.id)}" class="w-full py-3 rounded-xl text-sm font-bold transition-all ${isDone ? 'bg-stone-100 text-stone-400' : 'bg-red-600 text-white hover:bg-red-700 shadow-md cursor-pointer'}">
+                            ${isDone ? 'Concluído' : 'Ver chave Pix'}
                         </button>
+                        ${safeStoreUrl(g.storeUrl) ? `<a class="gift-store-link" href="${escapeHTML(safeStoreUrl(g.storeUrl))}" target="_blank" rel="noopener noreferrer">Comprar direto na loja ↗</a>` : ''}
                     </div>
                 </div>
             </div>
         `;
     }).join('');
-    if (window.lucide) lucide.createIcons();
+    if (window.lucide) window.lucide?.createIcons();
 };
 
 window.deleteGift = (id) => {
+    if (!state.isAdminLoggedIn) return;
     window.openDeleteModal("Deseja realmente excluir este presente?", async () => {
         try {
             await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'gifts', id));
@@ -379,6 +354,9 @@ window.deleteGift = (id) => {
 
 window.openAddGiftModal = () => {
     if (!state.isAdminLoggedIn) return window.showToast('Entre no painel para cadastrar presentes.', true);
+    document.getElementById('gift-modal-heading').textContent = 'Adicionar presente';
+    document.getElementById('form-add-gift').reset();
+    document.getElementById('ag-id').value = '';
     document.getElementById('modal-add-gift').style.display = 'flex';
 };
 window.closeAddGiftModal = () => { document.getElementById('modal-add-gift').style.display = 'none'; };
@@ -388,9 +366,14 @@ document.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!state.isAdminLoggedIn) return window.showToast('Acesso restrito aos noivos.', true);
         if (e.target.dataset.saving) return;
+        const storeUrl = safeStoreUrl(document.getElementById('ag-store').value);
+        if (document.getElementById('ag-store').value.trim() && !storeUrl) return window.showToast('Use um link HTTPS válido para a loja.', true);
+        const amount = Number(document.getElementById('ag-amount').value);
+        if (!Number.isFinite(amount) || amount <= 0 || amount > 1000000000) return window.showToast('Informe um valor de presente válido.', true);
         const giftObj = {
+            storeUrl,
             title: document.getElementById('ag-title').value.trim(),
-            totalAmount: parseFloat(document.getElementById('ag-amount').value) || 100,
+            totalAmount: amount,
             category: document.getElementById('ag-category').value.trim() || 'Geral',
             imageUrl: document.getElementById('ag-image').value.trim() || 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80',
             description: document.getElementById('ag-desc').value.trim()
@@ -400,10 +383,12 @@ document.addEventListener('submit', async (e) => {
         if (photoInput.value && !validImageSource(photoInput.value)) return window.showToast('Envie uma foto ou cole um link direto de imagem.', true);
         try {
             e.target.dataset.saving = 'true';
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), giftObj);
+            const id = document.getElementById('ag-id').value;
+            if (id) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'gifts', id), giftObj);
+            else await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), giftObj);
             document.getElementById('modal-add-gift').style.display = 'none';
             e.target.reset();
-            window.showToast("Presente adicionado com sucesso!");
+            window.showToast("Presente salvo com sucesso!");
         } catch(err) { window.showToast("Erro ao adicionar presente.", true); }
         finally { delete e.target.dataset.saving; }
     }
@@ -412,12 +397,15 @@ document.addEventListener('submit', async (e) => {
 const startFirebase = async () => {
     seedPreview(db, appId, state);
     if (!isPreview) onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            const adminSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'admins', user.uid));
-            state.isAdminLoggedIn = adminSnap.exists() && adminSnap.data().active;
-        } else {
+        try {
+            const adminSnap = user ? await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'admins', user.uid)) : null;
+            if (auth.currentUser?.uid !== user?.uid) return;
+            state.isAdminLoggedIn = Boolean(adminSnap?.exists() && adminSnap.data().active === true);
+        } catch (error) {
             state.isAdminLoggedIn = false;
+            window.showToast('Não foi possível verificar a permissão de administrador. Confira conexão e regras do Firebase.', true);
         }
+        if (!state.isAdminLoggedIn && document.body.dataset.adminView === 'true') window.switchTab('home');
         updateEditorUI();
     });
 
@@ -428,9 +416,12 @@ const startFirebase = async () => {
 
     onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'config'), snap => {
         if (snap.exists()) {
-            state.settings = { ...state.settings, ...snap.data() };
+            const { adminPass: _legacyPassword, ...publicSettings } = snap.data();
+            state.settings = { ...state.settings, ...publicSettings };
+            updateSpotify(state.settings.radioUrl);
             updateSiteContent();
             
+            if (document.getElementById('config-inputs-container').dataset.dirty) return;
             const cfgNames = document.getElementById('cfg-names');
             const cfgDate = document.getElementById('cfg-date');
             const cfgLoc = document.getElementById('cfg-location');
@@ -448,14 +439,19 @@ const startFirebase = async () => {
             if (cfgDate && state.settings.date) cfgDate.value = state.settings.date;
             if (cfgLoc && state.settings.location) cfgLoc.value = state.settings.location;
             if (cfgMaps && state.settings.maps) cfgMaps.value = state.settings.maps;
-            if (cfgPix && state.settings.pixKey) cfgPix.value = state.settings.pixKey;
+            if (cfgPix) cfgPix.value = state.settings.pixKey || '';
             if (cfgReceiver && state.settings.receiverName) cfgReceiver.value = state.settings.receiverName;
             if (cfgCity && state.settings.cityName) cfgCity.value = state.settings.cityName;
             if (cfgWhatsapp && state.settings.whatsappNumber) cfgWhatsapp.value = state.settings.whatsappNumber;
             if (cfgHomepageImg && state.settings.homepageImg) cfgHomepageImg.value = state.settings.homepageImg;
-            if (cfgRadio && state.settings.radioUrl) cfgRadio.value = state.settings.radioUrl;
+            if (cfgRadio) cfgRadio.value = state.settings.radioUrl || '';
+        } else {
+            updateSpotify(DEFAULT_SPOTIFY_URL);
         }
-    }, error => reportSyncError('as configurações', error));
+    }, error => {
+        reportSyncError('as configurações', error);
+        document.getElementById('spotify-embed-wrapper').textContent = 'Não foi possível carregar a playlist salva. Recarregue a página.';
+    });
 
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'gifts'), snap => {
         state.gifts = snap.docs.map(d => ({id: d.id, ...d.data()}));
@@ -464,8 +460,8 @@ const startFirebase = async () => {
 
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'timeline'), snap => {
         state.timeline = snap.docs.map(d => ({id: d.id, ...d.data()}));
-        if (state.isAdminLoggedIn) renderAdmin();
-    }, error => reportSyncError('o quiz', error));
+        renderBiography();
+    }, error => reportSyncError('a história', error));
 
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'gallery'), snap => {
         state.gallery = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -484,14 +480,10 @@ const startFirebase = async () => {
         renderGifts();
     }, error => reportSyncError('as contribuições', error));
 
-    onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'rankings'), snap => {
-        state.rankings = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.score - a.score);
-        renderRanking();
-    }, error => reportSyncError('o ranking', error));
+
 };
 
 const updateSiteContent = () => {
-    updateSpotify(state.settings.radioUrl);
     const elNames = document.getElementById('hero-names');
     const elLoc = document.getElementById('hero-location');
     const elMaps = document.getElementById('hero-maps-link');
@@ -520,13 +512,16 @@ document.addEventListener('DOMContentLoaded', () => {
     renderGifts();
     renderGallery();
     initMural();
-    lucide.createIcons();
+    window.lucide?.createIcons();
     startFirebase();
-    initQuiz();
+    initBiography();
+    initGifts();
     initAdmin();
+    document.getElementById('config-inputs-container').addEventListener('input', () => { document.getElementById('config-inputs-container').dataset.dirty = 'true'; });
     initSpotify();
     initBackgrounds();
     initGuests();
+    initMotion();
     mountImageInput('cfg-homepage-img', 'capa do casal');
     mountImageInput('ag-image', 'presente');
     document.getElementById('cfg-homepage-img').addEventListener('input', e => {
@@ -579,10 +574,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 rsvpSuggestions.classList.add('hidden');
                 document.getElementById('rsvp-selected-name').innerText = found.mainName;
                 document.getElementById('rsvp-companions-list').innerHTML = (found.companions && found.companions.length) ? 
-                    found.companions.map(c => `<div class="flex justify-between bg-white p-2 rounded-lg border border-stone-200"><span>${escapeHTML(c.name)}</span><span class="text-stone-400">${escapeHTML(c.relation)} (${c.age}a)</span></div>`).join('') :
+                    found.companions.map(c => `<div class="flex justify-between bg-white p-2 rounded-lg border border-stone-200"><span>${escapeHTML(c.name)}</span><span class="text-stone-400">${escapeHTML(c.relation || '')}${Number.isFinite(c.age) ? ' (' + c.age + 'a)' : ''}</span></div>`).join('') :
                     `<span class="text-stone-400">Nenhum acompanhante cadastrado.</span>`;
                 rsvpDetails.classList.remove('hidden');
-                lucide.createIcons();
+                window.lucide?.createIcons();
             }
         });
     }
@@ -607,8 +602,8 @@ setInterval(() => {
     if (!state.settings.date) return;
     const diff = new Date(state.settings.date).getTime() - new Date().getTime();
     const countdownEl = document.getElementById('countdown');
-    if (diff > 0 && countdownEl) {
-        const d = Math.floor(diff / (1000 * 60 * 60 * 24)), h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)), m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60 * 60)), s = Math.floor((diff % (1000 * 60)) / 1000);
+    if (Number.isFinite(diff) && countdownEl) {
+        const {days:d,hours:h,minutes:m,seconds:s} = countdownParts(diff);
         countdownEl.innerHTML = `<div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(d).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Dias</span></div><div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(h).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Horas</span></div><div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(m).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Min</span></div><div class="bg-white p-4 rounded-2xl shadow-sm border border-red-100"><span class="block font-serif text-4xl font-bold text-red-600">${String(s).padStart(2,'0')}</span><span class="text-xs uppercase text-stone-500">Seg</span></div>`;
     }
 }, 1000);

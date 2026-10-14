@@ -707,3 +707,40 @@ html { scroll-behavior:smooth; }
 /* The couple panel remains an explicit admin view, not part of the guest scroll. */
 #main-content > #tab-admin { display:none!important; }
 #main-content > #tab-admin.active { display:block!important; }
+
+/* An explicit editor route cannot be displaced by the public scroll observer. */
+body[data-admin-view="true"] #main-content > .tab-content:not(#tab-admin) { display:none!important; }
+#toast { z-index:200010!important; }
+.dialog-overlay { position:fixed; inset:0; z-index:100010; display:flex; align-items:center; justify-content:center; padding:18px; background:#160c20d9; }
+.dialog-overlay.hidden { display:none; }
+.dialog-card { width:min(620px,100%); max-height:88dvh; overflow:auto; padding:28px; background:#f6eef1; color:#352333; border:1px solid #b89765; border-radius:18px; box-shadow:0 25px 90px #0008; }
+.dialog-card h3 { font-family:'Playfair Display',serif; font-size:28px; margin-bottom:18px; }
+.dialog-card label { display:block; margin:15px 0 6px; font-size:13px; }
+.dialog-card input:not([type=hidden]),.dialog-card textarea { width:100%; padding:12px; border:1px solid #bb9dab; border-radius:8px; background:white; color:#30222e; }
+.dialog-actions { display:flex; gap:12px; margin-top:20px; }
+.dialog-actions button,.bio-copy button,#admin-story-toolbar button { padding:12px 18px; background:#861c39; color:#fff; border-radius:8px; }
+.dialog-card a,.gift-store-link { display:block; padding:12px; text-align:center; text-decoration:underline; }
+.section-kicker { font-size:11px; text-transform:uppercase; letter-spacing:.16em; color:#e4c385; }
+.bio-chapter { display:grid; grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr); gap:40px; margin:65px 0; align-items:center; }
+.bio-chapter:nth-child(even) .bio-photo { order:2; }
+.bio-photo { border:1px solid #b49262; padding:10px; transform:rotate(-2deg); border-radius:3px; background:#f3e8dd; min-height:180px; display:grid; place-items:center; }
+.bio-photo img { width:100%; max-height:440px; object-fit:cover; }
+.bio-photo > span { font-size:80px; color:#97663b; }
+.bio-copy h3 { font-family:'Playfair Display',serif; font-size:clamp(28px,4vw,42px); margin:12px 0; }
+.bio-copy > p { white-space:pre-line; line-height:1.9; color:#f0e0e9; }
+.bio-notes { display:flex; flex-wrap:wrap; gap:20px; margin:28px 0; }
+.bio-note { flex:1 1 140px; max-width:230px; padding:20px; color:#44302e; background:#f6df9a; transform:rotate(-3deg); box-shadow:3px 6px 12px #0003; font-size:14px; overflow-wrap:anywhere; }
+.bio-note b { display:block; font-size:10px; letter-spacing:.13em; text-transform:uppercase; margin-bottom:9px; }
+.bride-note { background:#e6cbea; transform:rotate(4deg); margin-top:16px; }
+#spotify-embed-wrapper > p { font-size:11px; line-height:1.5; padding:8px; }
+#spotify-popup { max-height:80dvh; overflow:auto; }
+@media(max-width:650px) {
+ .bio-chapter { grid-template-columns:1fr; gap:24px; }
+ .bio-chapter:nth-child(even) .bio-photo { order:0; }
+ .bio-photo img { max-height:340px; }
+ .dialog-card { padding:20px; }
+}
+
+.dialog-card [hidden] { display:none!important; }
+
+.bio-copy h3,#tab-history > header { color:#fff1ed; }

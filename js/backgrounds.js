@@ -1,7 +1,7 @@
 import { db, appId, state } from './firebase-init.js';
 import { doc, onSnapshot, setDoc } from './data-store.js';
 import { mountImageInput, validImageSource } from './image-input.js?v=20260925-2329';
-const sections = { home:'Início', history:'História & truco', gallery:'Instagram', gifts:'Presentes', mural:'Mural', rsvp:'Presença' };
+const sections = { home:'Início', history:'Nossa história', gallery:'Instagram', gifts:'Presentes', mural:'Mural', rsvp:'Presença' };
 const saved = {};
 let active = 'home';
 export function showBackground(section) {
