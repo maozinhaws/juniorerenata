@@ -35,7 +35,7 @@ export function createMural3D(host, onSelect) {
     const brightGold = new THREE.MeshStandardMaterial({color:0xe5c77f,metalness:.65,roughness:.25});
     const darkGold = new THREE.MeshStandardMaterial({color:0x5e3f25,metalness:.4,roughness:.65});
     const metal = new THREE.MeshStandardMaterial({color:0x393633,metalness:.8,roughness:.25});
-    let rows=[],worldH=8,active=true,frame=0,frames=0,hovered=null,disposed=false,generation=0;
+    let rows=[],worldH=8,inView=true,contextLost=false,active=true,frame=0,frames=0,hovered=null,disposed=false,generation=0;
     const reduced=matchMedia('(prefers-reduced-motion: reduce)');
     const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2(),targets=[],cards=[];
     let tiltX=0,tiltY=0,signature='';
@@ -163,10 +163,10 @@ export function createMural3D(host, onSelect) {
     let down;
     renderer.domElement.addEventListener('pointerdown',event=>{down={x:event.clientX,y:event.clientY};});
     renderer.domElement.addEventListener('click',event=>{if(down&&Math.hypot(event.clientX-down.x,event.clientY-down.y)<12){const object=hit(event);if(object)onSelect(object.userData.id);}});
-    renderer.domElement.addEventListener('webglcontextlost',event=>{event.preventDefault();host.closest('.cork-board').classList.remove('has-webgl');active=false;});
+    renderer.domElement.addEventListener('webglcontextlost',event=>{event.preventDefault();host.closest('.cork-board').classList.remove('has-webgl');contextLost=true;active=false;});
     const observer=new ResizeObserver(resize);observer.observe(host);
-    const visibility=new IntersectionObserver(entries=>{active=entries[0].isIntersecting;if(active)invalidate();});visibility.observe(host);
-    const pageVisibility=()=>{active=!document.hidden;if(active)invalidate();};document.addEventListener('visibilitychange',pageVisibility);
+    const visibility=new IntersectionObserver(entries=>{inView=entries[0].isIntersecting;active=inView&&!document.hidden&&!contextLost;if(active)invalidate();});visibility.observe(host);
+    const pageVisibility=()=>{active=inView&&!document.hidden&&!contextLost;if(active)invalidate();};document.addEventListener('visibilitychange',pageVisibility);
     return {
         setRows(next){const nextSignature=JSON.stringify(next);if(signature===nextSignature)return;signature=nextSignature;rows=next;rebuild();},
         dispose(){disposed=true;cancelAnimationFrame(frame);observer.disconnect();visibility.disconnect();document.removeEventListener('visibilitychange',pageVisibility);clear();felt.dispose();[feltMaterial,gold,brightGold,darkGold,metal].forEach(m=>m.dispose());renderer.dispose();renderer.domElement.remove();}
