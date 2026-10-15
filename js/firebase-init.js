@@ -493,10 +493,11 @@ const startFirebase = async () => {
     // Moderated wall is served by the callable endpoint, never the legacy public collection.
 
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'guests'), snap => {
+        state.guestsLoaded = true; state.guestsError = false;
         state.guests = snap.docs.map(d => ({id: d.id, ...d.data()}));
         if (state.isAdminLoggedIn) renderAdmin();
         refreshMural();
-    }, error => reportSyncError('os convidados', error));
+    }, error => { state.guestsError = true; if (state.isAdminLoggedIn) renderAdmin(); reportSyncError('os convidados', error); });
 
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'contributions'), snap => {
         state.contributions = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -574,7 +575,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 rsvpSuggestions.classList.add('hidden');
                 return;
             }
-            const matches = state.guests.filter(g => g.mainName && g.mainName.toLowerCase().includes(query));
+            const matches = state.guests.filter(g => g.status !== 'revoked' && g.mainName && g.mainName.toLowerCase().includes(query));
             if (!matches.length) {
                 rsvpSuggestions.innerHTML = `<div class="p-3 text-xs text-stone-400">Nenhum convidado encontrado.</div>`;
                 rsvpSuggestions.classList.remove('hidden');
