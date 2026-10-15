@@ -14,7 +14,6 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest" defer></script>
     <!-- Three.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
     <!-- Instagram Embed Script -->
 
     
@@ -25,6 +24,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
     <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js" defer></script>
     <link rel="stylesheet" href="./css/landing-motion.css">
+    <link rel="stylesheet" href="css/refinements.css?v=20261014">
+    <link rel="stylesheet" href="css/mural-3d.css?v=20261014">
 </head>
 <body class="bg-red-50 text-stone-800 pb-28 selection:bg-red-200 flex min-h-screen relative overflow-x-hidden">
 
@@ -62,7 +63,7 @@
         </div>
     </div>
 
-    <aside aria-label="Navegação lateral" id="app-sidebar" class="sidebar-collapsed sidebar-transition fixed top-0 left-0 h-full bg-white/95 backdrop-blur-md border-r border-red-100 shadow-xl z-50 flex flex-col justify-between p-3.5 overflow-x-hidden pt-16">
+    <aside aria-label="Navegação principal" id="app-sidebar" class="sidebar-collapsed sidebar-transition fixed top-0 left-0 h-full bg-white/95 backdrop-blur-md border-r border-red-100 shadow-xl z-50 flex flex-col justify-between p-3.5 overflow-x-hidden pt-16">
         <div class="space-y-6">
             <nav class="space-y-1.5 font-medium text-sm text-stone-600">
                 <button aria-label="Início" data-tab="home" class="sidebar-nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all bg-red-600 text-white shadow-sm cursor-pointer whitespace-nowrap">
@@ -166,6 +167,12 @@
                 <p class="text-stone-600">Vale carinho, vale história engraçada. Só não vale entregar todos os segredos.</p>
                 <p id="mural-service-status" role="status" class="text-sm mt-3"></p>
             </div>
+            <div class="mural-board-toolbar"><p id="mural-count" aria-live="polite"></p><button type="button" id="mural-demo" hidden>Ver composição demonstrativa</button></div>
+            <div class="cork-board">
+                <div id="mural-webgl"></div>
+                <div id="mural-container"></div>
+            </div>
+            <details class="mural-accessible"><summary>Ler todos os recados em lista</summary><div id="mural-readable-list"></div></details>
             <form id="form-mural" class="glass-card p-6 md:p-8 rounded-3xl border border-red-200 mb-12 shadow-sm space-y-4 max-w-2xl mx-auto">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -196,10 +203,8 @@
                     <i data-lucide="send" class="w-4 h-4"></i> Enviar para aprovação
                 </button>
             </form>
-            <div id="mural-moderation" class="moderation-panel" hidden></div>
-            <div class="cork-board rounded-3xl p-4 md:p-8 border-8 border-[#78472a]">
-                <div id="mural-container" style="position:relative; width:100%; min-height:650px;"></div>
-            </div>
+
+
         </section>
 
         <!-- RSVP SECTION -->
@@ -305,9 +310,9 @@
                 <h3>Convidados & recados</h3>
                 <button type="button" data-action="open-add-guest">Cadastrar convidado</button>
                 <p>Os convidados selecionam o próprio nome. Cada pessoa pode enviar dois recados, sujeitos à aprovação.</p>
-                <button type="button" aria-label="Mural" data-tab="mural">Ver recados aguardando aprovação</button>
+                <button type="button" id="open-mural-queue">Ver recados aguardando aprovação</button>
             </div>
-            <section class="glass-card p-6 rounded-2xl"><h3>Pagamentos para aprovação</h3><button type="button" id="gift-refresh">Atualizar pagamentos</button><div id="gift-moderation" aria-live="polite"></div></section><section class="glass-card p-6 rounded-2xl"><h3>Nossa história e presentes</h3><div class="dialog-actions"><button type="button" onclick="window.switchTab('history')">Editar biografia, fotos e post-its</button><button type="button" onclick="window.switchTab('gifts')">Editar presentes e links das lojas</button></div></section>
+            <section class="glass-card p-6 rounded-2xl"><h3>Recados para aprovação</h3><button type="button" id="mural-refresh">Atualizar recados</button><div id="mural-moderation" class="moderation-panel" aria-live="polite" hidden></div></section><section class="glass-card p-6 rounded-2xl"><h3>Pagamentos para aprovação</h3><button type="button" id="gift-refresh">Atualizar pagamentos</button><div id="gift-moderation" aria-live="polite"></div></section><section class="glass-card p-6 rounded-2xl"><h3>Nossa história e presentes</h3><div class="dialog-actions"><button type="button" onclick="window.switchTab('history')">Editar biografia, fotos e post-its</button><button type="button" onclick="window.switchTab('gifts')">Editar presentes e links das lojas</button></div></section>
         </section>
     </main>
         <section id="music-dock" class="music-section music-minimized" aria-label="Trilha sonora do casal">

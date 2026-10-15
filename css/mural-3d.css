@@ -1,0 +1,18 @@
+/* Real photo texture is shared by the WebGL material and the accessible fallback. */
+#tab-mural .cork-board {background-image:url('../assets/mural/felt-purple.png')!important;background-size:740px 493px!important;}
+#tab-mural .cork-board.has-webgl {background:none!important;border:0!important;outline:0!important;box-shadow:none!important;padding:0!important;border-radius:0!important;margin:0!important;min-height:0;}
+#tab-mural .cork-board.has-webgl::before,#tab-mural .cork-board.has-webgl::after {display:none;}
+#mural-webgl {display:none;}
+.has-webgl #mural-webgl {display:block;height:clamp(580px,65vw,900px);width:100%;position:relative;}
+#mural-webgl canvas {display:block;width:100%;height:100%;outline:0;}
+.has-webgl #mural-container {display:none!important;}
+.mural-board-toolbar {display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:12px 24px;color:#e5c583;font-size:12px;letter-spacing:.04em;}
+.mural-board-toolbar button {padding:10px 14px;border:1px solid #d3b28166;border-radius:6px;color:#f5e7ed;background:#291626;}
+.mural-board-toolbar [hidden] {display:none!important;}
+.mural-accessible {margin:12px 24px 44px;color:#e7d7e0;}
+.mural-accessible summary {cursor:pointer;padding:12px 0;font-size:13px;}
+#mural-readable-list {display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;padding:16px 0;}
+#mural-readable-list button {padding:16px;text-align:left;border:1px solid #c1a16c66;border-radius:6px;background:#301c2b;color:#f8e9ef;line-height:1.6;}
+@media(max-width:700px) {.has-webgl #mural-webgl {height:580px;}.mural-board-toolbar {padding:12px 4px;}.mural-accessible {margin-inline:4px;}}
+
+#mural-webgl {scroll-margin-top:100px;}

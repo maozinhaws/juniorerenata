@@ -10,9 +10,9 @@ export function renderBiography() {
     target.innerHTML = rows.map((row, index) => {
         const note = chapterCuriosity(row);
         const photo = row.imageUrl && validImageSource(row.imageUrl) ? row.imageUrl : '';
-        return '<article class="bio-chapter"><figure class="bio-memory"><div class="bio-photo">' +
+        return '<article class="bio-chapter"><figure class="bio-memory"><button type="button" class="bio-photo" aria-label="Alternar destaque da foto e curiosidade" aria-pressed="false">' +
             (photo ? '<img loading="lazy" src="' + escapeHTML(photo) + '" alt="Foto do capítulo ' + escapeHTML(row.heading || row.tag || '') + '">' : '<span aria-hidden="true">⚭</span>') +
-            '</div>' + (note.text ? '<aside class="bio-note ' + (note.author === 'noiva' ? 'bride-note' : '') + '"><b>' + (note.author === 'noiva' ? 'Ela conta' : 'Ele conta') + '</b>' + escapeHTML(note.text) + '</aside>' : '') + (state.isAdminLoggedIn ? '<button type="button" class="bio-photo-edit" data-edit-story="' + escapeHTML(row.id) + '">Editar foto e post-it</button>' : '') + '</figure><div class="bio-copy"><span class="section-kicker">Capítulo ' + String(index + 1).padStart(2,'0') + '</span><h3>' + escapeHTML(row.heading || row.tag || 'Nossa história') + '</h3><p>' + escapeHTML(row.text || '') + '</p>' + (state.isAdminLoggedIn ? '<button type="button" data-edit-story="' + escapeHTML(row.id) + '">Editar texto, foto e curiosidades</button>' : '') + '</div></article>';
+            '</button>' + (note.text ? '<aside class="bio-note ' + (note.author === 'noiva' ? 'bride-note' : '') + '"><b>' + (note.author === 'noiva' ? 'Ela conta' : 'Ele conta') + '</b>' + escapeHTML(note.text) + '</aside>' : '') + (state.isAdminLoggedIn ? '<button type="button" class="bio-photo-edit" data-edit-story="' + escapeHTML(row.id) + '">Editar foto e post-it</button>' : '') + '</figure><div class="bio-copy"><span class="section-kicker">Capítulo ' + String(index + 1).padStart(2,'0') + '</span><h3>' + escapeHTML(row.heading || row.tag || 'Nossa história') + '</h3><p>' + escapeHTML(row.text || '') + '</p>' + (state.isAdminLoggedIn ? '<button type="button" data-edit-story="' + escapeHTML(row.id) + '">Editar texto, foto e curiosidades</button>' : '') + '</div></article>';
     }).join('') || '<p>Nossa história está sendo preparada com carinho.</p>';
 }
 export function initBiography() {
@@ -23,9 +23,9 @@ export function initBiography() {
         const photo = document.getElementById('story-image').value.trim();
         const note = document.getElementById('story-curiosity').value.trim();
         const bride = document.getElementById('story-author').value === 'noiva';
-        preview.innerHTML = '<figure class="bio-memory"><div class="bio-photo">' +
+        preview.innerHTML = '<figure class="bio-memory"><button type="button" class="bio-photo" aria-label="Alternar destaque da foto e curiosidade" aria-pressed="false">' +
             (photo && validImageSource(photo) ? '<img src="' + escapeHTML(photo) + '" alt="Prévia da foto com curiosidade">' : '<span>Escolha uma foto</span>') +
-            '</div>' + (note ? '<aside class="bio-note ' + (bride ? 'bride-note' : '') + '"><b>' + (bride ? 'Ela conta' : 'Ele conta') + '</b>' + escapeHTML(note) + '</aside>' : '') + '</figure>';
+            '</button>' + (note ? '<aside class="bio-note ' + (bride ? 'bride-note' : '') + '"><b>' + (bride ? 'Ela conta' : 'Ele conta') + '</b>' + escapeHTML(note) + '</aside>' : '') + '</figure>';
     };
     form.addEventListener('input', updatePreview);
     form.addEventListener('change', updatePreview);
@@ -40,6 +40,12 @@ export function initBiography() {
         document.getElementById('modal-story').classList.remove('hidden');
     };
     document.addEventListener('click', e => {
+        const photo = e.target.closest('.bio-photo');
+        const memory = e.target.closest('.bio-memory');
+        if (memory && (photo || e.target.closest('.bio-note'))) {
+            const raised = memory.classList.toggle('photo-raised');
+            memory.querySelector('.bio-photo')?.setAttribute('aria-pressed', String(raised));
+        }
         const button = e.target.closest('[data-edit-story]');
         if (button) window.editStory(button.dataset.editStory);
     });
