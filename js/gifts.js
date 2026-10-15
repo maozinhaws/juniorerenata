@@ -77,7 +77,7 @@ export function initGifts() {
         if(qr)$('gift-qr').src=gift.qrImageUrl;else $('gift-qr').removeAttribute('src');
         $('gift-copy-link').hidden=!configureLink('gift-payment-link',gift.paymentUrl);
         configureLink('pix-store',gift.storeUrl); $('gift-payment-details').hidden=false;
-        $('pix-status').textContent='O pagamento só será confirmado após a aprovação dos noivos.';
+        $('pix-status').textContent='Valor definido. O pagamento só será confirmado após a aprovação dos noivos.';
     });
     window.copyPix=async()=>{
         if(!amountCents || !$('pix-key').value)return;
@@ -99,6 +99,7 @@ export function initGifts() {
         busy=true;$('gift-submit').disabled=true;
         try {
             const result=await api('submit',{requestId,giftId:state.selectedGift.id,guestId:person.key,amountCents,method:$('gift-method').value,receipt:receipt.value,paid:$('gift-paid').checked});
+            window.showToast('Comprovante enviado para aprovação.');
             submitted=true;$('gift-confirm-form').hidden=true;$('gift-whatsapp').hidden=false;$('donation-amount').disabled=true;$('gift-amount-form').querySelector('button').disabled=true;
             $('gift-confirm-status').textContent='Comprovante recebido. Aguardando aprovação dos noivos. Referência: '+result.id;
             whatsappText='Olá! Enviei pelo site meu comprovante de '+money(amountCents)+' para '+state.selectedGift.title+'. Nome: '+person.name+'. Referência: '+result.id+'. Aguardo aprovação.';
@@ -126,7 +127,7 @@ export function initGifts() {
         const pix=event.target.closest('[data-pix-gift]');if(pix)window.openPixModal(pix.dataset.pixGift);
         const del=event.target.closest('[data-delete-gift]');if(del)window.deleteGift(del.dataset.deleteGift);
         const review=event.target.closest('[data-payment-review]');
-        if(review && state.isAdminLoggedIn){review.disabled=true;try{await api('moderate',{id:review.dataset.paymentReview,status:review.dataset.status});await refreshGiftPayments();}catch{window.showToast('Não foi possível aprovar. Atualize a lista e tente novamente.',true);}finally{review.disabled=false;}}
+        if(review && state.isAdminLoggedIn){review.disabled=true;try{await api('moderate',{id:review.dataset.paymentReview,status:review.dataset.status});window.showToast(review.dataset.status==='approved'?'Comprovante aprovado. Contribuição confirmada.':'Comprovante recusado.');await refreshGiftPayments();}catch{window.showToast('Não foi possível aprovar. Atualize a lista e tente novamente.',true);}finally{review.disabled=false;}}
         const edit=event.target.closest('[data-edit-gift]');if(!edit||!state.isAdminLoggedIn)return;
         const gift=state.gifts.find(r=>r.id===edit.dataset.editGift);if(!gift)return;
         window.openAddGiftModal();$('gift-modal-heading').textContent='Editar presente';
