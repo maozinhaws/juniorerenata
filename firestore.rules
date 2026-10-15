@@ -21,6 +21,79 @@ service cloud.firestore {
       allow read: if collection in ['settings', 'gifts', 'timeline', 'gallery', 'backgrounds', 'contributions'];
       allow write: if collection in ['settings', 'gifts', 'timeline', 'gallery', 'backgrounds', 'contributions'] && isAdmin(appId);
     }
+    match /weddingSpark/{appId} {
+      function root() { return /databases/$(database)/documents/weddingSpark/$(appId); }
+      function validPerson(d) {
+        let g = get(/databases/$(database)/documents/artifacts/$(appId)/public/data/guests/$(d.groupId)).data;
+        return d.groupId is string && d.member is string
+          && d.guestId == d.groupId + ':' + d.member
+          && d.author == (d.member == 'main' ? g.mainName : g.companions[int(d.member)].name);
+      }
+      function image(value, required) {
+        return value is string && value.size() <= 340000
+          && ((!required && value == '') || value.matches('data:image/jpeg;base64,[A-Za-z0-9+/=]+'));
+      }
+      function requestId(id) { return id is string && id.matches('[a-f0-9-]{36}'); }
+      function decision() {
+        return isAdmin(appId) && resource.data.status == 'pending'
+          && request.resource.data.status in ['approved','rejected']
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
+      }
+      match /muralSlots/{guestId} {
+        allow get: if true;
+        allow create, update: if request.resource.data.keys().hasOnly(['requests'])
+          && request.resource.data.requests is list
+          && request.resource.data.requests.size() >= 1 && request.resource.data.requests.size() <= 2
+          && request.resource.data.requests == (exists(/$(root())/muralSlots/$(guestId)) ? resource.data.requests : []).concat([request.resource.data.requests[request.resource.data.requests.size()-1]])
+          && getAfter(/$(root())/muralNotes/$(guestId + '_' + string(request.resource.data.requests.size()))).data.requestId == request.resource.data.requests[request.resource.data.requests.size()-1];
+      }
+      match /muralNotes/{id} {
+        allow read: if isAdmin(appId) || resource.data.status == 'approved';
+        allow create: if appId == 'casamento-junior-renata-v1'
+          && request.resource.data.keys().hasOnly(['guestId','groupId','member','author','requestId','slot','text','image','color','status','createdAt'])
+          && validPerson(request.resource.data) && requestId(request.resource.data.requestId)
+          && request.resource.data.slot in [1,2] && id == request.resource.data.guestId + '_' + string(request.resource.data.slot)
+          && request.resource.data.status == 'pending' && request.resource.data.createdAt == request.time
+          && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 1000
+          && request.resource.data.color in ['yellow','pink','green','blue'] && image(request.resource.data.image,false)
+          && getAfter(/$(root())/muralSlots/$(request.resource.data.guestId)).data.requests.size() == request.resource.data.slot
+          && getAfter(/$(root())/muralSlots/$(request.resource.data.guestId)).data.requests[request.resource.data.slot-1] == request.resource.data.requestId;
+        allow update: if decision();
+      }
+      match /giftSlots/{guestId} {
+        function previous() {
+          return exists(/$(root())/giftSlots/$(guestId)) && resource.data.day == request.time.date() ? resource.data.requests : [];
+        }
+        allow get: if true;
+        allow create, update: if request.resource.data.keys().hasOnly(['day','requests'])
+          && request.resource.data.day == request.time.date()
+          && request.resource.data.requests is list && request.resource.data.requests.size() >= 1 && request.resource.data.requests.size() <= 20
+          && request.resource.data.requests == previous().concat([request.resource.data.requests[request.resource.data.requests.size()-1]])
+          && getAfter(/$(root())/giftClaims/$(request.resource.data.requests[request.resource.data.requests.size()-1])).data.guestId == guestId;
+      }
+      match /giftClaims/{id} {
+        allow read: if isAdmin(appId);
+        allow create: if appId == 'casamento-junior-renata-v1'
+          && request.resource.data.keys().hasOnly(['guestId','groupId','member','author','requestId','giftId','giftTitle','amountCents','method','receipt','paid','status','createdAt'])
+          && requestId(id) && id == request.resource.data.requestId && validPerson(request.resource.data)
+          && request.resource.data.status == 'pending' && request.resource.data.createdAt == request.time && request.resource.data.paid == true
+          && request.resource.data.giftTitle == get(/databases/$(database)/documents/artifacts/$(appId)/public/data/gifts/$(request.resource.data.giftId)).data.title
+          && request.resource.data.amountCents is int && request.resource.data.amountCents > 0 && request.resource.data.amountCents <= 100000000000
+          && request.resource.data.method in ['pix','payment','store'] && image(request.resource.data.receipt,true)
+          && getAfter(/$(root())/giftSlots/$(request.resource.data.guestId)).data.day == request.time.date()
+          && id in getAfter(/$(root())/giftSlots/$(request.resource.data.guestId)).data.requests;
+        allow update: if decision() && (request.resource.data.status == 'rejected' || (
+          getAfter(/$(root())/giftApprovals/$(id)).data.giftId == resource.data.giftId
+          && getAfter(/$(root())/giftApprovals/$(id)).data.amountCents == resource.data.amountCents));
+      }
+      match /giftApprovals/{id} {
+        allow read: if true;
+        allow create: if isAdmin(appId) && request.resource.data.keys().hasOnly(['giftId','amountCents'])
+          && getAfter(/$(root())/giftClaims/$(id)).data.status == 'approved'
+          && getAfter(/$(root())/giftClaims/$(id)).data.giftId == request.resource.data.giftId
+          && getAfter(/$(root())/giftClaims/$(id)).data.amountCents == request.resource.data.amountCents;
+      }
+    }
     match /weddingMuralPrivate/{document=**} { allow read, write: if false; }
     match /weddingGiftsPrivate/{document=**} { allow read, write: if false; }
   }

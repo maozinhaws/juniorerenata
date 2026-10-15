@@ -3,7 +3,7 @@ import { participants } from './guests.js';
 import { state, auth, escapeHTML } from './firebase-init.js';
 import { isPreview } from './data-store.js';
 import { mountImageInput } from './image-input.js?v=20260925-2329';
-import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js';
+import { sparkMural } from './spark-approvals.js';
 
 const previewKey = 'wedding-mural-preview-v1';
 let requestId = crypto.randomUUID();
@@ -29,7 +29,7 @@ function enhanceBoard(published) {
     }).catch(()=>{host.parentElement.classList.remove('has-webgl');});
 }
 async function api(action, payload = {}) {
-    if (!isPreview) return (await httpsCallable(getFunctions(auth.app), 'weddingMural')({ action, ...payload })).data;
+    if (!isPreview) return sparkMural(action,payload);
     let saved = JSON.parse(localStorage.getItem(previewKey) || '[]');
     if (action === 'submit') {
         const person = participants().find(p => p.key === payload.guestId);

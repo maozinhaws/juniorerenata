@@ -2,7 +2,7 @@ import { state, auth, escapeHTML, renderGifts } from './firebase-init.js';
 import { isPreview } from './data-store.js';
 import { participants } from './guests.js';
 import { mountImageInput, validImageSource } from './image-input.js?v=20260925-2329';
-import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js';
+import { sparkGifts } from './spark-approvals.js';
 import { safeStoreUrl } from './site-values.js';
 export { safeStoreUrl } from './site-values.js';
 const $ = id => document.getElementById(id);
@@ -10,7 +10,7 @@ const money = cents => (cents / 100).toLocaleString('pt-BR',{style:'currency',cu
 let amountCents = 0, requestId, submitted = false, busy = false, queue = [], whatsappText = '';
 const previewKey = 'wedding-gift-payments-preview-v1';
 async function api(action, payload = {}) {
-    if (!isPreview) return (await httpsCallable(getFunctions(auth.app),'weddingGifts')({action,...payload})).data;
+    if (!isPreview) return sparkGifts(action,payload);
     let rows = JSON.parse(localStorage.getItem(previewKey) || '[]');
     if (action === 'submit') {
         const person = participants().find(p => p.key === payload.guestId);
@@ -38,7 +38,7 @@ export async function refreshGiftPayments() {
         state.giftPaymentTotals = result.totals || []; queue = state.isAdminLoggedIn ? result.rows || [] : [];
         renderGifts();
         panel.innerHTML = state.isAdminLoggedIn ? queue.map(row=>'<article class="payment-review"><strong>'+escapeHTML(row.author)+' · '+money(row.amountCents)+'</strong><p>'+escapeHTML(row.giftTitle)+' · '+escapeHTML(row.method)+'</p><p>Referência: '+escapeHTML(row.id)+'</p>'+(row.receipt ? '<a href="'+escapeHTML(row.receipt)+'" download="comprovante.jpg"><img src="'+escapeHTML(row.receipt)+'" alt="Comprovante enviado por '+escapeHTML(row.author)+'">Baixar comprovante</a>' : '')+'<button data-payment-review="'+escapeHTML(row.id)+'" data-status="approved">Aprovar pagamento</button><button data-payment-review="'+escapeHTML(row.id)+'" data-status="rejected">Recusar</button></article>').join('') || '<p>Nenhum pagamento pendente.</p>' : '';
-    } catch { panel.textContent = 'Não foi possível carregar os pagamentos. A aprovação em produção depende da função weddingGifts publicada.'; }
+    } catch { panel.textContent = 'Não foi possível carregar os pagamentos. Confira a conexão e tente atualizar novamente.'; }
 }
 function amountValue() {
     const value = Number($('donation-amount').value);

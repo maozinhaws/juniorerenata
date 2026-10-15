@@ -2,3 +2,8 @@ node_modules/
 functions/node_modules/
 firebase-debug*.log
 .firestore/
+
+firestore-debug.log
+ui-debug.log
+tests/firestore/spark-adapter.mjs
+tests/firestore/spark-context.mjs
