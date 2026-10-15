@@ -1,14 +1,5 @@
 {
-  "functions": [
-    {
-      "source": "functions",
-      "codebase": "wedding-mural"
-    }
-  ],
   "emulators": {
-    "functions": {
-      "port": 5001
-    },
     "firestore": {
       "port": 8080
     },
