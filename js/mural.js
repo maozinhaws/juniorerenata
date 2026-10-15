@@ -135,6 +135,7 @@ export function initMural() {
         nameInput.value = selectedGuest.name;
         suggestions.hidden = true;
     });
+    form.addEventListener('input', () => { if (!busy) document.getElementById('mural-submit-status').hidden = true; });
     form.addEventListener('submit', async e => {
         e.preventDefault();
         if (busy) return;
@@ -143,6 +144,8 @@ export function initMural() {
         if (image.dataset.imageBusy) return window.showToast('Aguarde a preparação da foto.', true);
         // Guest media must be a decoded/re-encoded upload; remote links are not accepted.
         if (image.value && !/^data:image\/jpeg;base64,/.test(image.value)) return window.showToast('Escolha ou cole o arquivo da foto.', true);
+        const feedback = document.getElementById('mural-submit-status');
+        feedback.hidden = false; feedback.dataset.state = 'pending'; feedback.textContent = 'Enviando recado…';
         busy = true;
         const button = form.querySelector('[type=submit]');
         button.disabled = true;
@@ -150,16 +153,18 @@ export function initMural() {
             await api('submit', { guestId: selectedGuest.key, color: form.querySelector('[name=postit-color]:checked')?.value || 'yellow', text: document.getElementById('mural-text').value.trim(), image: image.value, requestId });
             selectedGuest = null; form.reset(); form.querySelectorAll('.photo-editor img').forEach(img => img.hidden = true);
             requestId = crypto.randomUUID();
-            window.showToast('Recado recebido! Ele aparecerá após aprovação dos noivos.');
+            feedback.dataset.state = 'success';
+            feedback.textContent = 'Recado enviado. Ele aparecerá no mural após a aprovação dos noivos.';
+            window.showToast('Recado enviado');
             await refreshMural();
-        } catch (error) { window.showToast(error.message || 'Não foi possível enviar. Tente novamente.', true); }
+        } catch (error) { feedback.dataset.state = 'error'; feedback.textContent = error.message || 'Não foi possível enviar. Tente novamente.'; window.showToast(feedback.textContent, true); }
         finally { busy = false; button.disabled = false; }
     });
     document.getElementById('mural-moderation').addEventListener('click', async e => {
         const button = e.target.closest('[data-moderate]');
         if (!button) return;
         button.disabled = true;
-        try { await api('moderate', { id: button.dataset.moderate, status: button.dataset.status }); await refreshMural(); }
+        try { await api('moderate', { id: button.dataset.moderate, status: button.dataset.status }); window.showToast(button.dataset.status === 'approved' ? 'Recado aprovado e publicado.' : 'Recado recusado.'); await refreshMural(); }
         catch (error) { window.showToast(error.message, true); button.disabled = false; }
     });
     refreshMural();

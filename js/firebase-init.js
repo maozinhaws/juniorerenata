@@ -128,13 +128,18 @@ window.openDeleteModal = (msg, act) => {
 window.closeDeleteModal = () => { state.pendingDelete = null; document.getElementById('modal-delete-confirm').style.display = 'none'; };
 window.confirmPendingDelete = async () => { const act = state.pendingDelete; window.closeDeleteModal(); if (typeof act === 'function') await act(); };
 
+let toastTimer;
 window.showToast = (msg, err = false) => {
     const t = document.getElementById('toast');
     document.getElementById('toast-msg').innerText = msg;
     t.className = `fixed top-16 right-5 z-[9999] text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 border ${err ? 'bg-red-950 border-red-700' : 'bg-stone-900 border-emerald-600'} show`;
     document.getElementById('toast-icon').setAttribute('data-lucide', err ? 'alert-circle' : 'check-circle-2');
     window.lucide?.createIcons();
-    setTimeout(() => { t.className = t.className.replace('show', ''); }, 4000);
+    t.setAttribute('role', err ? 'alert' : 'status');
+    t.setAttribute('aria-live', err ? 'assertive' : 'polite');
+    t.setAttribute('aria-atomic', 'true');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.className = t.className.replace('show', ''); }, 6000);
 };
 
 export const escapeHTML = v => (v == null ? '' : String(v).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])));

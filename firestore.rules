@@ -1,0 +1,27 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin(appId) {
+      return request.auth != null
+        && get(/databases/$(database)/documents/artifacts/$(appId)/public/data/admins/$(request.auth.uid)).data.active == true;
+    }
+    match /artifacts/{appId}/public/data/admins/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow list, write: if false;
+    }
+    match /artifacts/{appId}/public/data/guests/{guestId} {
+      allow read: if true;
+      allow create, delete: if isAdmin(appId);
+      allow update: if isAdmin(appId) || (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+        && request.resource.data.status in ['confirmed', 'declined']
+      );
+    }
+    match /artifacts/{appId}/public/data/{collection}/{document} {
+      allow read: if collection in ['settings', 'gifts', 'timeline', 'gallery', 'backgrounds', 'contributions'];
+      allow write: if collection in ['settings', 'gifts', 'timeline', 'gallery', 'backgrounds', 'contributions'] && isAdmin(appId);
+    }
+    match /weddingMuralPrivate/{document=**} { allow read, write: if false; }
+    match /weddingGiftsPrivate/{document=**} { allow read, write: if false; }
+  }
+}

@@ -24,7 +24,8 @@ export function initBackgrounds() {
     mountImageInput('bg-image','plano de fundo');
     const picker = document.getElementById('bg-section'), input = document.getElementById('bg-image'), position = document.getElementById('bg-position');
     const fill = () => { const config = saved[picker.value]; input.value = config?.image || ''; position.value = config?.position ?? 50; input.dispatchEvent(new Event('input')); };
-    picker.onchange = () => { delete input.dataset.dirty; fill(); };
+    picker.onchange = () => { delete input.dataset.dirty; fill();
+            window.showToast(clear ? 'Retratos dos noivos ativados.' : 'Plano de fundo salvo.'); };
     for (const id of Object.keys(sections)) onSnapshot(doc(db,'artifacts',appId,'public','data','backgrounds',id), snap => {
         saved[id] = snap.exists() ? snap.data() : {};
         if (active === id) showBackground(id);
@@ -44,6 +45,7 @@ export function initBackgrounds() {
             saved[section] = config;
             if (active === section) showBackground(section);
             delete input.dataset.dirty; fill();
+            window.showToast(clear ? 'Retratos dos noivos ativados.' : 'Plano de fundo salvo.');
             document.getElementById('bg-status').textContent = 'Fundo de ' + sections[section] + ' salvo. Abra a página para visualizar.';
         } catch { document.getElementById('bg-status').textContent = 'Não foi possível salvar. Confira conexão e permissões.'; }
         finally { button.disabled = clearButton.disabled = picker.disabled = false; }

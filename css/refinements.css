@@ -86,3 +86,8 @@ body:has(.preview-banner) #app-sidebar {top:38px!important;}
 #mural-container .sticky-paper {background-image:url('../assets/fabric.svg'),linear-gradient(165deg,#fff6,var(--note));}
 
 body:has(.memory-viewer[open]) {overflow:hidden!important;}
+
+.action-feedback:not([hidden]){padding:14px 18px;border:1px solid #b8d9aa;border-radius:12px;background:#193e32;color:#efffe9;font-weight:600;}
+.action-feedback[data-state="error"]{background:#5b1930;border-color:#f4a4bb;color:#fff0f4;}
+.action-feedback[data-state="pending"]{background:#33213c;border-color:#d8bc78;color:#fff3d5;}
+#toast{max-width:min(420px,calc(100vw - 32px));overflow-wrap:anywhere;}
