@@ -41,7 +41,7 @@ export async function sparkMural(action,data={}) {
                 const target=ref('muralNotes',data.id),snapshot=await tx.get(target),row=snapshot.data();
                 if(!row)throw new Error('Recado não encontrado.');
                 if(row.status===data.status)return {};
-                if(row.status!=='pending'||!['approved','rejected'].includes(data.status))throw new Error('Recado já analisado.');
+                if (!(data.status === 'deleted' || (row.status === 'deleted' && data.status === 'pending') || (row.status === 'pending' && ['approved','rejected'].includes(data.status)))) throw new Error('Ação inválida para este recado.');
                 tx.update(target,{status:data.status});return {};
             });
         }

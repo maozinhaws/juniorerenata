@@ -37,6 +37,16 @@ await no(updateDoc(doc(publicDb,root+'muralNotes/guest:main_1'),{status:'approve
 await ok(getDocs(collection(adminDb,root+'muralNotes')));
 await ok(updateDoc(doc(adminDb,root+'muralNotes/guest:main_1'),{status:'approved'}));
 await ok(getDocs(query(collection(publicDb,root+'muralNotes'),where('status','==','approved'))));
+await no(updateDoc(doc(publicDb,root+'muralNotes/guest:main_1'),{status:'deleted'}));
+await ok(updateDoc(doc(adminDb,root+'muralNotes/guest:main_1'),{status:'deleted'}));
+await no(getDoc(doc(publicDb,root+'muralNotes/guest:main_1')));
+await ok(updateDoc(doc(adminDb,root+'muralNotes/guest:main_1'),{status:'pending'}));
+await ok(updateDoc(doc(adminDb,base+'guests/guest'),{'memberStates.0':'revoked'}));
+await no(updateDoc(doc(publicDb,base+'guests/guest'),{'memberStates.0':'confirmed'}));
+await ok(updateDoc(doc(adminDb,base+'guests/guest'),{'memberStates.main':'revoked'}));
+await no(updateDoc(doc(publicDb,base+'guests/guest'),{status:'confirmed'}));
+await ok(updateDoc(doc(adminDb,base+'guests/guest'),{'memberStates.main':'confirmed'}));
+
 await no(getDocs(collection(publicDb,root+'muralNotes')));
 await ok(sendNote(id2,2,[id1,id2]));
 await no(sendNote(id1,3,[id1,id2,id1]));

@@ -62,11 +62,13 @@ function paint() {
     const queue = document.getElementById('mural-moderation');
     queue.hidden = !state.isAdminLoggedIn;
     if (!state.isAdminLoggedIn) return;
-    queue.innerHTML = '<h3>Recados para aprovar</h3>' + rows.filter(row => row.status === 'pending').map(row =>
+    queue.innerHTML = '<h3>Gerenciar recados</h3>' + rows.map(row =>
         '<article class="moderation-note"><strong>' + escapeHTML(row.author) + '</strong><p>' + escapeHTML(row.text) + '</p>' +
-        (row.image ? '<img src="' + escapeHTML(row.image) + '" alt="Foto aguardando aprovação">' : '') +
-        '<button data-moderate="' + row.id + '" data-status="approved">Aprovar</button><button data-moderate="' + row.id + '" data-status="rejected">Recusar</button></article>').join('') +
-        (rows.some(row => row.status === 'pending') ? '' : '<p>Nenhum recado pendente.</p>');
+        (row.image ? '<img src="' + escapeHTML(row.image) + '" alt="Foto do recado">' : '') +
+        '<small>' + ({pending:'Aguardando aprovação',approved:'Publicado',rejected:'Recusado',deleted:'Excluído'}[row.status] || '') + '</small>' +
+        (row.status === 'pending' ? '<button data-moderate="' + escapeHTML(row.id) + '" data-status="approved">Aprovar</button><button data-moderate="' + escapeHTML(row.id) + '" data-status="rejected">Recusar</button>' : '') +
+        '<button data-moderate="' + escapeHTML(row.id) + '" data-status="' + (row.status === 'deleted' ? 'pending' : 'deleted') + '">' + (row.status === 'deleted' ? 'Restaurar para aprovação' : 'Excluir recado') + '</button></article>').join('') + (rows.length ? '' : '<p>Nenhum recado.</p>');
+
 }
 export async function refreshMural() {
     try {
@@ -164,7 +166,7 @@ export function initMural() {
         const button = e.target.closest('[data-moderate]');
         if (!button) return;
         button.disabled = true;
-        try { await api('moderate', { id: button.dataset.moderate, status: button.dataset.status }); window.showToast(button.dataset.status === 'approved' ? 'Recado aprovado e publicado.' : 'Recado recusado.'); await refreshMural(); }
+        try { await api('moderate', { id: button.dataset.moderate, status: button.dataset.status }); window.showToast(({approved:'Recado aprovado e publicado.',rejected:'Recado recusado.',deleted:'Recado excluído do mural.',pending:'Recado restaurado para aprovação.'}[button.dataset.status])); await refreshMural(); }
         catch (error) { window.showToast(error.message, true); button.disabled = false; }
     });
     refreshMural();

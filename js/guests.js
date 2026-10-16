@@ -1,17 +1,16 @@
+import { guestLists } from './guest-list.js';
 import { state, db, appId } from './firebase-init.js';
 import { collection, addDoc, doc, updateDoc } from './data-store.js';
 
 export function participants() {
-    return state.guests.flatMap(g => [
-        { key: g.id + ':main', name: g.mainName, group: g.mainName },
-        ...(g.companions || []).map((p, i) => ({ key: g.id + ':' + i, name: p.name, group: g.mainName }))
-    ]).filter(p => p.name);
+    return guestLists(state.guests).people.filter(p => p.status !== 'revoked').map(p => ({key:p.id+':'+p.member,name:p.name,group:p.group}));
 }
 export function initGuests() {
     const modal = document.getElementById('modal-add-guest');
     const form = document.getElementById('form-add-guest');
     window.openAddGuestModal = () => {
         if (!state.isAdminLoggedIn) return;
+        document.getElementById('guest-manager-dialog')?.close();
         form.reset();
         document.getElementById('companions-container').replaceChildren();
         modal.style.display = 'flex';

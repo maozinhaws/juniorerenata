@@ -39,7 +39,16 @@ export const addDoc = async (ref, value) => {
     await setDoc(target, value);
     return target;
 };
-export const updateDoc = (ref, value) => isPreview ? setDoc(ref, value, { merge: true }) : firestore.updateDoc(ref, value);
+export const updateDoc = (ref, value) => {
+    if (!isPreview) return firestore.updateDoc(ref, value);
+    const merged = structuredClone(data[ref.path] || {});
+    for (const [key, v] of Object.entries(value)) {
+        const parts = key.split('.'); let target = merged;
+        for (const part of parts.slice(0,-1)) target = target[part] ??= {};
+        target[parts.at(-1)] = v;
+    }
+    return setDoc(ref, merged);
+};
 export const deleteDoc = async ref => {
     if (!isPreview) return firestore.deleteDoc(ref);
     delete data[ref.path]; persist();

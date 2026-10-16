@@ -1,3 +1,4 @@
+import { memberStatus } from './guest-list.js';
 import { biographyDocument } from './biography-data.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -576,7 +577,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 rsvpSuggestions.classList.add('hidden');
                 return;
             }
-            const matches = state.guests.filter(g => g.status !== 'revoked' && g.mainName && g.mainName.toLowerCase().includes(query));
+            const matches = state.guests.filter(g => !['revoked','deleted'].includes(memberStatus(g,'main')) && g.mainName && g.mainName.toLowerCase().includes(query));
             if (!matches.length) {
                 rsvpSuggestions.innerHTML = `<div class="p-3 text-xs text-stone-400">Nenhum convidado encontrado.</div>`;
                 rsvpSuggestions.classList.remove('hidden');
@@ -601,7 +602,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 rsvpSuggestions.classList.add('hidden');
                 document.getElementById('rsvp-selected-name').innerText = found.mainName;
                 document.getElementById('rsvp-companions-list').innerHTML = (found.companions && found.companions.length) ? 
-                    found.companions.map(c => `<div class="flex justify-between bg-white p-2 rounded-lg border border-stone-200"><span>${escapeHTML(c.name)}</span><span class="text-stone-400">${escapeHTML(c.relation || '')}${Number.isFinite(c.age) ? ' (' + c.age + 'a)' : ''}</span></div>`).join('') :
+                    found.companions.filter((c,i)=>!['revoked','deleted'].includes(memberStatus(found,String(i)))).map(c => `<div class="flex justify-between bg-white p-2 rounded-lg border border-stone-200"><span>${escapeHTML(c.name)}</span><span class="text-stone-400">${escapeHTML(c.relation || '')}${Number.isFinite(c.age) ? ' (' + c.age + 'a)' : ''}</span></div>`).join('') :
                     `<span class="text-stone-400">Nenhum acompanhante cadastrado.</span>`;
                 rsvpDetails.classList.remove('hidden');
                 window.lucide?.createIcons();
