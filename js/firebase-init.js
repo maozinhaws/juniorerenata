@@ -1,3 +1,4 @@
+import { biographyDocument } from './biography-data.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDoc, isPreview, seedPreview } from './data-store.js';
@@ -481,7 +482,7 @@ const startFirebase = async () => {
     }, error => reportSyncError('os presentes', error));
 
     onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'timeline'), snap => {
-        state.timeline = snap.docs.map(d => ({id: d.id, ...d.data()}));
+        state.timeline = snap.docs.map(biographyDocument);
         renderBiography();
     }, error => reportSyncError('a história', error));
 

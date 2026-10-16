@@ -1,3 +1,4 @@
+import { biographySaveError } from './biography-data.js';
 import { chapterCuriosity } from './site-values.js';
 import { state, db, appId, escapeHTML } from './firebase-init.js';
 import { collection, doc, addDoc, updateDoc } from './data-store.js';
@@ -65,7 +66,10 @@ export function initBiography() {
             else await addDoc(collection(db,'artifacts',appId,'public','data','timeline'),data);
             document.getElementById('modal-story').classList.add('hidden');
             window.showToast('Capítulo salvo.');
-        } catch { window.showToast('Não foi possível salvar o capítulo. Confira a conexão e as permissões.',true); }
+        } catch (error) {
+            console.error('Falha ao salvar capítulo:', error.code || error.name);
+            window.showToast(biographySaveError(error), true);
+        }
         finally { delete form.dataset.saving; form.querySelector('[type=submit]').disabled = false; }
     });
     renderBiography();
