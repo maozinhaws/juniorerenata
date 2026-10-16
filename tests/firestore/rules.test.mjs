@@ -1,3 +1,5 @@
+import assert from 'node:assert/strict';
+import { biographyDocument } from '../../js/biography-data.js';
 import {initializeTestEnvironment,assertSucceeds,assertFails} from '@firebase/rules-unit-testing';
 import {doc,setDoc,getDoc,getDocs,collection,query,where,writeBatch,updateDoc,serverTimestamp,Timestamp} from 'firebase/firestore';
 import fs from 'node:fs';
@@ -13,6 +15,12 @@ const person={guestId:'guest:main',groupId:'guest',member:'main',author:'Teste'}
 function note(id,slot,extra={}){return {...person,requestId:id,slot,text:'Felicidades!',image:'',color:'yellow',status:'pending',createdAt:serverTimestamp(),...extra};}
 function sendNote(id,slot,requests,extra={}){const b=writeBatch(publicDb);b.set(doc(publicDb,root+'muralNotes/guest:main_'+slot),note(id,slot,extra));b.set(doc(publicDb,root+'muralSlots/guest:main'),{requests});return b.commit();}
 try{
+const chapterRef=doc(adminDb,base+'timeline/generated-chapter-id');
+await ok(setDoc(chapterRef,{id:'t2',text:'História original',curiosity:'Original',imageUrl:'https://example.com/photo.jpg'}));
+const chapter=biographyDocument(await getDoc(chapterRef));
+await ok(updateDoc(doc(adminDb,base+'timeline/'+chapter.id),{text:'História revisada',curiosity:'Bombons após o turno',curiosityAuthor:'noivo',imageUrl:'https://example.com/new.jpg'}));
+assert.equal((await getDoc(chapterRef)).data().curiosity,'Bombons após o turno'); checks++;
+await no(updateDoc(doc(publicDb,base+'timeline/'+chapter.id),{text:'Alteração pública'}));
 await no(setDoc(doc(publicDb,base+'admins/attacker'),{active:true}));
 await no(setDoc(doc(publicDb,base+'gifts/injected'),{title:'Fake'}));
 await ok(updateDoc(doc(publicDb,base+'guests/guest'),{status:'confirmed'}));
