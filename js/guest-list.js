@@ -1,12 +1,16 @@
 export const statusLabels = { confirmed: 'Confirmado', pending: 'Sem confirmação', declined: 'Não comparecerá', revoked: 'Desconvidado' };
 
+export function memberStatus(group, member) {
+    return group.memberStates?.[member] ?? group.status ?? 'pending';
+}
 export function guestLists(groups) {
     const people = groups.flatMap(g => [
-        { name: g.mainName, group: g.mainName, id: g.id, companion: false, status: g.status },
-        ...(g.companions || []).map(p => ({ name: p.name, group: g.mainName, id: g.id, companion: true, status: g.status }))
-    ]).filter(p => typeof p.name === 'string' && p.name.trim()).map(p => ({ ...p, status: statusLabels[p.status] ? p.status : 'pending' }))
-      .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
-    return { people, confirmed: people.filter(p => p.status === 'confirmed'), off: people.filter(p => p.status !== 'confirmed') };
+        { name:g.mainName, group:g.mainName, id:g.id, member:'main', companion:false, status:memberStatus(g,'main') },
+        ...(g.companions || []).map((p,i) => ({name:p.name,group:g.mainName,id:g.id,member:String(i),companion:true,status:memberStatus(g,String(i))}))
+    ]).filter(p => typeof p.name === 'string' && p.name.trim() && p.status !== 'deleted')
+      .map(p => ({...p,status:statusLabels[p.status] ? p.status : 'pending'}))
+      .sort((a,b) => a.name.localeCompare(b.name,'pt-BR'));
+    return {people,confirmed:people.filter(p=>p.status==='confirmed'),pending:people.filter(p=>p.status==='pending'),off:people.filter(p=>['declined','revoked'].includes(p.status))};
 }
 
 export function createGuestPdf(groups, JsPDF, title = 'Lista de convidados') {
@@ -20,8 +24,8 @@ export function createGuestPdf(groups, JsPDF, title = 'Lista de convidados') {
     heading('Lista de convidados');
     const titleLines = pdf.splitTextToSize(title, 174);
     pdf.text(titleLines, 18, y); y += titleLines.length * 5 + 5;
-    pdf.text(`${lists.confirmed.length} confirmados | ${lists.off.length} Off | ${lists.people.length} pessoas`, 18, y); y += 12;
-    for (const [label, rows, strike] of [['Presença confirmada', lists.confirmed, false], ['Convidados Off', lists.off, true]]) {
+    pdf.text(`${lists.confirmed.length} confirmados | ${lists.pending.length} aguardando | ${lists.off.length} Off | ${lists.people.length} pessoas`, 18, y); y += 12;
+    for (const [label, rows, strike] of [['Presença confirmada', lists.confirmed, false], ['Aguardando confirmação', lists.pending, false], ['Convidados Off', lists.off, true]]) {
         if (y > 240) { pdf.addPage(); y = 20; }
         heading(label);
         if (!rows.length) { pdf.text('Nenhum convidado nesta lista.', 18, y); y += 10; }

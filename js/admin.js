@@ -1,6 +1,7 @@
-import { guestLists, statusLabels, createGuestPdf } from './guest-list.js';
+import { renderGuestManager } from './guest-manager.js';
+import { guestLists } from './guest-list.js';
 import { db, appId, state } from './firebase-init.js';
-import { setDoc, doc, updateDoc } from './data-store.js';
+import { setDoc, doc } from './data-store.js';
 import { validImageSource } from './image-input.js?v=20260925-2329';
 import { spotifyEmbed } from './spotify.js';
 
@@ -56,51 +57,6 @@ export function renderAdmin() {
     const lists = guestLists(state.guests);
     document.getElementById('stat-total-guests').textContent = lists.people.length;
     document.getElementById('stat-confirmed-guests').textContent = lists.confirmed.length;
-    let host = document.getElementById('admin-guest-lists');
-    if (!host) return;
-    host.replaceChildren();
-    const exportButton = document.createElement('button');
-    exportButton.type = 'button'; exportButton.className = 'btn-primary';
-    exportButton.textContent = 'Baixar lista em PDF';
-    exportButton.disabled = !state.guestsLoaded || !!state.guestsError;
-    exportButton.onclick = async () => {
-        exportButton.disabled = true;
-        try {
-            await import('./vendor/jspdf.umd.min.js');
-            createGuestPdf(state.guests, window.jspdf.jsPDF, state.settings.names).save('lista-de-convidados.pdf');
-            window.showToast('PDF gerado. Confira os downloads do navegador.');
-        } catch (error) { console.error(error); window.showToast('Não foi possível gerar o PDF. Tente novamente.', true); }
-        finally { exportButton.disabled = false; }
-    };
-    host.append(exportButton);
-    const help = document.createElement('p');
-    help.textContent = state.guestsError ? 'Não foi possível carregar a lista. Recarregue a página.' : !state.guestsLoaded ? 'Carregando convidados…' : `${lists.confirmed.length} pessoas confirmadas, incluindo ${lists.confirmed.filter(p => p.companion).length} acompanhantes. As alterações de presença abaixo valem para todo o grupo.`;
-    host.append(help);
-    for (const [title, people, off] of [['Presença confirmada', lists.confirmed, false], ['Convidados Off', lists.off, true]]) {
-        const section = document.createElement('section');
-        const heading = document.createElement('h4'); heading.textContent = `${title} (${people.length})`; section.append(heading);
-        if (!people.length) { const empty = document.createElement('p'); empty.textContent = 'Nenhum convidado nesta lista.'; section.append(empty); }
-        for (const p of people) {
-            const row = document.createElement('div'); row.className = 'admin-guest-row';
-            const label = document.createElement('div');
-            const name = document.createElement(off ? 's' : 'strong'); name.textContent = p.name;
-            const detail = document.createElement('small'); detail.textContent = `${p.companion ? 'Acompanhante de ' + p.group : 'Titular'} · ${statusLabels[p.status]}`;
-            label.append(name, detail); row.append(label);
-            if (!p.companion) {
-                const select = document.createElement('select'); select.setAttribute('aria-label', 'Presença do grupo de ' + p.name);
-                for (const [value, text] of Object.entries(statusLabels)) { const option = new Option(text, value); select.add(option); }
-                select.value = p.status;
-                select.onchange = async () => {
-                    select.disabled = true;
-                    try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'guests', p.id), { status: select.value }); window.showToast('Presença do grupo atualizada.'); }
-                    catch (error) { select.value = p.status; window.showToast('Não foi possível atualizar a presença.', true); }
-                    finally { select.disabled = false; }
-                };
-                row.append(select);
-            }
-            section.append(row);
-        }
-        host.append(section);
-    }
+    renderGuestManager();
     if (window.lucide) window.lucide?.createIcons();
 }

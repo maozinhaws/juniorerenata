@@ -14,7 +14,7 @@ service cloud.firestore {
       allow create, delete: if isAdmin(appId);
       allow update: if isAdmin(appId) || (
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
-        && resource.data.status != 'revoked'
+        && !(resource.data.get('memberStates', {}).get('main', resource.data.status) in ['revoked','deleted'])
         && request.resource.data.status in ['confirmed', 'declined']
       );
     }
@@ -28,6 +28,8 @@ service cloud.firestore {
         let g = get(/databases/$(database)/documents/artifacts/$(appId)/public/data/guests/$(d.groupId)).data;
         return d.groupId is string && d.member is string
           && d.guestId == d.groupId + ':' + d.member
+          && !(g.get('memberStates', {}).get(d.member, g.get('status','pending')) in ['revoked','deleted'])
+          && !(g.get('memberStates', {}).get(d.member, g.get('status','pending')) in ['revoked','deleted'])
           && d.author == (d.member == 'main' ? g.mainName : g.companions[int(d.member)].name);
       }
       function image(value, required) {
@@ -59,7 +61,9 @@ service cloud.firestore {
           && request.resource.data.color in ['yellow','pink','green','blue'] && image(request.resource.data.image,false)
           && getAfter(/$(root())/muralSlots/$(request.resource.data.guestId)).data.requests.size() == request.resource.data.slot
           && getAfter(/$(root())/muralSlots/$(request.resource.data.guestId)).data.requests[request.resource.data.slot-1] == request.resource.data.requestId;
-        allow update: if decision();
+        allow update: if decision() || (isAdmin(appId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+          && (request.resource.data.status == 'deleted' || (resource.data.status == 'deleted' && request.resource.data.status == 'pending')));
       }
       match /giftSlots/{guestId} {
         function previous() {
